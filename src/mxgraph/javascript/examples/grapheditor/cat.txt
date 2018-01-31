@@ -1,0 +1,15 @@
+js/Init.js
+deflate/base64.js
+jscolor/jscolor.js
+sanitizer/sanitizer.min.js
+../../../src/mxClient.js
+js/EditorUi.js
+js/Editor.js
+js/Sidebar.js
+js/Graph.js
+js/Shapes.js
+js/Actions.js
+js/Menus.js
+js/Format.js
+js/Toolbar.js
+js/Dialogs.js
