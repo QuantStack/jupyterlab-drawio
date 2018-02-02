@@ -36,13 +36,11 @@ import './mxgraph/javascript/src/css/common.css';
 import './mxgraph/javascript/examples/grapheditor/www/styles/grapheditor.css';
 
 import {
-    grapheditor_txt, graph_txt, common_txt, default_xml
+    grapheditor_txt, default_xml
 } from './pack';
+import { PromiseDelegate } from '@phosphor/coreutils';
 
 const DIRTY_CLASS = 'jp-mod-dirty';
-
-// MIME Extension packgage.json: 
-// "mimeExtension": "lib/mime"
 
 export
 class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
@@ -60,8 +58,12 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         this.node.style.minWidth = '100%';
     }
 
+    getSVG() {
+        return this._editor.editor.graph.getSvg();
+    }
+
     protected onAfterShow(msg: Message): void {
-        this.loadEditor(this.node);
+        this._loadEditor(this.node);
         this._onContentChanged();
     }
 
@@ -73,29 +75,26 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
 
         contextModel.contentChanged.connect(this._onContentChanged, this);
         contextModel.stateChanged.connect(this._onModelStateChanged, this);
-
-        // Resolve the ready promise.
-        this.ready = Promise.resolve();
+        this._ready.resolve(void 0);
     }
 
-    private loadEditor(node: HTMLElement, contents?: string): void {
+    private _loadEditor(node: HTMLElement, contents?: string): void {
         // console.log(mx);
-        var editorUiInit = mx.EditorUi.prototype.init;
-        
+        //var editorUiInit = mx.EditorUi.prototype.init;
+
         // Adds required resources (disables loading of fallback properties, this can only
         // be used if we know that all keys are defined in the language specific file)
         mx.mxResources.loadDefaultBundle = false;
 
         // Fixes possible asynchronous requests
-        var bundle = grapheditor_txt;
         mx.mxResources.parse(grapheditor_txt);
         let oParser = new DOMParser();
         let oDOM = oParser.parseFromString(default_xml, "text/xml");
-        var themes = new Object();
+        let themes: any = new Object(null);
         themes[mx.Graph.prototype.defaultThemeName] = oDOM.documentElement;
         this._editor = new mx.EditorUi(new mx.Editor(false, themes), node);
 
-        this._editor.editor.graph.model.addListener(mx.mxEvent.NOTIFY, (sender, evt) => {
+        this._editor.editor.graph.model.addListener(mx.mxEvent.NOTIFY, (sender: any, evt: any) => {
             this._saveToContext();
         });
         return this._editor;
@@ -127,12 +126,7 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
     }
 
     private _saveToContext() : void {
-        if (!this.ready)
-        {
-            return;
-        }
-        if (this._editor.editor.graph.isEditing())
-        {
+        if (this._editor.editor.graph.isEditing()) {
             this._editor.editor.graph.stopEditing();
         }
         let xml = mx.mxUtils.getXml(this._editor.editor.getGraphXml());
@@ -153,12 +147,16 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         }
     }
 
-    // TODO make this readonly, too
-    public ready : Promise<void>;
+    /**
+     * A promise that resolves when the csv viewer is ready.
+     */
+    get ready(): Promise<void> {
+        return this._ready.promise;
+    }
 
-    // TODO turn this into a readonly attribute.
-    public context : DocumentRegistry.Context;
-    public _editor : any;
+    readonly context: DocumentRegistry.Context;
+    private _editor : any;
+    private _ready = new PromiseDelegate<void>();
 }
 
 /**
