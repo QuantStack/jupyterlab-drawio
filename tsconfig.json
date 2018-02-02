@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "declaration": false,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "noEmitOnError": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "allowJs": true,
     "module": "commonjs",
     "moduleResolution": "node",
