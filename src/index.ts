@@ -10,20 +10,8 @@ import {
 } from '@jupyterlab/apputils';
 
 import {
-  PathExt
-} from '@jupyterlab/coreutils';
-
-import {
   IFileBrowserFactory
 } from '@jupyterlab/filebrowser';
-
-import {
-  IDocumentManager
-} from '@jupyterlab/docmanager';
-
-// import {
-//   drawio, drawioFactory, IDrawioTracker
-// } from '@jupyterlab/drawio';
 
 import {
   DrawioWidget, DrawioFactory
@@ -34,21 +22,12 @@ import {
 } from '@jupyterlab/launcher';
 
 import {
-  IEditMenu, IFileMenu, IMainMenu, IRunMenu, IViewMenu
+  IMainMenu
 } from '@jupyterlab/mainmenu';
 
 import {
-  JSONObject, Token
+  Token
 } from '@phosphor/coreutils';
-
-import {
-  Menu
-} from '@phosphor/widgets';
-
-/**
- * The class name for the text editor icon from the default theme.
- */
-const EDITOR_ICON_CLASS = 'jp-TextEditorIcon';
 
 /**
  * The name of the factory that creates editor widgets.
@@ -66,7 +45,7 @@ const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
 const plugin: JupyterLabPlugin<IDrawioTracker> = {
   activate,
   id: '@jupyterlab/drawio-extension:plugin',
-  requires: [IFileBrowserFactory, ILayoutRestorer, IDocumentManager],
+  requires: [IFileBrowserFactory, ILayoutRestorer],
   optional: [ICommandPalette, ILauncher, IMainMenu],
   provides: IDrawioTracker,
   autoStart: true
@@ -74,14 +53,21 @@ const plugin: JupyterLabPlugin<IDrawioTracker> = {
 
 export default plugin;
 
-function activate(app: JupyterLab, 
-                  browserFactory: IFileBrowserFactory, restorer: ILayoutRestorer, docmanager: IDocumentManager,
+function activate(app: JupyterLab,
+                  browserFactory: IFileBrowserFactory, restorer: ILayoutRestorer,
                   palette: ICommandPalette | null, launcher: ILauncher | null, menu: IMainMenu | null): IDrawioTracker {
-
   const namespace = 'drawio';
   const factory = new DrawioFactory({ name: FACTORY, fileTypes: ['dio'], defaultFor: ['dio'] });
-  const { commands, restored } = app;
+  const { commands } = app;
   const tracker = new InstanceTracker<DrawioWidget>({ namespace });
+
+  /**
+   * Whether there is an active DrawIO editor.
+   */
+  function isEnabled(): boolean {
+    return tracker.currentWidget !== null &&
+           tracker.currentWidget === app.shell.currentWidget;
+  }
 
   // Handle state restoration.
   restorer.restore(tracker, {
@@ -120,6 +106,7 @@ function activate(app: JupyterLab,
       });
     });
   };
+
   const createNewSVG = (cwd: string) => {
     return commands.execute('docmanager:new-untitled', {
       path: cwd, type: 'file', ext: '.svg'
@@ -131,7 +118,7 @@ function activate(app: JupyterLab,
     });
   };
 
-  // Add a command for creating a new text file.
+  // Add a command for creating a new diagram file.
   commands.addCommand('drawio:create-new', {
     label: 'Diagram',
     caption: 'Create a new diagram file',
@@ -142,19 +129,20 @@ function activate(app: JupyterLab,
   });
 
   commands.addCommand('drawio:export-svg', {
-    label: 'Export SVG',
+    label: 'Export diagram as SVG',
     caption: 'Export diagram as SVG',
     execute: () => {
       let cwd = browserFactory.defaultBrowser.model.path;
       return createNewSVG(cwd);
-    }
+    },
+    isEnabled
   });
 
   // Add a launcher item if the launcher is available.
   if (launcher) {
     launcher.add({
-      displayName: 'MXGraph',
-      name: 'MXGraph',
+      displayName: 'Diagram',
+      name: 'diagram',
       iconClass: 'jp-MaterialIcon jp-ImageIcon',
       callback: createNewDIO,
       rank: 1,
@@ -165,9 +153,13 @@ function activate(app: JupyterLab,
   if (menu) {
     // Add new text file creation to the file menu.
     menu.fileMenu.newMenu.addGroup([{ command: 'drawio:create-new' }], 40);
-    let args = { 'format': 'SVG', 'label': 'SVG', 'isPalette': true };
-    palette.addItem({ command: 'drawio:export-svg', category: 'Notebook Operations', args: args });
+    //let args = { 'format': 'SVG', 'label': 'SVG', 'isPalette': true };
+    //palette.addItem({ command: 'drawio:export-svg', category: 'Notebook Operations', args: args });
     menu.fileMenu.addGroup([{ command: 'drawio:export-svg'}], 40);
+  }
+
+  if (palette) {
+    palette.addItem({ command: 'drawio:export-svg', category: 'DrawIO' });
   }
 
   return tracker;

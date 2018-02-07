@@ -61,7 +61,7 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
     }
 
     protected onAfterShow(msg: Message): void {
-        this.loadEditor(this.node);
+        this._loadEditor(this.node);
         this._onContentChanged();
     }
 
@@ -88,7 +88,7 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         this.ready = Promise.resolve();
     }
 
-    private loadEditor(node: HTMLElement, contents?: string): void {
+    private _loadEditor(node: HTMLElement, contents?: string): void {
         // console.log(mx);
         var editorUiInit = mx.EditorUi.prototype.init;
         
@@ -97,15 +97,14 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         mx.mxResources.loadDefaultBundle = false;
 
         // Fixes possible asynchronous requests
-        var bundle = grapheditor_txt;
         mx.mxResources.parse(grapheditor_txt);
         let oParser = new DOMParser();
         let oDOM = oParser.parseFromString(default_xml, "text/xml");
-        var themes = new Object();
+        let themes: any = new Object(null);
         themes[mx.Graph.prototype.defaultThemeName] = oDOM.documentElement;
         this._editor = new mx.EditorUi(new mx.Editor(false, themes), node);
 
-        this._editor.editor.graph.model.addListener(mx.mxEvent.NOTIFY, (sender, evt) => {
+        this._editor.editor.graph.model.addListener(mx.mxEvent.NOTIFY, (sender: any, evt: any) => {
             this._saveToContext();
         });
         return this._editor;
@@ -149,10 +148,6 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         this.context.model.fromString(xml);
     }
 
-    public getSVG() : void {
-        return mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
-    }
-
     private _onModelStateChanged(sender: DocumentRegistry.IModel, args: IChangedArgs<any>): void {
         if (args.name === 'dirty') {
             this._handleDirtyState();
@@ -167,12 +162,16 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         }
     }
 
-    // TODO make this readonly, too
-    public ready : Promise<void>;
+    /**
+     * A promise that resolves when the csv viewer is ready.
+     */
+    get ready(): Promise<void> {
+        return this._ready.promise;
+    }
 
-    // TODO turn this into a readonly attribute.
-    public context : DocumentRegistry.Context;
-    public _editor : any;
+    readonly context: DocumentRegistry.Context;
+    private _editor : any;
+    private _ready = new PromiseDelegate<void>();
 }
 
 /**

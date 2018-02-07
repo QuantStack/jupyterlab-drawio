@@ -32,8 +32,9 @@
     "@jupyterlab/application": "^0.15.0",
     "@jupyterlab/docmanager": "^0.13.0",
     "@jupyterlab/filebrowser": "^0.15.0",
-    "@jupyterlab/mainmenu": "^0.4.2",
-    "@jupyterlab/launcher": "^0.15.1"
+    "@jupyterlab/mainmenu": "^0.4.0",
+    "@jupyterlab/launcher": "^0.15.0",
+    "@jupyterlab/apputils": "^0.15.0"
   },
   "devDependencies": {
     "rimraf": "^2.6.1",
