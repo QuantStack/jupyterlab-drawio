@@ -17,6 +17,10 @@ import {
   IFileBrowserFactory
 } from '@jupyterlab/filebrowser';
 
+import {
+  IDocumentManager
+} from '@jupyterlab/docmanager';
+
 // import {
 //   drawio, drawioFactory, IDrawioTracker
 // } from '@jupyterlab/drawio';
@@ -62,7 +66,7 @@ const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
 const plugin: JupyterLabPlugin<IDrawioTracker> = {
   activate,
   id: '@jupyterlab/drawio-extension:plugin',
-  requires: [IFileBrowserFactory, ILayoutRestorer],
+  requires: [IFileBrowserFactory, ILayoutRestorer, IDocumentManager],
   optional: [ICommandPalette, ILauncher, IMainMenu],
   provides: IDrawioTracker,
   autoStart: true
@@ -71,7 +75,7 @@ const plugin: JupyterLabPlugin<IDrawioTracker> = {
 export default plugin;
 
 function activate(app: JupyterLab, 
-                  browserFactory: IFileBrowserFactory, restorer: ILayoutRestorer,
+                  browserFactory: IFileBrowserFactory, restorer: ILayoutRestorer, docmanager: IDocumentManager,
                   palette: ICommandPalette | null, launcher: ILauncher | null, menu: IMainMenu | null): IDrawioTracker {
 
   const namespace = 'drawio';
@@ -116,19 +120,14 @@ function activate(app: JupyterLab,
       });
     });
   };
-
   const createNewSVG = (cwd: string) => {
     return commands.execute('docmanager:new-untitled', {
       path: cwd, type: 'file', ext: '.svg'
     }).then(model => {
       let wdg = app.shell.currentWidget as any;
-      console.log(wdg._editor.editor.graph.getSvg());
-      // commands.execute('docmanager:open', {
-      //   path: model.path, factory: () {
-
-      //   }
-      // })
-      // console.log(app.shell.currentWidget)
+      model.content = wdg.getSVG();
+      model.format = 'text'
+      let p = app.serviceManager.contents.save(model.path, model);
     });
   };
 

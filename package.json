@@ -1,18 +1,18 @@
 {
-  "name": "drawio",
+  "name": "jupyterlab-drawio",
   "version": "0.1.0",
-  "description": "A JupyterLab extension.",
+  "description": "A JupyterLab extension for embedding drawio / mxgraph.",
   "keywords": [
     "extension",
     "jupyter",
     "jupyterlab"
   ],
-  "homepage": "https://github.com/my_name/jupyterlab_myextension",
+  "homepage": "https://github.com/wolfv/jupyterlab-drawio",
   "bugs": {
-    "url": "https://github.com/my_name/jupyterlab_myextension/issues"
+    "url": "https://github.com/wolfv/jupyterlab-drawio/issues"
   },
   "license": "BSD-3-Clause",
-  "author": "Wolf Vollprehct",
+  "author": "Wolf Vollprecht",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
@@ -21,7 +21,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/my_name/jupyterlab_myextension.git"
+    "url": "https://github.com/wolfv/jupyterlab-drawio.git"
   },
   "scripts": {
     "build": "node scripts/copyfiles.js && tsc",
@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@jupyterlab/application": "^0.15.0",
+    "@jupyterlab/docmanager": "^0.13.0",
     "@jupyterlab/filebrowser": "^0.15.0",
     "@jupyterlab/mainmenu": "^0.4.2",
     "@jupyterlab/launcher": "^0.15.1"

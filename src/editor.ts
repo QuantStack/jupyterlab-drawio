@@ -57,7 +57,7 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         this.context.ready.then(() => { this._onContextReady(); });
         this.context.ready.then(() => { this._handleDirtyState(); });
 
-        this.node.style.minWidth = '100%';
+        // this.node.style.minWidth = '100%';
     }
 
     protected onAfterShow(msg: Message): void {
@@ -73,6 +73,16 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
 
         contextModel.contentChanged.connect(this._onContentChanged, this);
         contextModel.stateChanged.connect(this._onModelStateChanged, this);
+
+        this._editor.sidebarContainer.style.width = '208px';
+        var footer = document.getElementById('geFooter');
+                
+        if (footer != null)
+        {
+            this._editor.footerHeight = 0;
+            footer.style.display = 'none';
+            this._editor.refresh();
+        }
 
         // Resolve the ready promise.
         this.ready = Promise.resolve();
@@ -137,6 +147,10 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         }
         let xml = mx.mxUtils.getXml(this._editor.editor.getGraphXml());
         this.context.model.fromString(xml);
+    }
+
+    public getSVG() : void {
+        return mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
     }
 
     private _onModelStateChanged(sender: DocumentRegistry.IModel, args: IChangedArgs<any>): void {

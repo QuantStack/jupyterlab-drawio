@@ -1,7 +1,6 @@
-# drawio
+# jupyterlab-drawio
 
-A JupyterLab extension.
-
+A JupyterLab extension for standalone integration of drawio / mxgraph into jupyterlab.
 
 ## Prerequisites
 
@@ -10,7 +9,7 @@ A JupyterLab extension.
 ## Installation
 
 ```bash
-jupyter labextension install drawio
+jupyter labextension install jupyterlab-drawio
 ```
 
 ## Development
