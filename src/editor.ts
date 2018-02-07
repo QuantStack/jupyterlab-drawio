@@ -32,11 +32,16 @@ import {
   Message
 } from '@phosphor/messaging';
 
+import { 
+    PromiseDelegate
+} from '@phosphor/coreutils';
+
+
 import './mxgraph/javascript/src/css/common.css';
 import './mxgraph/javascript/examples/grapheditor/www/styles/grapheditor.css';
 
 import {
-    grapheditor_txt, graph_txt, common_txt, default_xml
+    grapheditor_txt, default_xml
 } from './pack';
 
 const DIRTY_CLASS = 'jp-mod-dirty';
@@ -75,23 +80,26 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         contextModel.stateChanged.connect(this._onModelStateChanged, this);
 
         this._editor.sidebarContainer.style.width = '208px';
-        var footer = document.getElementById('geFooter');
-                
-        if (footer != null)
+        var footer = document.getElementsByClassName('geFooterContainer');
+
+        this._editor.refresh();
+
+        if (footer.length)
         {
             this._editor.footerHeight = 0;
-            footer.style.display = 'none';
+            for (let i = 0; i < footer.length; i++)
+            {
+                let f = footer[i] as HTMLElement;
+                f.style.height = '0px';
+                f.style.display = 'none';
+            }
             this._editor.refresh();
         }
 
-        // Resolve the ready promise.
-        this.ready = Promise.resolve();
+        this._ready.resolve(void 0);
     }
 
     private _loadEditor(node: HTMLElement, contents?: string): void {
-        // console.log(mx);
-        var editorUiInit = mx.EditorUi.prototype.init;
-        
         // Adds required resources (disables loading of fallback properties, this can only
         // be used if we know that all keys are defined in the language specific file)
         mx.mxResources.loadDefaultBundle = false;
@@ -107,6 +115,7 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         this._editor.editor.graph.model.addListener(mx.mxEvent.NOTIFY, (sender: any, evt: any) => {
             this._saveToContext();
         });
+
         return this._editor;
     }
 
@@ -136,10 +145,6 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
     }
 
     private _saveToContext() : void {
-        if (!this.ready)
-        {
-            return;
-        }
         if (this._editor.editor.graph.isEditing())
         {
             this._editor.editor.graph.stopEditing();

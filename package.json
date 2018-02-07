@@ -29,12 +29,11 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.15.0",
-    "@jupyterlab/docmanager": "^0.13.0",
-    "@jupyterlab/filebrowser": "^0.15.0",
+    "@jupyterlab/application": "0.15.3",
+    "@jupyterlab/filebrowser": "0.15.3",
     "@jupyterlab/mainmenu": "^0.4.0",
-    "@jupyterlab/launcher": "^0.15.0",
-    "@jupyterlab/apputils": "^0.15.0"
+    "@jupyterlab/launcher": "0.15.3",
+    "@jupyterlab/apputils": "0.15.3"
   },
   "devDependencies": {
     "rimraf": "^2.6.1",
