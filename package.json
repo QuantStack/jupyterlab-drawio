@@ -1,17 +1,17 @@
 {
   "name": "jupyterlab-drawio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A JupyterLab extension for embedding drawio / mxgraph.",
   "keywords": [
     "extension",
     "jupyter",
     "jupyterlab"
   ],
-  "homepage": "https://github.com/wolfv/jupyterlab-drawio",
+  "homepage": "https://github.com/QuantStack/jupyterlab-drawio",
   "bugs": {
-    "url": "https://github.com/wolfv/jupyterlab-drawio/issues"
+    "url": "https://github.com/QuantStack/jupyterlab-drawio/issues"
   },
-  "license": "BSD-3-Clause",
+  "license": "Apache 2.0",
   "author": "Wolf Vollprecht",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
