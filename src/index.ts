@@ -161,9 +161,6 @@ function activate(app: JupyterLab,
     menu.fileMenu.addGroup([{ command: 'drawio:export-svg'}], 40);
   }
 
-  console.log("MENU: ", menu) 
-  console.log("PALETTE: ", palette)
-
   if (palette) {
     let args = { 'format': 'SVG', 'label': 'SVG', 'isPalette': true };
     palette.addItem({ command: 'drawio:export-svg', category: 'Notebook Operations', args: args });
