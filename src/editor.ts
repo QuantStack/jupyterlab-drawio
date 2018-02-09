@@ -60,9 +60,6 @@ import {
 
 const DIRTY_CLASS = 'jp-mod-dirty';
 
-// MIME Extension packgage.json: 
-// "mimeExtension": "lib/mime"
-
 export
 class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
 
@@ -75,13 +72,15 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
 
         this.context.ready.then(() => { this._onContextReady(); });
         this.context.ready.then(() => { this._handleDirtyState(); });
-
-        // this.node.style.minWidth = '100%';
     }
 
     protected onAfterShow(msg: Message): void {
         this._loadEditor(this.node);
         this._onContentChanged();
+    }
+
+    public getSVG() : string {
+        return mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
     }
 
     private _onContextReady() : void {
