@@ -5,7 +5,8 @@
   "keywords": [
     "extension",
     "jupyter",
-    "jupyterlab"
+    "jupyterlab",
+    "jupyterlab-extension"
   ],
   "homepage": "https://github.com/QuantStack/jupyterlab-drawio",
   "bugs": {
