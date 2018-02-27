@@ -1,4 +1,6 @@
 # jupyterlab-drawio
+[![Binder with JupyterLab](https://img.shields.io/badge/launch-jupyterlab-red.svg)](http://mybinder.org/v2/gh/kmader/jupyterlab-drawio/master?urlpath=lab)
+
 
 A JupyterLab extension for standalone integration of drawio / mxgraph into jupyterlab.
 
