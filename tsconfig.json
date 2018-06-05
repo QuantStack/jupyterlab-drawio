@@ -5,7 +5,7 @@
     "noEmitOnError": true,
     "noUnusedLocals": true,
     "allowJs": true,
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "target": "ES5",
     "outDir": "./lib",

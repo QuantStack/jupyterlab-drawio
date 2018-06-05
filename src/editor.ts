@@ -1,9 +1,9 @@
 // Copyright 2018 Wolf Vollprecht
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
@@ -28,7 +28,11 @@ w.OPEN_FORM = web_path +  'open.html';
 w.mxLoadStylesheets = false;  // disable loading stylesheets
 w.mxLoadResources = false;
 
-import * as mx from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
+/* This is a typing-only commit. If you use it directly, the mxgraph content
+   will be included in the main JupyterLab js bundle.
+*/
+import * as MXModuleType from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
+
 
 import {
     ABCWidgetFactory, DocumentRegistry
@@ -46,7 +50,7 @@ import {
   Message
 } from '@phosphor/messaging';
 
-import { 
+import {
     PromiseDelegate
 } from '@phosphor/coreutils';
 
@@ -67,20 +71,27 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         super();
         this.context = context;
 
-        this._onTitleChanged();
-        context.pathChanged.connect(this._onTitleChanged, this);
+        import(/* webpackChunkName: "mxgraph" */ './mxgraph/javascript/examples/grapheditor/www/modulated.js')
+        .then((mx) => {
+            this._mx = mx;
+            this._mxLoaded.resolve(void 0);
+            this._onTitleChanged();
+            context.pathChanged.connect(this._onTitleChanged, this);
 
-        this.context.ready.then(() => { this._onContextReady(); });
-        this.context.ready.then(() => { this._handleDirtyState(); });
+            this.context.ready.then(() => { this._onContextReady(); });
+            this.context.ready.then(() => { this._handleDirtyState(); });
+        });
     }
 
     protected onAfterShow(msg: Message): void {
-        this._loadEditor(this.node);
-        this._onContentChanged();
+        this._mxLoaded.promise.then(() => {
+          this._loadEditor(this.node);
+          this._onContentChanged();
+        });
     }
 
     public getSVG() : string {
-        return mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
+        return this._mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
     }
 
     private _onContextReady() : void {
@@ -115,17 +126,17 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
     private _loadEditor(node: HTMLElement, contents?: string): void {
         // Adds required resources (disables loading of fallback properties, this can only
         // be used if we know that all keys are defined in the language specific file)
-        mx.mxResources.loadDefaultBundle = false;
+        this._mx.mxResources.loadDefaultBundle = false;
 
         // Fixes possible asynchronous requests
-        mx.mxResources.parse(grapheditor_txt);
+        this._mx.mxResources.parse(grapheditor_txt);
         let oParser = new DOMParser();
         let oDOM = oParser.parseFromString(default_xml, "text/xml");
         let themes: any = new Object(null);
-        themes[mx.Graph.prototype.defaultThemeName] = oDOM.documentElement;
-        this._editor = new mx.EditorUi(new mx.Editor(false, themes), node);
+        themes[this._mx.Graph.prototype.defaultThemeName] = oDOM.documentElement;
+        this._editor = new this._mx.EditorUi(new this._mx.Editor(false, themes), node);
 
-        this._editor.editor.graph.model.addListener(mx.mxEvent.NOTIFY, (sender: any, evt: any) => {
+        this._editor.editor.graph.model.addListener(this._mx.mxEvent.NOTIFY, (sender: any, evt: any) => {
             this._saveToContext();
         });
 
@@ -145,13 +156,13 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
             return;
         }
 
-        const oldValue = mx.mxUtils.getXml(this._editor.editor.getGraphXml());
+        const oldValue = this._mx.mxUtils.getXml(this._editor.editor.getGraphXml());
         const newValue = this.context.model.toString();
 
         if (oldValue !== newValue && !this._editor.editor.graph.isEditing()) {
             if (newValue.length)
             {
-                let xml = mx.mxUtils.parseXml(newValue);
+                let xml = this._mx.mxUtils.parseXml(newValue);
                 this._editor.editor.setGraphXml(xml.documentElement);
             }
         }
@@ -162,7 +173,7 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         {
             this._editor.editor.graph.stopEditing();
         }
-        let xml = mx.mxUtils.getXml(this._editor.editor.getGraphXml());
+        let xml = this._mx.mxUtils.getXml(this._editor.editor.getGraphXml());
         this.context.model.fromString(xml);
     }
 
@@ -189,7 +200,9 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
 
     readonly context: DocumentRegistry.Context;
     private _editor : any;
+    private _mx: typeof MXModuleType;
     private _ready = new PromiseDelegate<void>();
+    private _mxLoaded = new PromiseDelegate<void>();
 }
 
 /**
