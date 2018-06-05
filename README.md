@@ -34,5 +34,5 @@ jupyter lab build
 ## License
 
 The files herein, and especially the source code of mxgraph, is licensed under the Apache 2.0 License.
-The copyright holders of draw.io / mxgraph is jgraph (http://wwww.jgraph.com). The original source code
+The copyright holders of draw.io / mxgraph is jgraph (http://www.jgraph.com). The original source code
 vendored in this package is taken from: https://github.com/jgraph/mxgraph 
