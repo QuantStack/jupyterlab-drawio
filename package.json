@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-drawio",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A JupyterLab extension for embedding drawio / mxgraph.",
   "keywords": [
     "extension",
@@ -30,19 +30,19 @@
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.16.2",
-    "@jupyterlab/apputils": "^0.16.2",
-    "@jupyterlab/coreutils": "^1.1.2",
-    "@jupyterlab/docregistry": "^0.16.2",
-    "@jupyterlab/filebrowser": "^0.16.2",
-    "@jupyterlab/launcher": "^0.16.2",
-    "@jupyterlab/mainmenu": "^0.5.2"
+    "@jupyterlab/application": "^0.17.0",
+    "@jupyterlab/apputils": "^0.17.0",
+    "@jupyterlab/coreutils": "^2.0.0",
+    "@jupyterlab/docregistry": "^0.17.0",
+    "@jupyterlab/filebrowser": "^0.17.0",
+    "@jupyterlab/launcher": "^0.17.0",
+    "@jupyterlab/mainmenu": "^0.6.2"
   },
   "devDependencies": {
-    "rimraf": "^2.6.1",
-    "typescript": "~2.6.0",
+    "rimraf": "^2.6.2",
+    "typescript": "~2.9.2",
     "fs-extra": "^0.30.0",
-    "@phosphor/messaging": "^1.1.0"
+    "@phosphor/messaging": "^1.2.2"
   },
   "jupyterlab": {
     "extension": true
