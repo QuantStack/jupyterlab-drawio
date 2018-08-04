@@ -31,8 +31,12 @@ w.mxLoadResources = false;
 import * as mx from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
 
 import {
-    ABCWidgetFactory, DocumentRegistry
+    ABCWidgetFactory, IDocumentWidget, DocumentRegistry
 } from '@jupyterlab/docregistry';
+
+import {
+    Toolbar
+} from '@jupyterlab/apputils';
 
 import {
   IChangedArgs, PathExt
@@ -61,7 +65,7 @@ import {
 const DIRTY_CLASS = 'jp-mod-dirty';
 
 export
-class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
+class DrawioWidget extends Widget implements IDocumentWidget {
 
     constructor(context: DocumentRegistry.Context) {
         super();
@@ -187,6 +191,9 @@ class DrawioWidget extends Widget implements DocumentRegistry.IReadyWidget {
         return this._ready.promise;
     }
 
+    public content: Widget;
+    public toolbar: Toolbar;
+    public revealed: Promise<void>;
     readonly context: DocumentRegistry.Context;
     private _editor : any;
     private _ready = new PromiseDelegate<void>();
