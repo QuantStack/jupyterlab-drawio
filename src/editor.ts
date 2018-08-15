@@ -67,15 +67,15 @@ const DIRTY_CLASS = 'jp-mod-dirty';
 export
 class DrawioWidget extends DocumentWidget<Widget> {
 
-    constructor(context: DocumentRegistry.Context) {
-        super();
-        this.context = context;
+    constructor(options: DocumentWidget.IOptions<Widget>) {
+        super({ ...options });
+        this.context = options['context'];
 
         this._onTitleChanged();
-        context.pathChanged.connect(this._onTitleChanged, this);
+        this.context.pathChanged.connect(this._onTitleChanged, this);
 
         this.context.ready.then(() => { this._onContextReady(); });
-        this.context.ready.then(() => { this._handleDirtyState(); });
+        this.context.ready.then(() => { this._handleDirtyStateNew(); });
     }
 
     protected onAfterShow(msg: Message): void {
@@ -94,7 +94,7 @@ class DrawioWidget extends DocumentWidget<Widget> {
         this._onContentChanged();
 
         contextModel.contentChanged.connect(this._onContentChanged, this);
-        contextModel.stateChanged.connect(this._onModelStateChanged, this);
+        contextModel.stateChanged.connect(this._onModelStateChangedNew, this);
 
         this._editor.sidebarContainer.style.width = '208px';
         var footer = document.getElementsByClassName('geFooterContainer');
@@ -170,13 +170,13 @@ class DrawioWidget extends DocumentWidget<Widget> {
         this.context.model.fromString(xml);
     }
 
-    private _onModelStateChanged(sender: DocumentRegistry.IModel, args: IChangedArgs<any>): void {
+    private _onModelStateChangedNew(sender: DocumentRegistry.IModel, args: IChangedArgs<any>): void {
         if (args.name === 'dirty') {
-            this._handleDirtyState();
+            this._handleDirtyStateNew();
         }
     }
 
-    private _handleDirtyState() : void {
+    private _handleDirtyStateNew() : void {
         if (this.context.model.dirty) {
             this.title.className += ` ${DIRTY_CLASS}`;
         } else {
@@ -204,10 +204,14 @@ class DrawioWidget extends DocumentWidget<Widget> {
  */
 export
 class DrawioFactory extends ABCWidgetFactory<DrawioWidget, DocumentRegistry.IModel> {
-  /**
-   * Create a new widget given a context.
-   */
-  protected createNewWidget(context: DocumentRegistry.Context): DrawioWidget {
-    return new DrawioWidget(context);
-  }
+    /**
+    * Create a new widget given a context.
+    */
+    constructor(options: DocumentRegistry.IWidgetFactoryOptions){
+        super(options);
+    }
+
+    protected createNewWidget(context: DocumentRegistry.Context): DrawioWidget {
+        return new DrawioWidget({context, content: new Widget()});
+    }
 }
