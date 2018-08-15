@@ -31,7 +31,7 @@ w.mxLoadResources = false;
 import * as mx from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
 
 import {
-    ABCWidgetFactory, IDocumentWidget, DocumentRegistry
+    ABCWidgetFactory, DocumentRegistry,  DocumentWidget,
 } from '@jupyterlab/docregistry';
 
 import {
@@ -65,7 +65,7 @@ import {
 const DIRTY_CLASS = 'jp-mod-dirty';
 
 export
-class DrawioWidget extends Widget implements IDocumentWidget {
+class DrawioWidget extends DocumentWidget<Widget> {
 
     constructor(context: DocumentRegistry.Context) {
         super();
