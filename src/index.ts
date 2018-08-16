@@ -136,6 +136,7 @@ function activate(app: JupyterLab,
   // Add a command for creating a new diagram file.
   commands.addCommand('drawio:create-new', {
     label: 'Diagram',
+    iconClass: 'jp-MaterialIcon jp-ImageIcon',
     caption: 'Create a new diagram file',
     execute: () => {
       let cwd = browserFactory.defaultBrowser.model.path;
@@ -156,10 +157,7 @@ function activate(app: JupyterLab,
   // Add a launcher item if the launcher is available.
   if (launcher) {
     launcher.add({
-      displayName: 'Diagram',
-      name: 'diagram',
-      iconClass: 'jp-MaterialIcon jp-ImageIcon',
-      callback: createNewDIO,
+      command: 'drawio:create-new',
       rank: 1,
       category: 'Other'
     });
