@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/QuantStack/jupyterlab-drawio/issues"
   },
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "author": "Wolf Vollprecht",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
@@ -27,7 +27,8 @@
   "scripts": {
     "build": "node scripts/copyfiles.js && tsc",
     "clean": "rimraf lib",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "prepublish": "npm run clean && npm run build"
   },
   "dependencies": {
     "@jupyterlab/application": "^0.17.2",
