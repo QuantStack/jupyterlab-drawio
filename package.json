@@ -31,13 +31,13 @@
     "prepublish": "npm run clean && npm run build"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.17.2",
-    "@jupyterlab/apputils": "^0.17.2",
+    "@jupyterlab/application": "^0.18.0",
+    "@jupyterlab/apputils": "^0.18.0",
     "@jupyterlab/coreutils": "^2.0.2",
-    "@jupyterlab/docregistry": "^0.17.2",
-    "@jupyterlab/filebrowser": "^0.17.3",
-    "@jupyterlab/launcher": "^0.17.2",
-    "@jupyterlab/mainmenu": "^0.6.2"
+    "@jupyterlab/docregistry": "^0.18.0",
+    "@jupyterlab/filebrowser": "^0.18.0",
+    "@jupyterlab/launcher": "^0.18.0",
+    "@jupyterlab/mainmenu": "^0.7.0"
   },
   "devDependencies": {
     "rimraf": "^2.6.1",
