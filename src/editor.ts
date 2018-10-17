@@ -1,9 +1,9 @@
 // Copyright 2018 Wolf Vollprecht
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
@@ -31,11 +31,11 @@ w.mxLoadResources = false;
 import * as mx from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
 
 import {
-    ABCWidgetFactory, DocumentRegistry,  DocumentWidget,
+  ABCWidgetFactory, DocumentRegistry,  DocumentWidget,
 } from '@jupyterlab/docregistry';
 
 import {
-    Toolbar
+  Toolbar
 } from '@jupyterlab/apputils';
 
 import {
@@ -50,10 +50,9 @@ import {
   Message
 } from '@phosphor/messaging';
 
-import { 
-    PromiseDelegate
+import {
+  PromiseDelegate
 } from '@phosphor/coreutils';
-
 
 import './mxgraph/javascript/src/css/common.css';
 import './mxgraph/javascript/examples/grapheditor/www/styles/grapheditor.css';
@@ -126,8 +125,10 @@ class DrawioWidget extends DocumentWidget<Widget> {
         let oParser = new DOMParser();
         let oDOM = oParser.parseFromString(default_xml, "text/xml");
         let themes: any = new Object(null);
-        themes[mx.Graph.prototype.defaultThemeName] = oDOM.documentElement;
-        this._editor = new mx.EditorUi(new mx.Editor(false, themes), node);
+        themes[(mx.Graph as any).prototype.defaultThemeName] = oDOM.documentElement;
+        // Workaround for TS2351: Cannot use 'new' with an expression whose type lacks a call or construct signature
+        const _Editor : any = mx.Editor;
+        this._editor = new mx.EditorUi(new _Editor(false, themes), node);
 
         this._editor.editor.graph.model.addListener(mx.mxEvent.NOTIFY, (sender: any, evt: any) => {
             this._saveToContext();
