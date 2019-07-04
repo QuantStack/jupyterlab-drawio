@@ -5,12 +5,15 @@
     "noEmitOnError": true,
     "noUnusedLocals": true,
     "allowJs": true,
-    "module": "commonjs",
+    "module": "esnext",
+    "esModuleInterop": true,
+    "incremental": true,
+    "jsx": "react",
     "moduleResolution": "node",
-    "target": "ES2015",
+    "target": "es2017",
     "outDir": "./lib",
-    "lib": ["ES2015", "ES2015.Promise", "DOM", "ES2015.Collection"],
-    "types": []
+    "types": [],
+    "rootDir": "./src"
   },
   "include": ["src/*"]
 }

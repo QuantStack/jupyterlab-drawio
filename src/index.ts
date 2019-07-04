@@ -13,11 +13,11 @@
 // limitations under the License.
 
 import {
-  ILayoutRestorer, JupyterLab, JupyterLabPlugin
+  ILayoutRestorer, JupyterLab, JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
 import {
-  ICommandPalette, InstanceTracker, IInstanceTracker
+  ICommandPalette, WidgetTracker, IWidgetTracker
 } from '@jupyterlab/apputils';
 
 import {
@@ -45,7 +45,7 @@ import {
  */
 const FACTORY = 'Drawio';
 
-interface IDrawioTracker extends IInstanceTracker<DrawioWidget> {}
+interface IDrawioTracker extends IWidgetTracker<DrawioWidget> {}
 
 export
 const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
@@ -53,7 +53,7 @@ const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
 /**
  * The editor tracker extension.
  */
-const plugin: JupyterLabPlugin<IDrawioTracker> = {
+const plugin: JupyterFrontEndPlugin<IDrawioTracker> = {
   activate,
   id: '@jupyterlab/drawio-extension:plugin',
   requires: [IFileBrowserFactory, ILayoutRestorer, IMainMenu, ICommandPalette],
@@ -74,7 +74,7 @@ function activate(app: JupyterLab,
   const namespace = 'drawio';
   const factory = new DrawioFactory({ name: FACTORY, fileTypes: ['dio'], defaultFor: ['dio'] });
   const { commands } = app;
-  const tracker = new InstanceTracker<DrawioWidget>({ namespace });
+  const tracker = new WidgetTracker<DrawioWidget>({ namespace });
 
   /**
    * Whether there is an active DrawIO editor.

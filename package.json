@@ -26,23 +26,23 @@
   },
   "scripts": {
     "build": "node scripts/copyfiles.js && tsc",
-    "clean": "rimraf lib",
+    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
     "watch": "tsc -w",
     "prepublish": "npm run clean && npm run build"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.19.1",
-    "@jupyterlab/apputils": "^0.19.1",
-    "@jupyterlab/coreutils": "^2.0.2",
-    "@jupyterlab/docregistry": "^0.19.1",
-    "@jupyterlab/filebrowser": "^0.19.1",
-    "@jupyterlab/launcher": "^0.19.1",
-    "@jupyterlab/mainmenu": "^0.8.1"
+    "@jupyterlab/application": "^1.0.0",
+    "@jupyterlab/apputils": "^1.0.0",
+    "@jupyterlab/coreutils": "^3.0.0",
+    "@jupyterlab/docregistry": "^1.0.0",
+    "@jupyterlab/filebrowser": "^1.0.0",
+    "@jupyterlab/launcher": "^1.0.0",
+    "@jupyterlab/mainmenu": "^1.0.0"
   },
   "devDependencies": {
     "rimraf": "^2.6.1",
-    "typescript": "~3.1.1",
-    "fs-extra": "^0.30.0",
+    "typescript": "~3.5.2",
+    "fs-extra": "^8.1.0",
     "@phosphor/messaging": "^1.1.0"
   },
   "jupyterlab": {
