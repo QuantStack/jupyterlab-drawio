@@ -3,5 +3,4 @@ lib/
 node_modules/
 *.egg-info/
 .ipynb_checkpoints
-tsconfig.tsbuildinfoenvs/
-anaconda-project.yml
+tsconfig.tsbuildinfo
