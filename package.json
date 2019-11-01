@@ -17,6 +17,7 @@
   "files": [
     "lib/*.js",
     "lib/mxgraph/javascript/examples/grapheditor/www/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
+    "lib/mxgraph/javascript/src/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
