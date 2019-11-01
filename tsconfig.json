@@ -1,16 +1,20 @@
 {
   "compilerOptions": {
-    "declaration": false,
-    "noImplicitAny": true,
-    "noEmitOnError": true,
-    "noUnusedLocals": true,
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": false,
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "es2017",
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
     "outDir": "./lib",
-    "types": [],
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "target": "es2017",
+    "types": [
+    ]
   },
-  "include": ["src/*"]
+  "include": [
+    "src/*"
+  ]
 }
