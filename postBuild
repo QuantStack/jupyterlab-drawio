@@ -1,5 +1,3 @@
 #!/usr/bin/env bash
 set -eux
-jlpm
-jlpm build
-jupyter labextension install .
+jlpm bootstrap

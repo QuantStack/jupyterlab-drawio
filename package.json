@@ -25,6 +25,7 @@
     "url": "https://github.com/wolfv/jupyterlab-drawio.git"
   },
   "scripts": {
+    "bootstrap": "jlpm && jlpm build && jupyter labextension install .",
     "build": "node scripts/copyfiles.js && tsc",
     "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
     "watch": "tsc -w",
