@@ -1,5 +1,6 @@
 # jupyterlab-drawio
-[![Binder with JupyterLab](https://img.shields.io/badge/launch-jupyterlab_on_binder-red.svg)](http://mybinder.org/v2/gh/kmader/jupyterlab-drawio/master?urlpath=lab)
+
+[![Binder with JupyterLab](https://mybinder.org/badge_logo.svg)](http://mybinder.org/v2/gh/QuantStack/jupyterlab-drawio/master?urlpath=lab)
 
 
 A JupyterLab extension for standalone integration of drawio / mxgraph into jupyterlab.
@@ -13,6 +14,10 @@ A JupyterLab extension for standalone integration of drawio / mxgraph into jupyt
 ```bash
 jupyter labextension install jupyterlab-drawio
 ```
+
+## Usage
+
+![drawio-screencast](drawio.gif)
 
 ## Development
 
@@ -34,5 +39,5 @@ jupyter lab build
 ## License
 
 The files herein, and especially the source code of mxgraph, is licensed under the Apache 2.0 License.
-The copyright holders of draw.io / mxgraph is jgraph (http://wwww.jgraph.com). The original source code
+The copyright holders of draw.io / mxgraph is jgraph (http://www.jgraph.com). The original source code
 vendored in this package is taken from: https://github.com/jgraph/mxgraph 

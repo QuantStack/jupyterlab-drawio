@@ -13,11 +13,11 @@
 // limitations under the License.
 
 import {
-  ILayoutRestorer, JupyterLab, JupyterLabPlugin
+  ILayoutRestorer, JupyterLab, JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
 import {
-  ICommandPalette, InstanceTracker, IInstanceTracker
+  ICommandPalette, WidgetTracker, IWidgetTracker
 } from '@jupyterlab/apputils';
 
 import {
@@ -45,7 +45,7 @@ import {
  */
 const FACTORY = 'Drawio';
 
-interface IDrawioTracker extends IInstanceTracker<DrawioWidget> {}
+interface IDrawioTracker extends IWidgetTracker<DrawioWidget> {}
 
 export
 const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
@@ -53,7 +53,7 @@ const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
 /**
  * The editor tracker extension.
  */
-const plugin: JupyterLabPlugin<IDrawioTracker> = {
+const plugin: JupyterFrontEndPlugin<IDrawioTracker> = {
   activate,
   id: '@jupyterlab/drawio-extension:plugin',
   requires: [IFileBrowserFactory, ILayoutRestorer, IMainMenu, ICommandPalette],
@@ -74,7 +74,7 @@ function activate(app: JupyterLab,
   const namespace = 'drawio';
   const factory = new DrawioFactory({ name: FACTORY, fileTypes: ['dio'], defaultFor: ['dio'] });
   const { commands } = app;
-  const tracker = new InstanceTracker<DrawioWidget>({ namespace });
+  const tracker = new WidgetTracker<DrawioWidget>({ namespace });
 
   /**
    * Whether there is an active DrawIO editor.
@@ -136,6 +136,7 @@ function activate(app: JupyterLab,
   // Add a command for creating a new diagram file.
   commands.addCommand('drawio:create-new', {
     label: 'Diagram',
+    iconClass: 'jp-MaterialIcon jp-ImageIcon',
     caption: 'Create a new diagram file',
     execute: () => {
       let cwd = browserFactory.defaultBrowser.model.path;
@@ -156,10 +157,7 @@ function activate(app: JupyterLab,
   // Add a launcher item if the launcher is available.
   if (launcher) {
     launcher.add({
-      displayName: 'Diagram',
-      name: 'diagram',
-      iconClass: 'jp-MaterialIcon jp-ImageIcon',
-      callback: createNewDIO,
+      command: 'drawio:create-new',
       rank: 1,
       category: 'Other'
     });

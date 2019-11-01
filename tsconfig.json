@@ -7,10 +7,10 @@
     "allowJs": true,
     "module": "esnext",
     "moduleResolution": "node",
-    "target": "ES5",
+    "target": "es2017",
     "outDir": "./lib",
-    "lib": ["ES5", "ES2015.Promise", "DOM", "ES2015.Collection"],
-    "types": []
+    "types": [],
+    "rootDir": "./src"
   },
   "include": ["src/*"]
 }

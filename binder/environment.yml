@@ -1,0 +1,5 @@
+name: jupyterlab-drawio
+channels:
+- conda-forge
+dependencies:
+- jupyterlab=1.0
