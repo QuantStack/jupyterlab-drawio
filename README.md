@@ -7,7 +7,7 @@ A JupyterLab extension for standalone integration of drawio / mxgraph into jupyt
 
 ## Prerequisites
 
-* JupyterLab
+* JupyterLab 1+
 
 ## Installation
 
@@ -24,15 +24,13 @@ jupyter labextension install jupyterlab-drawio
 For a development install (requires npm version 4 or later), do the following in the repository directory:
 
 ```bash
-npm install
-npm run build
-jupyter labextension link .
+jlpm bootstrap
 ```
 
 To rebuild the package and the JupyterLab app:
 
 ```bash
-npm run build
+jlpm build
 jupyter lab build
 ```
 
@@ -40,4 +38,4 @@ jupyter lab build
 
 The files herein, and especially the source code of mxgraph, is licensed under the Apache 2.0 License.
 The copyright holders of draw.io / mxgraph is jgraph (http://www.jgraph.com). The original source code
-vendored in this package is taken from: https://github.com/jgraph/mxgraph 
+vendored in this package is taken from: https://github.com/jgraph/mxgraph
