@@ -15,7 +15,8 @@
   "license": "Apache-2.0",
   "author": "Wolf Vollprecht",
   "files": [
-    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
+    "lib/*.js",
+    "lib/mxgraph/javascript/examples/grapheditor/www/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
@@ -25,11 +26,10 @@
     "url": "https://github.com/wolfv/jupyterlab-drawio.git"
   },
   "scripts": {
-    "bootstrap": "jlpm && jlpm build && jupyter labextension install .",
+    "bootstrap": "jlpm && jlpm clean && jlpm build && jupyter labextension install .",
     "build": "node scripts/copyfiles.js && tsc",
     "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
-    "watch": "tsc -w",
-    "prepublish": "npm run clean && npm run build"
+    "watch": "tsc -w"
   },
   "peerDependencies": {
     "@jupyterlab/application": "^1.0.0",
