@@ -44,15 +44,15 @@ import {
 
 import {
   Widget
-} from '@phosphor/widgets';
+} from '@lumino/widgets';
 
 import {
   Message
-} from '@phosphor/messaging';
+} from '@lumino/messaging';
 
 import {
   PromiseDelegate
-} from '@phosphor/coreutils';
+} from '@lumino/coreutils';
 
 import './mxgraph/javascript/src/css/common.css';
 import './mxgraph/javascript/examples/grapheditor/www/styles/grapheditor.css';
