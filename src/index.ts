@@ -34,7 +34,7 @@ import {
 
 import {
   Token
-} from '@phosphor/coreutils';
+} from '@lumino/coreutils';
 
 import {
   DrawioWidget, DrawioFactory
