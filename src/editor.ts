@@ -28,7 +28,10 @@ w.OPEN_FORM = web_path +  'open.html';
 w.mxLoadStylesheets = false;  // disable loading stylesheets
 w.mxLoadResources = false;
 
-import * as mx from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
+/* This is a typing-only commit. If you use it directly, the mxgraph content
+   will be included in the main JupyterLab js bundle.
+*/
+import * as MXModuleType from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
 
 import {
   ABCWidgetFactory, DocumentRegistry,  DocumentWidget,
@@ -69,21 +72,29 @@ class DrawioWidget extends DocumentWidget<Widget> {
     constructor(options: DocumentWidget.IOptions<Widget>) {
         super({ ...options });
         this.context = options['context'];
+        void Private.ensureMx().then((mx) => this.onMxLoaded(mx));
+    }
 
+    protected async onMxLoaded(mx: Private.MX) {
+        this.mx = mx;
         this._onTitleChanged();
         this.context.pathChanged.connect(this._onTitleChanged, this);
 
-        this.context.ready.then(() => { this._onContextReady(); });
-        this.context.ready.then(() => { this._handleDirtyStateNew(); });
+        await this.context.ready;
+
+        this._onContextReady();
+        this._handleDirtyStateNew();
     }
 
-    protected onAfterShow(msg: Message): void {
-        this._loadEditor(this.node);
-        this._onContentChanged();
+    onAfterShow(msg: Message): void {
+        Private.ensureMx().then(() => {
+            this._loadEditor(this.node);
+            this._onContentChanged();
+        });
     }
 
     public getSVG() : string {
-        return mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
+        return this.mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
     }
 
     private _onContextReady() : void {
@@ -116,6 +127,7 @@ class DrawioWidget extends DocumentWidget<Widget> {
     }
 
     private _loadEditor(node: HTMLElement, contents?: string): void {
+        const {mx} = this;
         // Adds required resources (disables loading of fallback properties, this can only
         // be used if we know that all keys are defined in the language specific file)
         mx.mxResources.loadDefaultBundle = false;
@@ -145,6 +157,7 @@ class DrawioWidget extends DocumentWidget<Widget> {
     }
 
     private _onContentChanged() : void {
+        const {mx} = this;
         if (this._editor === undefined)
         {
             return;
@@ -167,7 +180,7 @@ class DrawioWidget extends DocumentWidget<Widget> {
         {
             this._editor.editor.graph.stopEditing();
         }
-        let xml = mx.mxUtils.getXml(this._editor.editor.getGraphXml());
+        let xml = this.mx.mxUtils.getXml(this._editor.editor.getGraphXml());
         this.context.model.fromString(xml);
     }
 
@@ -198,6 +211,7 @@ class DrawioWidget extends DocumentWidget<Widget> {
     readonly context: DocumentRegistry.Context;
     private _editor : any;
     private _ready = new PromiseDelegate<void>();
+    protected mx: Private.MX;
 }
 
 /**
@@ -214,5 +228,37 @@ class DrawioFactory extends ABCWidgetFactory<DrawioWidget, DocumentRegistry.IMod
 
     protected createNewWidget(context: DocumentRegistry.Context): DrawioWidget {
         return new DrawioWidget({context, content: new Widget()});
+    }
+}
+
+
+/**
+ * A namespace for module-level concerns like loading mxgraph
+ */
+
+namespace Private {
+    export type MX = typeof MXModuleType;
+
+    let _mx: typeof MXModuleType;
+    let _mxLoading: PromiseDelegate<MX>;
+
+    export async function ensureMx(): Promise<MX> {
+        if (_mx)
+        {
+            return _mx;
+        }
+
+        if (_mxLoading)
+        {
+            return await _mxLoading.promise;
+        }
+
+        _mxLoading = new PromiseDelegate();
+        _mx = await import(
+            /* webpackChunkName: "mxgraph" */
+            './mxgraph/javascript/examples/grapheditor/www/modulated.js'
+        );
+        _mxLoading.resolve(_mx);
+        return _mx;
     }
 }
