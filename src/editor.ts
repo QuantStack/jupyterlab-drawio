@@ -28,7 +28,7 @@ w.OPEN_FORM = web_path +  'open.html';
 w.mxLoadStylesheets = false;  // disable loading stylesheets
 w.mxLoadResources = false;
 
-/* This is a typing-only commit. If you use it directly, the mxgraph content
+/* This is a typing-only import. If you use it directly, the mxgraph content
    will be included in the main JupyterLab js bundle.
 */
 import * as MXModuleType from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
@@ -242,6 +242,9 @@ namespace Private {
     let _mx: typeof MXModuleType;
     let _mxLoading: PromiseDelegate<MX>;
 
+    /**
+     * Asynchronously load the mx bundle, or return it if already available
+     */
     export async function ensureMx(): Promise<MX> {
         if (_mx)
         {
