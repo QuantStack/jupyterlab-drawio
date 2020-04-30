@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -eux
 npm install
-jupyter labextension install . --no-build --debug
+jupyter labextension install $(npm pack) --no-build --debug
 jupyter lab build --dev-build=False --minimize=True --debug
