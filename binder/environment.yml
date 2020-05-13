@@ -1,5 +1,8 @@
 name: jupyterlab-drawio
+
 channels:
-- conda-forge
+  - conda-forge
+
 dependencies:
-- jupyterlab=1.0
+  - jupyterlab >=2,<3.0.0a0
+  - nodejs >=10

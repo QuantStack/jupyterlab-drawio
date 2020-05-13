@@ -27,8 +27,7 @@
   "scripts": {
     "build": "node scripts/copyfiles.js && tsc",
     "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
-    "watch": "tsc -w",
-    "prepublish": "npm run clean && npm run build"
+    "watch": "tsc -w"
   },
   "dependencies": {
     "@jupyterlab/application": "^2.0.0",
