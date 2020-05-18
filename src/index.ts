@@ -1,9 +1,9 @@
 // Copyright 2018 Wolf Vollprecht
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
@@ -17,7 +17,7 @@ import {
 } from '@jupyterlab/application';
 
 import {
-  ICommandPalette, WidgetTracker, IWidgetTracker
+  WidgetTracker, IWidgetTracker
 } from '@jupyterlab/apputils';
 
 import {
@@ -56,7 +56,7 @@ const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
 const plugin: JupyterFrontEndPlugin<IDrawioTracker> = {
   activate,
   id: '@jupyterlab/drawio-extension:plugin',
-  requires: [IFileBrowserFactory, ILayoutRestorer, IMainMenu, ICommandPalette],
+  requires: [IFileBrowserFactory, ILayoutRestorer, IMainMenu],
   optional: [ILauncher],
   provides: IDrawioTracker,
   autoStart: true
@@ -66,23 +66,14 @@ export default plugin;
 
 function activate(app: JupyterLab,
                   browserFactory: IFileBrowserFactory,
-                  restorer: ILayoutRestorer, 
+                  restorer: ILayoutRestorer,
                   menu: IMainMenu,
-                  palette: ICommandPalette,
                   launcher: ILauncher | null
     ): IDrawioTracker {
   const namespace = 'drawio';
   const factory = new DrawioFactory({ name: FACTORY, fileTypes: ['dio'], defaultFor: ['dio'] });
   const { commands } = app;
   const tracker = new WidgetTracker<DrawioWidget>({ namespace });
-
-  /**
-   * Whether there is an active DrawIO editor.
-   */
-  function isEnabled(): boolean {
-    return tracker.currentWidget !== null &&
-           tracker.currentWidget === app.shell.currentWidget;
-  }
 
   // Handle state restoration.
   restorer.restore(tracker, {
@@ -122,17 +113,6 @@ function activate(app: JupyterLab,
     });
   };
 
-  const createNewSVG = (cwd: string) => {
-    return commands.execute('docmanager:new-untitled', {
-      path: cwd, type: 'file', ext: '.svg'
-    }).then(model => {
-      let wdg = app.shell.currentWidget as any;
-      model.content = wdg.getSVG();
-      model.format = 'text'
-      app.serviceManager.contents.save(model.path, model);
-    });
-  };
-
   // Add a command for creating a new diagram file.
   commands.addCommand('drawio:create-new', {
     label: 'Diagram',
@@ -142,16 +122,6 @@ function activate(app: JupyterLab,
       let cwd = browserFactory.defaultBrowser.model.path;
       return createNewDIO(cwd);
     }
-  });
-
-  commands.addCommand('drawio:export-svg', {
-    label: 'Export diagram as SVG',
-    caption: 'Export diagram as SVG',
-    execute: () => {
-      let cwd = browserFactory.defaultBrowser.model.path;
-      return createNewSVG(cwd);
-    },
-    isEnabled
   });
 
   // Add a launcher item if the launcher is available.
@@ -166,13 +136,6 @@ function activate(app: JupyterLab,
   if (menu) {
     // Add new text file creation to the file menu.
     menu.fileMenu.newMenu.addGroup([{ command: 'drawio:create-new' }], 40);
-    //palette.addItem({ command: 'drawio:export-svg', category: 'Notebook Operations', args: args });
-    menu.fileMenu.addGroup([{ command: 'drawio:export-svg'}], 40);
-  }
-
-  if (palette) {
-    let args = { 'format': 'SVG', 'label': 'SVG', 'isPalette': true };
-    palette.addItem({ command: 'drawio:export-svg', category: 'Notebook Operations', args: args });
   }
 
   return tracker;

@@ -1,0 +1,6 @@
+[submodule "vendor/mxgraph"]
+	path = src/mxgraph
+	url = https://github.com/jgraph/mxgraph.git
+[submodule "src/drawio"]
+	path = src/drawio
+	url = https://github.com/jgraph/drawio.git

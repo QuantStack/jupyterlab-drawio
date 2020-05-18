@@ -16,7 +16,9 @@
   "author": "Wolf Vollprecht",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
-    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
+    "src/drawio/src/main/webapp/**/*.*",
+    "src/drawio/LICENSE"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -25,7 +27,7 @@
     "url": "https://github.com/wolfv/jupyterlab-drawio.git"
   },
   "scripts": {
-    "build": "node scripts/copyfiles.js && tsc",
+    "build": "tsc",
     "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
     "watch": "tsc -w"
   },

@@ -12,27 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-let w = window as any;
-
-let web_path = "https://raw.githubusercontent.com/jgraph/mxgraph/master/javascript/examples/grapheditor/www/";
-
-w.RESOURCES_BASE = web_path + 'resources/';
-w.STENCIL_PATH = web_path + 'stencils/';
-w.IMAGE_PATH = web_path + 'images/';
-w.STYLE_PATH = web_path + 'styles/';
-w.CSS_PATH = web_path + 'styles/';
-w.OPEN_FORM = web_path +  'open.html';
-
-// w.mxBasePath = "http://localhost:8000/src/mxgraph/javascript/src/";
-
-w.mxLoadStylesheets = false;  // disable loading stylesheets
-w.mxLoadResources = false;
-
-/* This is a typing-only import. If you use it directly, the mxgraph content
-   will be included in the main JupyterLab js bundle.
-*/
-import * as MXModuleType from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
-
 import {
   ABCWidgetFactory, DocumentRegistry,  DocumentWidget,
 } from '@jupyterlab/docregistry';
@@ -42,12 +21,8 @@ import {
 } from '@jupyterlab/apputils';
 
 import {
-  IChangedArgs, PathExt
+  PathExt
 } from '@jupyterlab/coreutils';
-
-import {
-  Widget
-} from '@lumino/widgets';
 
 import {
   Message
@@ -57,44 +32,91 @@ import {
   PromiseDelegate
 } from '@lumino/coreutils';
 
-import './mxgraph/javascript/src/css/common.css';
-import './mxgraph/javascript/examples/grapheditor/www/styles/grapheditor.css';
+import { URLExt, PageConfig } from "@jupyterlab/coreutils";
 
-import {
-    grapheditor_txt, default_xml
-} from './pack';
+import { IFrame } from '@jupyterlab/apputils';
 
-const DIRTY_CLASS = 'jp-mod-dirty';
+const DRAWIO_URL = URLExt.join(
+  PageConfig.getBaseUrl(),
+  "static/lab",
+  "node_modules/jupyterlab-drawio/src/drawio/src/main/webapp",
+  "index.html?embed=1&proto=json&spin=1&noExitBtn=1&configure=1"
+);
 
 export
-class DrawioWidget extends DocumentWidget<Widget> {
+class DrawioWidget extends DocumentWidget<IFrame> {
 
-    constructor(options: DocumentWidget.IOptions<Widget>) {
+    constructor(options: DocumentWidget.IOptions<IFrame>) {
         super({ ...options });
         this.context = options['context'];
-        void Private.ensureMx().then((mx) => this.onMxLoaded(mx));
+
+        this._onTitleChanged();
+        this.context.pathChanged.connect(this._onTitleChanged, this);
+
+        this.context.ready.then(() => { this._onContextReady(); });
     }
 
-    protected async onMxLoaded(mx: Private.MX) {
-        this.mx = mx;
+    async neverCallThis() {
+        await import('./_static');
+    }
+
+    protected async onMxLoaded(mx: any) {
+        // this.mx = mx;
         this._onTitleChanged();
         this.context.pathChanged.connect(this._onTitleChanged, this);
 
         await this.context.ready;
 
         this._onContextReady();
-        this._handleDirtyStateNew();
+        // this._handleDirtyStateNew();
     }
 
-    onAfterShow(msg: Message): void {
-        Private.ensureMx().then(() => {
-            this._loadEditor(this.node);
-            this._onContentChanged();
+    handleMessageEvent(evt: MessageEvent) {
+        const msg = JSON.parse(evt.data);
+        if(this._frame == null || evt.source !== this._frame.contentWindow){
+            return;
+        }
+        switch(msg.event) {
+            case 'configure':
+                this.configureDrawio();
+                break;
+            case 'init':
+                this._onContentChanged();
+                break;
+            case 'save':
+                this._lastEmitted = msg.xml;
+                this.context.model.fromString(msg.xml);
+                this.context.save();
+                break;
+            case 'autosave':
+                this._lastEmitted = msg.xml;
+                this.context.model.fromString(msg.xml);
+                break;
+            default:
+                console.log('unhandled message', msg.event, msg);
+                break;
+        }
+    }
+
+    /** TODO: schema/settings for https://desk.draw.io/support/solutions/articles/16000058316 */
+    private configureDrawio() {
+        this.postMessage({
+            action: 'configure',
+            config: {compressXml: false}
         });
     }
 
-    public getSVG() : string {
-        return this.mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
+    private postMessage(msg: any) {
+        if(this._frame == null) {
+            return;
+        }
+        this._frame.contentWindow.postMessage(JSON.stringify(msg), '*');
+    }
+
+    onAfterShow(msg: Message): void {
+        this._frame = this.content.node.querySelector('iframe') as HTMLIFrameElement;
+        window.addEventListener('message', (evt) => this.handleMessageEvent(evt));
+        this.content.url = DRAWIO_URL;
     }
 
     private _onContextReady() : void {
@@ -104,49 +126,8 @@ class DrawioWidget extends DocumentWidget<Widget> {
         this._onContentChanged();
 
         contextModel.contentChanged.connect(this._onContentChanged, this);
-        contextModel.stateChanged.connect(this._onModelStateChangedNew, this);
-
-        this._editor.sidebarContainer.style.width = '208px';
-        var footer = document.getElementsByClassName('geFooterContainer');
-
-        this._editor.refresh();
-
-        if (footer.length)
-        {
-            this._editor.footerHeight = 0;
-            for (let i = 0; i < footer.length; i++)
-            {
-                let f = footer[i] as HTMLElement;
-                f.style.height = '0px';
-                f.style.display = 'none';
-            }
-            this._editor.refresh();
-        }
 
         this._ready.resolve(void 0);
-    }
-
-    private _loadEditor(node: HTMLElement, contents?: string): void {
-        const {mx} = this;
-        // Adds required resources (disables loading of fallback properties, this can only
-        // be used if we know that all keys are defined in the language specific file)
-        mx.mxResources.loadDefaultBundle = false;
-
-        // Fixes possible asynchronous requests
-        mx.mxResources.parse(grapheditor_txt);
-        let oParser = new DOMParser();
-        let oDOM = oParser.parseFromString(default_xml, "text/xml");
-        let themes: any = new Object(null);
-        themes[(mx.Graph as any).prototype.defaultThemeName] = oDOM.documentElement;
-        // Workaround for TS2351: Cannot use 'new' with an expression whose type lacks a call or construct signature
-        const _Editor : any = mx.Editor;
-        this._editor = new mx.EditorUi(new _Editor(false, themes), node);
-
-        this._editor.editor.graph.model.addListener(mx.mxEvent.NOTIFY, (sender: any, evt: any) => {
-            this._saveToContext();
-        });
-
-        return this._editor;
     }
 
     /**
@@ -157,45 +138,18 @@ class DrawioWidget extends DocumentWidget<Widget> {
     }
 
     private _onContentChanged() : void {
-        const {mx} = this;
-        if (this._editor === undefined)
-        {
+        const xml = this.context.model.toString();
+        if(xml == null || !xml.trim() || xml === this._lastEmitted) {
             return;
         }
 
-        const oldValue = mx.mxUtils.getXml(this._editor.editor.getGraphXml());
-        const newValue = this.context.model.toString();
-
-        if (oldValue !== newValue && !this._editor.editor.graph.isEditing()) {
-            if (newValue.length)
-            {
-                let xml = mx.mxUtils.parseXml(newValue);
-                this._editor.editor.setGraphXml(xml.documentElement);
-            }
-        }
-    }
-
-    private _saveToContext() : void {
-        if (this._editor.editor.graph.isEditing())
-        {
-            this._editor.editor.graph.stopEditing();
-        }
-        let xml = this.mx.mxUtils.getXml(this._editor.editor.getGraphXml());
-        this.context.model.fromString(xml);
-    }
-
-    private _onModelStateChangedNew(sender: DocumentRegistry.IModel, args: IChangedArgs<any>): void {
-        if (args.name === 'dirty') {
-            this._handleDirtyStateNew();
-        }
-    }
-
-    private _handleDirtyStateNew() : void {
-        if (this.context.model.dirty) {
-            this.title.className += ` ${DIRTY_CLASS}`;
-        } else {
-            this.title.className = this.title.className.replace(DIRTY_CLASS, '');
-        }
+        this.postMessage({
+            action: 'load',
+            autosave: 1,
+            modified: 'unsavedChanges',
+            xml,
+            title: PathExt.basename(this.context.localPath)
+        });
     }
 
     /**
@@ -205,13 +159,13 @@ class DrawioWidget extends DocumentWidget<Widget> {
         return this._ready.promise;
     }
 
-    public content: Widget;
+    public content: IFrame;
     public toolbar: Toolbar;
     public revealed: Promise<void>;
     readonly context: DocumentRegistry.Context;
-    private _editor : any;
     private _ready = new PromiseDelegate<void>();
-    protected mx: Private.MX;
+    private _frame: HTMLIFrameElement;
+    private _lastEmitted: string;
 }
 
 /**
@@ -227,41 +181,18 @@ class DrawioFactory extends ABCWidgetFactory<DrawioWidget, DocumentRegistry.IMod
     }
 
     protected createNewWidget(context: DocumentRegistry.Context): DrawioWidget {
-        return new DrawioWidget({context, content: new Widget()});
-    }
-}
-
-
-/**
- * A namespace for module-level concerns like loading mxgraph
- */
-
-namespace Private {
-    export type MX = typeof MXModuleType;
-
-    let _mx: typeof MXModuleType;
-    let _mxLoading: PromiseDelegate<MX>;
-
-    /**
-     * Asynchronously load the mx bundle, or return it if already available
-     */
-    export async function ensureMx(): Promise<MX> {
-        if (_mx)
-        {
-            return _mx;
-        }
-
-        if (_mxLoading)
-        {
-            return await _mxLoading.promise;
-        }
-
-        _mxLoading = new PromiseDelegate();
-        _mx = await import(
-            /* webpackChunkName: "mxgraph" */
-            './mxgraph/javascript/examples/grapheditor/www/modulated.js'
-        );
-        _mxLoading.resolve(_mx);
-        return _mx;
+        return new DrawioWidget({context, content: new IFrame({
+            sandbox: [
+                'allow-forms',
+                'allow-modals',
+                'allow-orientation-lock',
+                'allow-pointer-lock',
+                'allow-popups',
+                'allow-presentation',
+                'allow-same-origin',
+                'allow-scripts',
+                'allow-top-navigation'
+            ]
+        })});
     }
 }
