@@ -39,9 +39,34 @@ import { IFrame } from '@jupyterlab/apputils';
 const DRAWIO_URL = URLExt.join(
   PageConfig.getBaseUrl(),
   "static/lab",
-  "node_modules/jupyterlab-drawio/src/drawio/src/main/webapp",
-  "index.html?embed=1&proto=json&spin=1&noExitBtn=1&configure=1"
+  "node_modules/jupyterlab-drawio/src/drawio/src/main/webapp/index.html"
 );
+
+
+/**
+ * Core URL params that are required to function properly
+ */
+const CORE_EMBED_PARAMS = {
+    embed: 1,
+    proto: 'json',
+    configure: 1
+};
+
+/**
+ * Default embed params, mostly to turn off third-party javascript
+ */
+const DEFAULT_EMBED_PARAMS = {
+    gapi: 0,    // google
+    od: 0,      // onedrive
+    trello: 0,  // trello
+    noExitBtn: 1,
+}
+
+const DEFAULT_CONFIG = {
+    compressXml: false,
+    override: true,
+    version: (+(new Date())).toString()
+}
 
 export
 class DrawioWidget extends DocumentWidget<IFrame> {
@@ -76,6 +101,9 @@ class DrawioWidget extends DocumentWidget<IFrame> {
         if(this._frame == null || evt.source !== this._frame.contentWindow){
             return;
         }
+
+        console.log(msg);
+
         switch(msg.event) {
             case 'configure':
                 this.configureDrawio();
@@ -100,10 +128,13 @@ class DrawioWidget extends DocumentWidget<IFrame> {
 
     /** TODO: schema/settings for https://desk.draw.io/support/solutions/articles/16000058316 */
     private configureDrawio() {
-        this.postMessage({
-            action: 'configure',
-            config: {compressXml: false}
-        });
+        const config = {
+            ...DEFAULT_CONFIG,
+            // TODO listen for theme changes?
+            ui: document.querySelector('body[data-jp-theme-light="true"]') ? 'kennedy' : 'dark'
+        };
+        console.log('configuring drawio', config);
+        this.postMessage({action: 'configure', config});
     }
 
     private postMessage(msg: any) {
@@ -113,10 +144,22 @@ class DrawioWidget extends DocumentWidget<IFrame> {
         this._frame.contentWindow.postMessage(JSON.stringify(msg), '*');
     }
 
+    drawioUrl() {
+        const query = new URLSearchParams();
+        const params = {
+            ...DEFAULT_EMBED_PARAMS,
+            ...CORE_EMBED_PARAMS
+        };
+        for(const p in params) {
+            query.append(p, (params as any)[p]);
+        }
+        return DRAWIO_URL + '?' + query.toString();
+    }
+
     onAfterShow(msg: Message): void {
         this._frame = this.content.node.querySelector('iframe') as HTMLIFrameElement;
         window.addEventListener('message', (evt) => this.handleMessageEvent(evt));
-        this.content.url = DRAWIO_URL;
+        this.content.url = this.drawioUrl();
     }
 
     private _onContextReady() : void {
