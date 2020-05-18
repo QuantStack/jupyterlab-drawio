@@ -5,3 +5,4 @@ node_modules/
 .ipynb_checkpoints
 tsconfig.tsbuildinfo
 *.tgz
+envs/
