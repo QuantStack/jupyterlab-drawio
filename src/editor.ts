@@ -56,7 +56,7 @@ const DEFAULT_EMBED_PARAMS = {
   gapi: 0, // google
   od: 0, // onedrive
   trello: 0, // trello
-  noExitBtn: 1
+  noExitBtn: 1,
 };
 
 const DEFAULT_CONFIG = {
