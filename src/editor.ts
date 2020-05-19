@@ -145,11 +145,15 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   }
 
   onAfterShow(msg: Message): void {
+    const url = this.drawioUrl();
+    if (this.content.url == url) {
+      return;
+    }
     this._frame = this.content.node.querySelector(
       "iframe"
     ) as HTMLIFrameElement;
     window.addEventListener("message", (evt) => this.handleMessageEvent(evt));
-    this.content.url = this.drawioUrl();
+    this.content.url = url;
   }
 
   private _onContextReady(): void {
