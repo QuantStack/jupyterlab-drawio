@@ -82,17 +82,6 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     await import("./_static");
   }
 
-  protected async onMxLoaded(mx: any) {
-    // this.mx = mx;
-    this._onTitleChanged();
-    this.context.pathChanged.connect(this._onTitleChanged, this);
-
-    await this.context.ready;
-
-    this._onContextReady();
-    // this._handleDirtyStateNew();
-  }
-
   handleMessageEvent(evt: MessageEvent) {
     const msg = JSON.parse(evt.data);
     if (this._frame == null || evt.source !== this._frame.contentWindow) {
@@ -183,7 +172,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
 
   private _onContentChanged(): void {
     const xml = this.context.model.toString();
-    if (xml == null || !xml.trim() || xml === this._lastEmitted) {
+    if (xml === this._lastEmitted) {
       return;
     }
 
