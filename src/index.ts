@@ -33,9 +33,16 @@ import { ILauncher } from "@jupyterlab/launcher";
 import { IMainMenu } from "@jupyterlab/mainmenu";
 
 import { Token } from "@lumino/coreutils";
-
+import { LabIcon } from "@jupyterlab/ui-components";
 import { DrawioWidget, DrawioFactory } from "./editor";
 import { PathExt } from "@jupyterlab/coreutils";
+
+import DRAWIO_ICON_SVG from "!!file-loader!./drawio/src/main/webapp/images/drawlogo-color.svg";
+
+const drawioIcon = new LabIcon({
+  name: "drawio:drawio",
+  svgstr: DRAWIO_ICON_SVG,
+});
 
 /**
  * The name of the factory that creates editor widgets.
@@ -175,7 +182,7 @@ function activate(
     displayName: "Diagram",
     mimeTypes: ["application/dio"],
     extensions: [".dio"],
-    iconClass: "jp-MaterialIcon jp-ImageIcon",
+    icon: drawioIcon,
     fileFormat: "text",
   });
 
@@ -243,7 +250,7 @@ function activate(
   // Add a command for creating a new diagram file.
   commands.addCommand("drawio:create-new", {
     label: "Diagram",
-    iconClass: "jp-MaterialIcon jp-ImageIcon",
+    icon: drawioIcon,
     caption: "Create a new diagram file",
     execute: () => {
       let cwd = browserFactory.defaultBrowser.model.path;
