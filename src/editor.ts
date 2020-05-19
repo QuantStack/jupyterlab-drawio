@@ -18,8 +18,6 @@ import {
   DocumentWidget,
 } from "@jupyterlab/docregistry";
 
-import { Toolbar } from "@jupyterlab/apputils";
-
 import { PathExt } from "@jupyterlab/coreutils";
 
 import { Message } from "@lumino/messaging";
@@ -29,6 +27,8 @@ import { PromiseDelegate } from "@lumino/coreutils";
 import { URLExt, PageConfig } from "@jupyterlab/coreutils";
 
 import { IFrame } from "@jupyterlab/apputils";
+
+import '../style/index.css';
 
 const STATIC = URLExt.join(PageConfig.getBaseUrl(), "static");
 
@@ -61,13 +61,32 @@ const DEFAULT_EMBED_PARAMS = {
 
 const DEFAULT_CONFIG = {
   compressXml: false,
-  override: true,
-  version: (+new Date()).toString(),
 };
+
+/**
+ * Additional capabilities to allow to sandbox
+ */
+const SANDBOX_EXCEPTIONS: IFrame.SandboxExceptions[] = [
+  "allow-forms",
+  "allow-modals",
+  "allow-orientation-lock",
+  "allow-pointer-lock",
+  "allow-popups",
+  "allow-presentation",
+  "allow-same-origin",
+  "allow-scripts",
+  "allow-top-navigation",
+];
+
+const DRAWIO_CLASS = "jp-Drawio";
+
+const READY_CLASS = "jp-Drawio-ready";
 
 export class DrawioWidget extends DocumentWidget<IFrame> {
   constructor(options: DocumentWidget.IOptions<IFrame>) {
     super({ ...options });
+    this.addClass(DRAWIO_CLASS);
+
     this.context = options["context"];
 
     this._onTitleChanged();
@@ -75,6 +94,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
 
     this.context.ready.then(() => {
       this._onContextReady();
+    });
+
+    this.ready.then(() => {
+      this.addClass(READY_CLASS);
     });
   }
 
@@ -96,6 +119,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
         break;
       case "init":
         this._onContentChanged();
+        break;
+      case "load":
+        this._ready.resolve(void 0);
         break;
       case "save":
         this._lastEmitted = msg.xml;
@@ -163,8 +189,6 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this._onContentChanged();
 
     contextModel.contentChanged.connect(this._onContentChanged, this);
-
-    this._ready.resolve(void 0);
   }
 
   /**
@@ -190,14 +214,13 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   }
 
   /**
-   * A promise that resolves when the csv viewer is ready.
+   * A promise that resolves when drawio is ready.
    */
   get ready(): Promise<void> {
     return this._ready.promise;
   }
 
   public content: IFrame;
-  public toolbar: Toolbar;
   public revealed: Promise<void>;
   readonly context: DocumentRegistry.Context;
   private _ready = new PromiseDelegate<void>();
@@ -223,17 +246,7 @@ export class DrawioFactory extends ABCWidgetFactory<
     return new DrawioWidget({
       context,
       content: new IFrame({
-        sandbox: [
-          "allow-forms",
-          "allow-modals",
-          "allow-orientation-lock",
-          "allow-pointer-lock",
-          "allow-popups",
-          "allow-presentation",
-          "allow-same-origin",
-          "allow-scripts",
-          "allow-top-navigation",
-        ],
+        sandbox: SANDBOX_EXCEPTIONS,
       }),
     });
   }

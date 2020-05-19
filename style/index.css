@@ -1,0 +1,12 @@
+.jp-Drawio {
+  background-color: var(--jp-layout-color1);
+}
+
+.jp-Drawio .jp-IFrame {
+  opacity: 0;
+}
+
+.jp-Drawio.jp-Drawio-ready .jp-IFrame {
+  opacity: 1;
+  transition: opacity 0.2s;
+}
