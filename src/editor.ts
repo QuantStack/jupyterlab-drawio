@@ -28,7 +28,7 @@ import { URLExt, PageConfig } from "@jupyterlab/coreutils";
 
 import { IFrame } from "@jupyterlab/apputils";
 
-import '../style/index.css';
+import "../style/index.css";
 
 const STATIC = URLExt.join(PageConfig.getBaseUrl(), "static");
 
@@ -38,7 +38,7 @@ const DRAWIO_URL = URLExt.join(
   "node_modules/jupyterlab-drawio/src/drawio/src/main/webapp/index.html"
 );
 
-const DEBUG = 0;
+const DEBUG = 1;
 
 /**
  * Core URL params that are required to function properly
@@ -61,6 +61,12 @@ const DEFAULT_EMBED_PARAMS = {
 
 const DEFAULT_CONFIG = {
   compressXml: false,
+  exportPdf: false,
+  remoteConvert: false,
+  plantUml: false,
+  debug: DEBUG,
+  showStartScreen: false,
+  override: true,
 };
 
 /**
@@ -143,11 +149,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     const config = {
       ...DEFAULT_CONFIG,
       // TODO listen for theme changes?
-      ui: document.querySelector('body[data-jp-theme-light="true"]')
-        ? "kennedy"
-        : "dark",
+      ui: this.drawioTheme(),
+      version: `${+new Date()}`,
     };
-    DEBUG && console.log("configuring drawio", config);
+    console.log("configuring drawio", config);
     this.postMessage({ action: "configure", config });
   }
 
@@ -158,11 +163,18 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this._frame.contentWindow.postMessage(JSON.stringify(msg), "*");
   }
 
+  drawioTheme() {
+    return document.querySelector('body[data-jp-theme-light="true"]')
+      ? "kennedy"
+      : "dark";
+  }
+
   drawioUrl() {
     const query = new URLSearchParams();
     const params = {
       ...DEFAULT_EMBED_PARAMS,
       ...CORE_EMBED_PARAMS,
+      ui: this.drawioTheme(),
     };
     for (const p in params) {
       query.append(p, (params as any)[p]);
