@@ -38,7 +38,7 @@ const DRAWIO_URL = URLExt.join(
   "node_modules/jupyterlab-drawio/src/drawio/src/main/webapp/index.html"
 );
 
-const DEBUG = 1;
+const DEBUG = 0;
 
 /**
  * Core URL params that are required to function properly
@@ -112,6 +112,14 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     await import("./_static");
   }
 
+  exportAs(format: string) {
+    this._exportPromise = new PromiseDelegate();
+
+    this.postMessage({ action: "export", format });
+
+    return this._exportPromise.promise;
+  }
+
   handleMessageEvent(evt: MessageEvent) {
     const msg = JSON.parse(evt.data);
     if (this._frame == null || evt.source !== this._frame.contentWindow) {
@@ -139,6 +147,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
         this._lastEmitted = msg.xml;
         this.context.model.fromString(msg.xml);
         break;
+      case "export":
+        this._exportPromise.resolve(msg.data);
+        this._exportPromise = null;
+        break;
       default:
         DEBUG && console.warn("unhandled message", msg.event, msg);
         break;
@@ -164,13 +176,13 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this._frame.contentWindow.postMessage(JSON.stringify(msg), "*");
   }
 
-  drawioTheme() {
+  private drawioTheme() {
     return document.querySelector('body[data-jp-theme-light="true"]')
       ? "kennedy"
       : "dark";
   }
 
-  drawioUrl() {
+  private drawioUrl() {
     const query = new URLSearchParams();
     const params = {
       ...DEFAULT_EMBED_PARAMS,
@@ -237,6 +249,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   public revealed: Promise<void>;
   readonly context: DocumentRegistry.Context;
   private _ready = new PromiseDelegate<void>();
+  private _exportPromise: PromiseDelegate<string>;
   private _frame: HTMLIFrameElement;
   private _lastEmitted: string;
 }
