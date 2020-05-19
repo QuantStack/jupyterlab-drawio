@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Token } from "@lumino/coreutils";
+import { Contents } from "@jupyterlab/services";
+import { PathExt } from "@jupyterlab/coreutils";
+
 import {
   ILayoutRestorer,
   JupyterLab,
@@ -24,24 +28,24 @@ import {
   ICommandPalette,
 } from "@jupyterlab/apputils";
 
-import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
+import { LabIcon } from "@jupyterlab/ui-components";
 
-import { Contents } from "@jupyterlab/services";
+import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 
 import { ILauncher } from "@jupyterlab/launcher";
 
 import { IMainMenu } from "@jupyterlab/mainmenu";
 
-import { Token } from "@lumino/coreutils";
-import { LabIcon } from "@jupyterlab/ui-components";
 import { DrawioWidget, DrawioFactory } from "./editor";
-import { PathExt } from "@jupyterlab/coreutils";
 
-import DRAWIO_ICON_SVG from "!!file-loader!./drawio/src/main/webapp/images/drawlogo-color.svg";
+import DRAWIO_ICON_SVG from "../style/img/drawio.svg";
 
 const drawioIcon = new LabIcon({
   name: "drawio:drawio",
-  svgstr: DRAWIO_ICON_SVG,
+  svgstr: DRAWIO_ICON_SVG.replace(/xmlns:.+".+?"/g, "").replace(
+    /viewBox=".*?"/,
+    'viewBox="0 0 161.6 161.6"'
+  ),
 });
 
 /**
@@ -166,7 +170,7 @@ function activate(
   });
 
   factory.widgetCreated.connect((sender, widget) => {
-    widget.title.icon = "jp-MaterialIcon jp-ImageIcon"; // TODO change
+    widget.title.icon = drawioIcon;
 
     // Notify the instance tracker if restore data needs to update.
     widget.context.pathChanged.connect(() => {
