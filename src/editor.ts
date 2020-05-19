@@ -55,7 +55,8 @@ const CORE_EMBED_PARAMS = {
 const DEFAULT_EMBED_PARAMS = {
   gapi: 0, // google
   od: 0, // onedrive
-  trello: 0, // trello
+  tr: 0, // trello
+  gl: 0, // gitlab
   noExitBtn: 1,
 };
 
