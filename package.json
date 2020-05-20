@@ -1233,7 +1233,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
+    "clean": "rimraf lib",
     "watch": "tsc -w"
   },
   "types": "lib/index.d.ts",

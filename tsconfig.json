@@ -13,7 +13,8 @@
     "target": "es2017",
     "outDir": "./lib",
     "types": [],
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "tsBuildInfoFile": "lib/.tsbuildinfo"
   },
   "include": ["src/*"]
 }

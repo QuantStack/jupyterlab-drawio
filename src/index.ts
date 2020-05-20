@@ -114,6 +114,13 @@ function activate(
       widget.context.pathChanged.connect(() => {
         tracker.save(widget);
       });
+      widget.context.ready.then(() => {
+        const {mimetype} = widget.context.contentsModel;
+        const icon = IO.EXPORT_MIME_MAP.get(mimetype)?.icon;
+        if(icon != null) {
+          widget.title.icon = icon;
+        }
+      });
       tracker.add(widget);
     });
     app.docRegistry.addWidgetFactory(factory);
