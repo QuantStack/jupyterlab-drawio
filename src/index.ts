@@ -28,8 +28,6 @@ import {
   ICommandPalette,
 } from "@jupyterlab/apputils";
 
-import { LabIcon } from "@jupyterlab/ui-components";
-
 import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 
 import { ILauncher } from "@jupyterlab/launcher";
@@ -38,84 +36,13 @@ import { IMainMenu } from "@jupyterlab/mainmenu";
 
 import { DrawioWidget, DrawioFactory } from "./editor";
 
-import DRAWIO_ICON_SVG from "../style/img/drawio.svg";
-
-const drawioIcon = new LabIcon({
-  name: "drawio:drawio",
-  svgstr: DRAWIO_ICON_SVG.replace(/xmlns:.+".+?"/g, "").replace(
-    /viewBox=".*?"/,
-    'viewBox="0 0 161.6 161.6"'
-  ),
-});
+import * as IO from "./io";
 
 /**
- * The name of the factory that creates editor widgets.
+ * The name of the factory that creates text editor widgets.
  */
-const FACTORY = "Drawio";
-
-/**
- *  Supported formats include
- * html (old embed format),
- * html2 (new embed format),
- * svg (default),
- * xmlsvg (SVG with embeddded XML),
- * png and xmlpng (PNG with embedded XML).
- * The data parameter in the exportevent contains a valid data URI for the given export format.
- */
-
-interface IExportFormat {
-  key: string;
-  ext: string;
-  label: string;
-  format: Contents.FileFormat;
-  mimetype: string;
-  transform?: (raw: string) => string;
-}
-
-const stripDataURI = (raw: string) => raw.split(",")[1];
-const unbase64SVG = (raw: string) => atob(stripDataURI(raw));
-
-const EXPORT_FORMATS: IExportFormat[] = [
-  {
-    key: "svg",
-    label: "SVG",
-    ext: ".svg",
-    format: "text",
-    mimetype: "image/svg+xml",
-    transform: unbase64SVG,
-  },
-  {
-    key: "xmlsvg",
-    label: "SVG (Editable)",
-    ext: ".svg",
-    format: "text",
-    mimetype: "image/svg+xml",
-    transform: unbase64SVG,
-  },
-  {
-    key: "html2",
-    label: "HTML",
-    ext: ".html",
-    format: "text",
-    mimetype: "text/html",
-  },
-  {
-    key: "png",
-    label: "PNG",
-    ext: ".png",
-    format: "base64",
-    mimetype: "image/png",
-    transform: stripDataURI,
-  },
-  {
-    key: "xmlpng",
-    label: "PNG (Editable)",
-    ext: ".png",
-    format: "base64",
-    mimetype: "image/png",
-    transform: stripDataURI,
-  },
-];
+const TEXT_FACTORY = "Drawio";
+const BINARY_FACTORY = "Drawio Image";
 
 interface IDrawioTracker extends IWidgetTracker<DrawioWidget> {}
 
@@ -124,7 +51,7 @@ export const IDrawioTracker = new Token<IDrawioTracker>("drawio/tracki");
 /**
  * The editor tracker extension.
  */
-const plugin: JupyterFrontEndPlugin<IDrawioTracker> = {
+const plugin: JupyterFrontEndPlugin<IDrawioTracker[]> = {
   activate,
   id: "@jupyterlab/drawio-extension:plugin",
   requires: [IFileBrowserFactory, ILayoutRestorer, IMainMenu, ICommandPalette],
@@ -142,53 +69,85 @@ function activate(
   menu: IMainMenu,
   palette: ICommandPalette,
   launcher: ILauncher | null
-): IDrawioTracker {
-  const namespace = "drawio";
-  const factory = new DrawioFactory({
-    name: FACTORY,
-    fileTypes: ["dio"],
-    defaultFor: ["dio"],
-  });
+): IDrawioTracker[] {
   const { commands } = app;
-  const tracker = new WidgetTracker<DrawioWidget>({ namespace });
+
+  // add file types
+  for (const format of IO.ALL_FORMATS) {
+    app.docRegistry.addFileType({
+      name: format.name,
+      displayName: format.label,
+      mimeTypes: [format.mimetype],
+      extensions: [format.ext],
+      icon: format.icon,
+      fileFormat: format.format,
+      ...(format.pattern ? { pattern: format.pattern } : {}),
+    });
+  }
+
+  function initTracker(
+    modelName: string,
+    name: string,
+    namespace: string,
+    fileTypes: IO.IDrawioFormat[],
+    defaultFor: IO.IDrawioFormat[]
+  ) {
+    const factory = new DrawioFactory({
+      modelName,
+      name,
+      fileTypes: fileTypes.map(({ name }) => name),
+      defaultFor: defaultFor.map(({ name }) => name),
+    });
+    const tracker = new WidgetTracker<DrawioWidget>({ namespace });
+
+    // Handle state restoration.
+    restorer.restore(tracker, {
+      command: "docmanager:open",
+      args: (widget) => ({ path: widget.context.path, factory: name }),
+      name: (widget) => widget.context.path,
+    });
+
+    factory.widgetCreated.connect((sender, widget) => {
+      widget.title.icon = IO.drawioIcon;
+
+      // Notify the instance tracker if restore data needs to update.
+      widget.context.pathChanged.connect(() => {
+        tracker.save(widget);
+      });
+      tracker.add(widget);
+    });
+    app.docRegistry.addWidgetFactory(factory);
+
+    return tracker;
+  }
+
+  const textTracker = initTracker(
+    "text",
+    TEXT_FACTORY,
+    "drawio-text",
+    IO.ALL_TEXT_FORMATS,
+    IO.DEFAULT_TEXT_FORMATS
+  );
+
+  const binaryTracker = initTracker(
+    "base64",
+    BINARY_FACTORY,
+    "drawio-binary",
+    IO.ALL_BINARY_FORMATS,
+    IO.DEFAULT_BINARY_FORMATS
+  );
 
   /**
    * Whether there is an active DrawIO editor.
    */
   function isEnabled(): boolean {
     return (
-      tracker.currentWidget !== null &&
-      tracker.currentWidget === app.shell.currentWidget
+      (textTracker.currentWidget !== null &&
+        textTracker.currentWidget === app.shell.currentWidget) ||
+      (binaryTracker.currentWidget !== null &&
+        binaryTracker.currentWidget === app.shell.currentWidget)
     );
   }
-
-  // Handle state restoration.
-  restorer.restore(tracker, {
-    command: "docmanager:open",
-    args: (widget) => ({ path: widget.context.path, factory: FACTORY }),
-    name: (widget) => widget.context.path,
-  });
-
-  factory.widgetCreated.connect((sender, widget) => {
-    widget.title.icon = drawioIcon;
-
-    // Notify the instance tracker if restore data needs to update.
-    widget.context.pathChanged.connect(() => {
-      tracker.save(widget);
-    });
-    tracker.add(widget);
-  });
-  app.docRegistry.addWidgetFactory(factory);
-
-  // register the filetype
-  app.docRegistry.addFileType({
-    name: "dio",
-    displayName: "Diagram",
-    mimeTypes: ["application/dio"],
-    extensions: [".dio"],
-    icon: drawioIcon,
-    fileFormat: "text",
-  });
 
   // Function to create a new untitled diagram file, given
   // the current working directory.
@@ -197,19 +156,19 @@ function activate(
       .execute("docmanager:new-untitled", {
         path: cwd,
         type: "file",
-        ext: ".dio",
+        ext: IO.XML_NATIVE.ext,
       })
       .then((model: Contents.IModel) => {
         return commands.execute("docmanager:open", {
           path: model.path,
-          factory: FACTORY,
+          factory: TEXT_FACTORY,
         });
       });
   };
 
-  EXPORT_FORMATS.map((exportFormat) => {
+  IO.EXPORT_FORMATS.map((exportFormat) => {
     const { ext, key, format, label, mimetype } = exportFormat;
-    const transform = exportFormat.transform || String;
+    const save = exportFormat.save || String;
     const _exporter = async (cwd: string) => {
       let model: Contents.IModel = await commands.execute(
         "docmanager:new-untitled",
@@ -220,7 +179,7 @@ function activate(
         }
       );
       let drawio = app.shell.currentWidget as DrawioWidget;
-      let stem = PathExt.basename(drawio.context.path);
+      let stem = PathExt.basename(drawio.context.path).replace(/\.dio$/, "");
       model = await app.serviceManager.contents.rename(
         model.path,
         PathExt.join(cwd, `${stem}${ext}`)
@@ -232,12 +191,12 @@ function activate(
         ...model,
         format,
         mimetype,
-        content: transform(rawContent),
+        content: save(rawContent),
       });
     };
 
     commands.addCommand(`drawio:export-${key}`, {
-      label: `Export diagram as ${label}`,
+      label: `Export ${IO.XML_NATIVE.label} as ${label}`,
       execute: () => {
         let cwd = browserFactory.defaultBrowser.model.path;
         return _exporter(cwd);
@@ -247,15 +206,15 @@ function activate(
 
     palette.addItem({
       command: `drawio:export-${key}`,
-      category: "Diagram Export",
+      category: `${IO.XML_NATIVE.label} Export`,
     });
   });
 
   // Add a command for creating a new diagram file.
   commands.addCommand("drawio:create-new", {
-    label: "Diagram",
-    icon: drawioIcon,
-    caption: "Create a new diagram file",
+    label: IO.XML_NATIVE.label,
+    icon: IO.drawioIcon,
+    caption: `Create a new ${IO.XML_NATIVE.name} file`,
     execute: () => {
       let cwd = browserFactory.defaultBrowser.model.path;
       return createNewDIO(cwd);
@@ -276,5 +235,5 @@ function activate(
     menu.fileMenu.newMenu.addGroup([{ command: "drawio:create-new" }], 40);
   }
 
-  return tracker;
+  return [textTracker, binaryTracker];
 }

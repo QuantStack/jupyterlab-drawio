@@ -28,6 +28,8 @@ import { URLExt, PageConfig } from "@jupyterlab/coreutils";
 
 import { IFrame } from "@jupyterlab/apputils";
 
+import * as IO from "./io";
+
 import "../style/index.css";
 
 const STATIC = URLExt.join(PageConfig.getBaseUrl(), "static");
@@ -38,7 +40,7 @@ const DRAWIO_URL = URLExt.join(
   "node_modules/jupyterlab-drawio/src/drawio/src/main/webapp/index.html"
 );
 
-const DEBUG = 0;
+const DEBUG = window.location.hash.indexOf("DRAWIO_DEBUG") > -1;
 
 /**
  * Core URL params that are required to function properly
@@ -68,6 +70,7 @@ const DEFAULT_CONFIG = {
   debug: DEBUG,
   showStartScreen: false,
   override: true,
+  plugins: ["anon"],
 };
 
 /**
@@ -104,6 +107,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     });
 
     this.ready.then(() => {
+      this._saveNeedsExport = IO.EXPORT_MIME_MAP.has(
+        this.context.contentsModel.mimetype
+      );
       this.addClass(READY_CLASS);
     });
   }
@@ -126,7 +132,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       return;
     }
 
-    DEBUG && console.warn("drawio message received", msg);
+    DEBUG && console.debug("drawio message received", msg);
 
     switch (msg.event) {
       case "configure":
@@ -139,22 +145,66 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
         this._ready.resolve(void 0);
         break;
       case "save":
+        if (this._saveNeedsExport) {
+          this.saveWithExport(true);
+          break;
+        }
         this._lastEmitted = msg.xml;
         this.context.model.fromString(msg.xml);
         this.context.save();
         break;
       case "autosave":
+        if (this._saveNeedsExport) {
+          this.saveWithExport();
+          break;
+        }
         this._lastEmitted = msg.xml;
         this.context.model.fromString(msg.xml);
         break;
       case "export":
-        this._exportPromise.resolve(msg.data);
-        this._exportPromise = null;
+        if (this._exportPromise != null) {
+          this._exportPromise.resolve(msg.data);
+          this._exportPromise = null;
+        }
+
+        if (this._saveWithExportPromise != null) {
+          this._saveWithExportPromise.resolve(msg.data);
+          this._saveWithExportPromise = null;
+        }
         break;
       default:
-        DEBUG && console.warn("unhandled message", msg.event, msg);
+        DEBUG && console.debug("unhandled message", msg.event, msg);
         break;
     }
+  }
+
+  private saveWithExport(hardSave = false) {
+    const { mimetype } = this.context.contentsModel;
+    const format = IO.EXPORT_MIME_MAP.get(mimetype);
+    if (format?.save == null) {
+      console.error(`Unexpected save with export of ${mimetype}`);
+      return;
+    }
+    this._saveWithExportPromise = new PromiseDelegate();
+    this.postMessage({
+      action: "export",
+      format: format.key,
+    });
+    this._saveWithExportPromise.promise
+      .then((raw) => {
+        const stripped = format.save(raw);
+        if (stripped === this._lastEmitted) {
+          return;
+        }
+        this._lastEmitted = stripped;
+        this.context.model.fromString(stripped);
+        if (hardSave) {
+          this.context.save();
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   /** TODO: schema/settings for https://desk.draw.io/support/solutions/articles/16000058316 */
@@ -165,7 +215,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       ui: this.drawioTheme(),
       version: `${+new Date()}`,
     };
-    console.log("configuring drawio", config);
+    DEBUG && console.debug("configuring drawio", config);
     this.postMessage({ action: "configure", config });
   }
 
@@ -224,9 +274,15 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   }
 
   private _onContentChanged(): void {
-    const xml = this.context.model.toString();
+    const { model, contentsModel } = this.context;
+    let xml = model.toString();
+
     if (xml === this._lastEmitted) {
       return;
+    }
+
+    if (contentsModel.format === "base64") {
+      xml = `data:${contentsModel.mimetype};base64,${xml}`;
     }
 
     this.postMessage({
@@ -250,8 +306,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   readonly context: DocumentRegistry.Context;
   private _ready = new PromiseDelegate<void>();
   private _exportPromise: PromiseDelegate<string>;
+  private _saveWithExportPromise: PromiseDelegate<string>;
   private _frame: HTMLIFrameElement;
   private _lastEmitted: string;
+  private _saveNeedsExport: boolean;
 }
 
 /**
