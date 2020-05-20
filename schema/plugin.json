@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "jupyter.lab.setting-icon-label": "Drawio",
+  "title": "Drawio",
+  "description": "Drawio settings.",
+  "type": "object",
+  "definitions": {
+    "font-set": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "uniqueItems": true
+      }
+    },
+    "color-set": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "uniqueItems": true,
+        "pattern": "[a-fA-F\\d]{6}"
+      }
+    },
+    "library-keys-string": {
+      "type": "string",
+      "pattern": "([^;]+;)*[^;]+"
+    },
+    "library-key-list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "plugin-url-list": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "library-id-list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "library-def-list": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/library-section"
+      }
+    },
+    "library-section": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "$ref": "#/definitions/library-resource"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/library-entry"
+          }
+        }
+      }
+    },
+    "library-entry": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "string"},
+        "preview": {"type": "string"},
+        "title": {
+          "$ref": "#/definitions/library-resource"
+        },
+        "desc": {
+          "$ref": "#/definitions/library-resource"
+        },
+        "libs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/library-def"
+          }
+        }
+      }
+    },
+    "library": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "$ref": "#/definitions/library-resource"
+        },
+        "tags": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "xml": {
+              "description": "NB: appears to be base64-encoded",
+              "type": "string"
+            },
+            "w": {
+              "type": "number"
+            },
+            "h": {
+              "type": "number"
+            },
+            "aspect": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "library-resource": {
+      "type": "object",
+      "properties": {
+        "main": {"type": "string"}
+      }
+    }
+  },
+  "properties": {
+    "stripMetadata": {
+      "description": "Attributes to remove from drawio XML documents (but not embedded formats e.g. SVG, PNG, HTML). Some values include: host, agent, modified, etag",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "indent": {
+      "description": "Number of spaces to indent pretty-printed XML, SVG, and HTML",
+      "type": "number",
+      "minimum": 1
+    },
+    "drawioConfig": {
+      "description": "Configuration options sent to each drawio editor. https://desk.draw.io/support/solutions/articles/16000058316",
+      "properties": {
+        "defaultFonts": {
+          "description": "An array of font family names in the format panel font drop-down list. All fonts must be installed on the server and all clients or be added using the fontCss option.",
+          "$ref": "#/definitions/font-set"
+        },
+        "customFonts": {
+          "description": "An array of font family names to be added before defaultFonts",
+          "type": "array",
+          "$ref": "#/definitions/font-set"
+        },
+        "presetColors": {
+          "description": "Colour codes for the upper palette in the colour dialog (no leading # for the colour codes).",
+          "$ref": "#/definitions/color-set"
+        },
+        "customPresetColors": {
+          "description": "Colour codes to be added before presetColors (no leading # for the colour codes)",
+          "$ref": "#/definitions/color-set"
+        },
+        "defaultColors": {
+          "description": "Colour codes for the lower palette in the colour dialog (no leading # for the colour codes).",
+          "$ref": "#/definitions/color-set"
+        },
+        "defaultColorSchemes": {
+          "description": "TBD: see https://desk.draw.io/support/solutions/articles/16000058316"
+        },
+        "customColorSchemes": {
+          "description": "TBD: see https://desk.draw.io/support/solutions/articles/16000058316"
+        },
+        "defaultVertexStyle": {
+          "description": "TBD: see https://desk.draw.io/support/solutions/articles/16000058316"
+        },
+        "defaultEdgeStyle": {
+          "description": "TBD: see https://desk.draw.io/support/solutions/articles/16000058316"
+        },
+        "defaultLibraries": {
+          "description": "Defines a semicolon-separated list of library keys (unique names) in a string to be initially displayed in the left panel (e.g. general;uml;company-graphics). Possible keys include custom entry IDs from the libraries field, or keys for the libs URL parameter ",
+          "default": "general;uml;er;bpmn;flowchart;basic;arrows2",
+          "$ref": "#/definitions/library-keys-string"
+        },
+        "enabledLibraries": {
+          "description": "Defines an array of strings of library keys which will be available in the More Shapes dialog. If you define this as null, all libraries will be visible. If you leave the array empty, no libraries will be visible",
+          "$ref": "#/definitions/library-key-list"
+        },
+        "libraries": {
+          "description": "Defines an array of objects that list additional libraries and sections in the left panel and the More Shapes dialog",
+          "$ref": "#/definitions/library-def-list"
+        },
+        "defaultCustomLibraries": {
+          "description": "Defines an array of IDs to load custom libraries.",
+          "$ref": "#/library-id-list"
+        },
+        "enableCustomLibraries": {
+          "description": "Specifies if the open and new library functions are enabled (true or false, the default true).",
+          "type": "boolean"
+        },
+        "templateFile": {
+          "description": "Defines the URL of the source file for the Templates dialog (multiple <template> tags are allowed).",
+          "type": "string",
+          "format": "uri"
+        },
+        "css": {
+          "description": "Defines a string with CSS rules to be used to configure the diagrams.net user interface.",
+          "type": "string"
+        },
+        "fontCss": {
+          "description": "Defines a string with CSS rules for web fonts to be used in diagrams. This should be one or more @font-face rule,",
+          "type": "string"
+        },
+        "plugins": {
+          "description": "Defines an array of plugin URLs that should be loaded with the diagram editor. Plugins are JavaScript files that can modify the editor UI and behaviour.",
+          "$ref": "#/definitions/plugin-url-list"
+        },
+        "thumbWidth": {
+          "description": "Defines the width for the entries in the left panel",
+          "type": "number"
+        },
+        "thumbHeight": {
+          "description": "Defines the height for the entries in the left panel",
+          "type": "number"
+        },
+        "emptyDiagramXml": {
+          "description": "Defines the XML for blank diagrams",
+          "type": "string"
+        },
+        "emptyLibraryXml": {
+          "description": "Defines the XML for blank diagrams and libraries",
+          "type": "string"
+        },
+        "defaultEdgeLength": {
+          "description": "Defines the default length for new connectors",
+          "type": "number"
+        },
+        "autosaveDelay": {
+          "description": "Defines the delay (in ms) between the last change and the autosave of the file",
+          "type": "number"
+        },
+        "version": {
+          "description": "The current version of the configuration (any string, e.g. 1.0). If this is different from the last used version, then the current settings on the client-side (.drawio-config) will be reset. The default is null. Change this to force the stored settings in the client to be reset and apply the current configuration",
+          "type": "string"
+        },
+        "override": {
+          "description": "Ignores the current settings on the client-side if this is set to true",
+          "type": "boolean"
+        },
+        "globalVars": {
+          "description": "JSON structure with key, value pairs to define global variables for system-wide placeholders. You should keep the number of entries small.",
+          "type": "object"
+        },
+        "compressXml": {
+          "description": "Specifies if the XML output should be compressed.",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
