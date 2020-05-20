@@ -327,11 +327,9 @@ export class DrawioFactory extends ABCWidgetFactory<
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DrawioWidget {
-    return new DrawioWidget({
-      context,
-      content: new IFrame({
-        sandbox: SANDBOX_EXCEPTIONS,
-      }),
+    const content = new IFrame({
+      sandbox: SANDBOX_EXCEPTIONS,
     });
+    return new DrawioWidget({ context, content });
   }
 }
