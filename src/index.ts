@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { Token, PromiseDelegate } from "@lumino/coreutils";
+
 import { Contents } from "@jupyterlab/services";
 import { PathExt } from "@jupyterlab/coreutils";
 

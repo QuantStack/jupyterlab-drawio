@@ -8,14 +8,13 @@
     "@jupyterlab/apputils": "^2.0.0",
     "@jupyterlab/coreutils": "^4.0.0",
     "@jupyterlab/docregistry": "^2.0.0",
+    "@jupyterlab/settingsregistry": "^2.0.0",
     "@jupyterlab/filebrowser": "^2.0.0",
     "@jupyterlab/launcher": "^2.0.0",
     "@jupyterlab/mainmenu": "^2.0.0"
   },
   "description": "A JupyterLab extension for embedding drawio / mxgraph.",
   "devDependencies": {
-    "@lumino/messaging": "^1.1.0",
-    "fs-extra": "^8.1.0",
     "rimraf": "^2.6.1",
     "typescript": "~3.7.0"
   },
