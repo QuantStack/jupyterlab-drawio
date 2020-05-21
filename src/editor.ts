@@ -11,22 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+import { PromiseDelegate, ReadonlyPartialJSONObject } from "@lumino/coreutils";
+import { Message } from "@lumino/messaging";
 
+import { PathExt, URLExt, PageConfig } from "@jupyterlab/coreutils";
+import { IFrame } from "@jupyterlab/apputils";
 import {
   ABCWidgetFactory,
   DocumentRegistry,
   DocumentWidget,
 } from "@jupyterlab/docregistry";
-
-import { PathExt } from "@jupyterlab/coreutils";
-
-import { Message } from "@lumino/messaging";
-
-import { PromiseDelegate } from "@lumino/coreutils";
-
-import { URLExt, PageConfig } from "@jupyterlab/coreutils";
-
-import { IFrame } from "@jupyterlab/apputils";
 
 import * as IO from "./io";
 
@@ -114,8 +108,16 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     });
   }
 
-  async neverCallThis() {
+  /**
+   * this exists to trick webpack into copying ~1000 files into static
+   * */
+  protected async neverCallThis() {
     await import("./_static");
+  }
+
+  updateSettings(settings: ReadonlyPartialJSONObject) {
+    this._settings = settings;
+    this.configureDrawio();
   }
 
   exportAs(format: string) {
@@ -209,10 +211,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
 
   /** TODO: schema/settings for https://desk.draw.io/support/solutions/articles/16000058316 */
   private configureDrawio() {
+    let userConfig = this._settings?.drawioConfig as ReadonlyPartialJSONObject;
     const config = {
       ...DEFAULT_CONFIG,
-      // TODO listen for theme changes?
-      ui: this.drawioTheme(),
+      ...(userConfig || {}),
       version: `${+new Date()}`,
     };
     DEBUG && console.debug("configuring drawio", config);
@@ -310,6 +312,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   private _frame: HTMLIFrameElement;
   private _lastEmitted: string;
   private _saveNeedsExport: boolean;
+  private _settings: ReadonlyPartialJSONObject;
 }
 
 /**

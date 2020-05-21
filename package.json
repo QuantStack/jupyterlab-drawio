@@ -1216,7 +1216,8 @@
   ],
   "homepage": "https://github.com/QuantStack/jupyterlab-drawio",
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "schemaDir": "schema"
   },
   "keywords": [
     "extension",

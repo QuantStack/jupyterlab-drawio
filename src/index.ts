@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Token } from "@lumino/coreutils";
+import { Token, PromiseDelegate } from "@lumino/coreutils";
 import { Contents } from "@jupyterlab/services";
 import { PathExt } from "@jupyterlab/coreutils";
 
@@ -27,6 +27,8 @@ import {
   IWidgetTracker,
   ICommandPalette,
 } from "@jupyterlab/apputils";
+
+import { ISettingRegistry } from "@jupyterlab/settingregistry";
 
 import { IFileBrowserFactory } from "@jupyterlab/filebrowser";
 
@@ -54,7 +56,13 @@ export const IDrawioTracker = new Token<IDrawioTracker>("drawio/tracki");
 const plugin: JupyterFrontEndPlugin<IDrawioTracker[]> = {
   activate,
   id: "@jupyterlab/drawio-extension:plugin",
-  requires: [IFileBrowserFactory, ILayoutRestorer, IMainMenu, ICommandPalette],
+  requires: [
+    IFileBrowserFactory,
+    ILayoutRestorer,
+    IMainMenu,
+    ICommandPalette,
+    ISettingRegistry,
+  ],
   optional: [ILauncher],
   provides: IDrawioTracker,
   autoStart: true,
@@ -68,6 +76,7 @@ function activate(
   restorer: ILayoutRestorer,
   menu: IMainMenu,
   palette: ICommandPalette,
+  settingsRegistry: ISettingRegistry,
   launcher: ILauncher | null
 ): IDrawioTracker[] {
   const { commands } = app;
@@ -108,25 +117,52 @@ function activate(
     });
 
     factory.widgetCreated.connect((sender, widget) => {
+      // initialize icon
       widget.title.icon = IO.drawioIcon;
 
       // Notify the instance tracker if restore data needs to update.
-      widget.context.pathChanged.connect(() => {
-        tracker.save(widget);
-      });
+      widget.context.pathChanged.connect(() => tracker.save(widget));
+
+      // complete initialization once context is ready;
       widget.context.ready.then(() => {
-        const {mimetype} = widget.context.contentsModel;
+        const { mimetype } = widget.context.contentsModel;
         const icon = IO.EXPORT_MIME_MAP.get(mimetype)?.icon;
-        if(icon != null) {
+        if (icon != null) {
           widget.title.icon = icon;
         }
       });
+
+      // add to tracker
       tracker.add(widget);
     });
     app.docRegistry.addWidgetFactory(factory);
 
     return tracker;
   }
+
+  let settings: ISettingRegistry.ISettings;
+
+  let settingsReady = new PromiseDelegate<void>();
+
+  function updateSettings(widget: DrawioWidget) {
+    widget.updateSettings(settings.composite);
+  }
+
+  function settingsChanged() {
+    for (const tracker of [textTracker, binaryTracker]) {
+      tracker.forEach(updateSettings);
+    }
+  }
+
+  settingsRegistry
+    .load(plugin.id)
+    .then((loadedSettings) => {
+      settings = loadedSettings;
+      settingsReady.resolve(void 0);
+      settings.changed.connect(() => settingsChanged());
+      settingsChanged();
+    })
+    .catch((err) => console.error(err));
 
   const textTracker = initTracker(
     "text",
