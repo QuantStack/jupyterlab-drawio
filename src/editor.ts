@@ -31,7 +31,7 @@ const STATIC = URLExt.join(PageConfig.getBaseUrl(), "static");
 const DRAWIO_URL = URLExt.join(
   STATIC,
   "lab",
-  "node_modules/jupyterlab-drawio/src/drawio/src/main/webapp/index.html"
+  "node_modules/jupyterlab-drawio/drawio/src/main/webapp/index.html"
 );
 
 const DEBUG = window.location.hash.indexOf("DRAWIO_DEBUG") > -1;
