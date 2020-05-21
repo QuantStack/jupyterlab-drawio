@@ -78,7 +78,7 @@
         "libs": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/library-def"
+            "$ref": "#/definitions/library"
           }
         }
       }
@@ -145,7 +145,6 @@
         },
         "customFonts": {
           "description": "An array of font family names to be added before defaultFonts",
-          "type": "array",
           "$ref": "#/definitions/font-set"
         },
         "presetColors": {
