@@ -53,18 +53,15 @@ const DEFAULT_EMBED_PARAMS = {
   od: 0, // onedrive
   tr: 0, // trello
   gl: 0, // gitlab
-  noExitBtn: 1,
+  stealth: 1, // just to be sure
+  noExitBtn: 1, // looks/acts weird
 };
 
 const DEFAULT_CONFIG = {
-  compressXml: false,
-  exportPdf: false,
-  remoteConvert: false,
-  plantUml: false,
-  debug: DEBUG,
-  showStartScreen: false,
-  override: true,
-  plugins: ["anon"],
+  compressXml: false,  // bigger size, _maybe_ diffable
+  debug: DEBUG,  // a lot going on
+  showStartScreen: false, // looks weird
+  override: true, // might help
 };
 
 /**
@@ -108,16 +105,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     });
   }
 
-  /**
-   * this exists to trick webpack into copying ~1000 files into static
-   * */
-  protected async neverCallThis() {
-    await import("./_static");
-  }
-
   updateSettings(settings: ReadonlyPartialJSONObject) {
     this._settings = settings;
-    this.configureDrawio();
+    this.reloadFrame(true);
   }
 
   exportAs(format: string) {
@@ -134,7 +124,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       return;
     }
 
-    DEBUG && console.debug("drawio message received", msg);
+    DEBUG && console.warn("drawio message received", msg);
 
     switch (msg.event) {
       case "configure":
@@ -175,9 +165,19 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
         }
         break;
       default:
-        DEBUG && console.debug("unhandled message", msg.event, msg);
+        DEBUG && console.warn("unhandled message", msg.event, msg);
         break;
     }
+  }
+
+  onAfterShow(msg: Message): void {
+    if (this._frame == null) {
+      this._frame = this.content.node.querySelector(
+        "iframe"
+      ) as HTMLIFrameElement;
+      window.addEventListener("message", (evt) => this.handleMessageEvent(evt));
+    }
+    this.reloadFrame();
   }
 
   private saveWithExport(hardSave = false) {
@@ -209,7 +209,6 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       });
   }
 
-  /** TODO: schema/settings for https://desk.draw.io/support/solutions/articles/16000058316 */
   private configureDrawio() {
     let userConfig = this._settings?.drawioConfig as ReadonlyPartialJSONObject;
     const config = {
@@ -217,7 +216,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       ...(userConfig || {}),
       version: `${+new Date()}`,
     };
-    DEBUG && console.debug("configuring drawio", config);
+    DEBUG && console.warn("configuring drawio", config);
     this.postMessage({ action: "configure", config });
   }
 
@@ -228,44 +227,32 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this._frame.contentWindow.postMessage(JSON.stringify(msg), "*");
   }
 
-  private drawioTheme() {
-    return document.querySelector('body[data-jp-theme-light="true"]')
-      ? "kennedy"
-      : "dark";
-  }
-
-  private drawioUrl() {
+  private reloadFrame(force: boolean = false) {
     const query = new URLSearchParams();
+    const userUrlParams = this._settings
+      ?.drawioUrlParams as ReadonlyPartialJSONObject;
     const params = {
       ...DEFAULT_EMBED_PARAMS,
+      ui: document.querySelector('body[data-jp-theme-light="true"]')
+        ? "kennedy"
+        : "dark",
+      ...(userUrlParams || {}),
       ...CORE_EMBED_PARAMS,
-      ui: this.drawioTheme(),
     };
     for (const p in params) {
       query.append(p, (params as any)[p]);
     }
-    return DRAWIO_URL + "?" + query.toString();
-  }
+    const url = DRAWIO_URL + "?" + query.toString();
 
-  onAfterShow(msg: Message): void {
-    const url = this.drawioUrl();
-    if (this.content.url == url) {
-      return;
+    if (force || this.content.url !== url) {
+      this.removeClass(READY_CLASS);
+      this.content.url = url;
     }
-    this._frame = this.content.node.querySelector(
-      "iframe"
-    ) as HTMLIFrameElement;
-    window.addEventListener("message", (evt) => this.handleMessageEvent(evt));
-    this.content.url = url;
   }
 
   private _onContextReady(): void {
-    const contextModel = this.context.model;
-
-    // Set the editor model value.
+    this.context.model.contentChanged.connect(this._onContentChanged, this);
     this._onContentChanged();
-
-    contextModel.contentChanged.connect(this._onContentChanged, this);
   }
 
   /**
@@ -301,6 +288,13 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
    */
   get ready(): Promise<void> {
     return this._ready.promise;
+  }
+
+  /**
+   * this exists to trick webpack into copying ~1000 files into static
+   * */
+  protected async neverCallThis() {
+    await import("./_static");
   }
 
   public content: IFrame;
