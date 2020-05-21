@@ -32,7 +32,7 @@
       }
     },
     "drawioConfig": {
-      "description": "Configuration options sen,t to each drawio editor. https://desk.draw.io/support/solutions/articles/16000058316",
+      "description": "Configuration options sent to each drawio editor. https://desk.draw.io/support/solutions/articles/16000058316",
       "$ref": "#/definitions/drawio-config",
       "default": {}
     }
@@ -577,25 +577,18 @@
     },
     "off-switch": {
       "type": "number",
-      "enum": [
-        0
-      ]
+      "minimum": 0,
+      "maximum": 0
     },
     "on-switch": {
       "type": "number",
-      "enum": [
-        1
-      ]
+      "minimum": 1,
+      "maximum": 1
     },
     "on-off-switch": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/on-switch"
-        },
-        {
-          "$ref": "#/definitions/off-switch"
-        }
-      ]
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
     },
     "url-param-target": {
       "type": "string",

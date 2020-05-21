@@ -101,7 +101,6 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       this._saveNeedsExport = IO.EXPORT_MIME_MAP.has(
         this.context.contentsModel.mimetype
       );
-      this.addClass(READY_CLASS);
     });
   }
 
@@ -135,6 +134,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
         break;
       case "load":
         this._ready.resolve(void 0);
+        this.addClass(READY_CLASS);
         break;
       case "save":
         if (this._saveNeedsExport) {
