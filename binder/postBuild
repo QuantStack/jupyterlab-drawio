@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -eux
 npm install
+npm run clean
 npm run build
 npm pack
 jupyter labextension install ./jupyterlab-drawio-*.tgz --no-build --debug

@@ -20,8 +20,7 @@
     "typescript": "~3.7.0"
   },
   "files": [
-    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
-    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
+    "{lib,schema,style}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,css}",
     "src/drawio/src/main/webapp/app.html",
     "src/drawio/src/main/webapp/favicon.ico",
     "src/drawio/src/main/webapp/images/1x1.png",

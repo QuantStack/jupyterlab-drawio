@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "jupyter.lab.setting-icon-label": "Drawio",
+  "jupyter.lab.setting-icon": "drawio:drawio",
   "title": "Drawio",
   "description": "Drawio settings.",
   "type": "object",

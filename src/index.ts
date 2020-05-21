@@ -55,7 +55,7 @@ export const IDrawioTracker = new Token<IDrawioTracker>("drawio/tracki");
  */
 const plugin: JupyterFrontEndPlugin<IDrawioTracker[]> = {
   activate,
-  id: "@jupyterlab/drawio-extension:plugin",
+  id: "jupyterlab-drawio:plugin",
   requires: [
     IFileBrowserFactory,
     ILayoutRestorer,
