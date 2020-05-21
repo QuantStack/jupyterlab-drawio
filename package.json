@@ -8,7 +8,7 @@
     "@jupyterlab/apputils": "^2.0.0",
     "@jupyterlab/coreutils": "^4.0.0",
     "@jupyterlab/docregistry": "^2.0.0",
-    "@jupyterlab/settingsregistry": "^2.0.0",
+    "@jupyterlab/settingregistry": "^2.0.0",
     "@jupyterlab/filebrowser": "^2.0.0",
     "@jupyterlab/launcher": "^2.0.0",
     "@jupyterlab/mainmenu": "^2.0.0"

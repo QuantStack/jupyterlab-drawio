@@ -1,6 +1,7 @@
 .ipynb_checkpoints
 *.bundle.*
 *.egg-info/
+*.log
 *.sqlite
 *.tgz
 envs/
