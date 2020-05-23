@@ -34,10 +34,11 @@ export const drawioPngIcon = new LabIcon({
   svgstr: DRAWIO_ICON_SVG.replace(iconRegEx, "jp-icon-contrast0"),
 });
 
-export const drawioHtmlIcon = new LabIcon({
-  name: "drawio:html",
-  svgstr: DRAWIO_ICON_SVG.replace(iconRegEx, "jp-icon-brand0"),
-});
+// basically works, but needs a really solid story about where it will be published
+// export const drawioHtmlIcon = new LabIcon({
+//   name: "drawio:html",
+//   svgstr: DRAWIO_ICON_SVG.replace(iconRegEx, "jp-icon-brand0"),
+// });
 
 const stripDataURI = (raw: string) => raw.split(",")[1];
 
@@ -73,26 +74,26 @@ export const SVG_EDITABLE: IDrawioFormat = {
   pattern: "^.*.dio.svg$",
 };
 
-export const HTML_PLAIN: IDrawioFormat = {
-  ext: ".html",
-  format: "text",
-  icon: drawioHtmlIcon,
-  key: "html2",
-  label: "HTML",
-  mimetype: "text/html",
-  name: "html"
-}
+// export const HTML_PLAIN: IDrawioFormat = {
+//   ext: ".html",
+//   format: "text",
+//   icon: drawioHtmlIcon,
+//   key: "html2",
+//   label: "HTML",
+//   mimetype: "text/html",
+//   name: "html"
+// }
 
-export const HTML_EDITABLE: IDrawioFormat = {
-  ...HTML_PLAIN,
-  ext: ".dio.html",
-  icon: drawioHtmlIcon,
-  key: "html2",
-  label: "HTML (Editable)",
-  name: "diohtml",
-  pattern: "^.*.dio.html$",
-  save: String
-};
+// export const HTML_EDITABLE: IDrawioFormat = {
+//   ...HTML_PLAIN,
+//   ext: ".dio.html",
+//   icon: drawioHtmlIcon,
+//   key: "html2",
+//   label: "HTML (Editable)",
+//   name: "diohtml",
+//   pattern: "^.*.dio.html$",
+//   save: String
+// };
 
 export const PNG_PLAIN: IDrawioFormat = {
   ext: ".png",
@@ -115,7 +116,7 @@ export const PNG_EDITABLE: IDrawioFormat = {
 };
 
 export const EXPORT_FORMATS = [
-  HTML_EDITABLE,
+  // HTML_EDITABLE,
   PNG_EDITABLE,
   PNG_PLAIN,
   SVG_EDITABLE,
@@ -125,19 +126,23 @@ export const EXPORT_FORMATS = [
 export const ALL_BINARY_FORMATS = [PNG_PLAIN, PNG_EDITABLE];
 
 export const ALL_TEXT_FORMATS = [
-  HTML_EDITABLE,
-  HTML_PLAIN,
+  // HTML_EDITABLE,
+  // HTML_PLAIN,
   SVG_EDITABLE,
   SVG_PLAIN,
   XML_NATIVE,
 ];
 
-export const DEFAULT_TEXT_FORMATS = [HTML_EDITABLE, SVG_EDITABLE, XML_NATIVE];
+export const DEFAULT_TEXT_FORMATS = [
+  // HTML_EDITABLE,
+  SVG_EDITABLE,
+  XML_NATIVE,
+];
 export const DEFAULT_BINARY_FORMATS = [PNG_EDITABLE];
 export const ALL_FORMATS = [...ALL_BINARY_FORMATS, ...ALL_TEXT_FORMATS];
 
 export const EXPORT_MIME_MAP = new Map<string, IDrawioFormat>([
   [PNG_EDITABLE.mimetype, PNG_EDITABLE],
   [SVG_EDITABLE.mimetype, SVG_EDITABLE],
-  [HTML_EDITABLE.mimetype, HTML_EDITABLE]
+  // [HTML_EDITABLE.mimetype, HTML_EDITABLE]
 ]);
