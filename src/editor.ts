@@ -28,13 +28,19 @@ import "../style/index.css";
 
 const STATIC = URLExt.join(PageConfig.getBaseUrl(), "static");
 
+/**
+ * The path on the server to base application HTML, to be served in an iframe
+ */
 const DRAWIO_URL = URLExt.join(
   STATIC,
   "lab",
   "node_modules/jupyterlab-drawio/drawio/src/main/webapp/index.html"
 );
 
-const DEBUG = window.location.hash.indexOf("DRAWIO_DEBUG") > -1;
+/**
+ * Escape hatch for runtime debugging.
+ */
+export const DEBUG = window.location.hash.indexOf("DRAWIO_DEBUG") > -1;
 
 /**
  * Core URL params that are required to function properly
@@ -64,9 +70,13 @@ const DRAWIO_CLASS = "jp-Drawio";
 
 const READY_CLASS = "jp-Drawio-ready";
 
+/**
+ * A document for using offline drawio in an iframe
+ */
 export class DrawioWidget extends DocumentWidget<IFrame> {
-  constructor(options: DocumentWidget.IOptions<IFrame>) {
+  constructor(options: DrawioWidget.IOptions) {
     super({ ...options });
+    this.getSettings = options.getSettings;
     this.addClass(DRAWIO_CLASS);
 
     this.context = options["context"];
@@ -85,12 +95,17 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     });
   }
 
-  updateSettings(settings: ReadonlyPartialJSONObject) {
-    this._settings = settings;
-    this.reloadFrame(true);
+  /**
+   * Handle receiving settings from the extension
+   */
+  updateSettings() {
+    this.maybeReloadFrame(true);
   }
 
-  exportAs(format: string) {
+  /**
+   * Get a an export string in one of the supported formats.
+   */
+  exportAs(format: string): Promise<string> {
     this._exportPromise = new PromiseDelegate();
 
     this.postMessage({ action: "export", format });
@@ -98,6 +113,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     return this._exportPromise.promise;
   }
 
+  /**
+   * Handle messages from the iframe over the drawio embed protocol
+   */
   handleMessageEvent(evt: MessageEvent) {
     const msg = JSON.parse(evt.data);
     if (this._frame == null || evt.source !== this._frame.contentWindow) {
@@ -151,6 +169,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     }
   }
 
+  /**
+   * Install the message listener, the first time, and potentially reload the frame
+   */
   onAfterShow(msg: Message): void {
     if (this._frame == null) {
       this._frame = this.content.node.querySelector(
@@ -158,10 +179,13 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       ) as HTMLIFrameElement;
       window.addEventListener("message", (evt) => this.handleMessageEvent(evt));
     }
-    this.reloadFrame();
+    this.maybeReloadFrame();
   }
 
-  private saveWithExport(hardSave = false) {
+  /**
+   * Handle round-tripping to formats that require an export
+   */
+  private saveWithExport(hardSave: boolean = false) {
     const { mimetype } = this.context.contentsModel;
     const format = IO.EXPORT_MIME_MAP.get(mimetype);
     if (format?.save == null) {
@@ -190,8 +214,12 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       });
   }
 
+  /**
+   * Prepare and post the message for configuring the drawio application
+   */
   private configureDrawio() {
-    let settingsConfig = this._settings?.drawioConfig as ReadonlyPartialJSONObject;
+    let settingsConfig = this.getSettings()
+      ?.drawioConfig as ReadonlyPartialJSONObject;
     const config = {
       ...(settingsConfig || {}),
       version: `${+new Date()}`,
@@ -200,6 +228,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this.postMessage({ action: "configure", config });
   }
 
+  /**
+   * Post to the iframe, if available. Should be buffered?
+   */
   private postMessage(msg: any) {
     if (this._frame == null) {
       return;
@@ -207,9 +238,12 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this._frame.contentWindow.postMessage(JSON.stringify(msg), "*");
   }
 
-  private reloadFrame(force: boolean = false) {
+  /**
+   * Determine the URL for the iframe src, reload if changed
+   */
+  private maybeReloadFrame(force: boolean = false) {
     const query = new URLSearchParams();
-    const settingsUrlParams = this._settings
+    const settingsUrlParams = this.getSettings()
       ?.drawioUrlParams as ReadonlyPartialJSONObject;
     const params = {
       ...(settingsUrlParams || {}),
@@ -221,6 +255,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     const url = DRAWIO_URL + "?" + query.toString();
 
     if (force || this.content.url !== url) {
+      DEBUG && console.warn("configuring iframe", params);
       this.removeClass(READY_CLASS);
       this.content.url = url;
     }
@@ -238,6 +273,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this.title.label = PathExt.basename(this.context.localPath);
   }
 
+  /**
+   * Handle a change to the raw document
+   */
   private _onContentChanged(): void {
     const { model, contentsModel } = this.context;
     let xml = model.toString();
@@ -267,7 +305,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   }
 
   /**
-   * this exists to trick webpack into copying ~1000 files into static
+   * Trick webpack into copying ~1000 files into the app's static folder
    * */
   protected async neverCallThis() {
     await import("./_static");
@@ -276,33 +314,51 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   public content: IFrame;
   public revealed: Promise<void>;
   readonly context: DocumentRegistry.Context;
+  protected getSettings: ISettingsGetter;
   private _ready = new PromiseDelegate<void>();
   private _exportPromise: PromiseDelegate<string>;
   private _saveWithExportPromise: PromiseDelegate<string>;
   private _frame: HTMLIFrameElement;
   private _lastEmitted: string;
   private _saveNeedsExport: boolean;
-  private _settings: ReadonlyPartialJSONObject;
+}
+
+export interface ISettingsGetter {
+  (): ReadonlyPartialJSONObject;
+}
+
+export namespace DrawioWidget {
+  export interface IOptions extends DocumentWidget.IOptions<IFrame> {
+    getSettings: ISettingsGetter;
+  }
 }
 
 /**
- * A widget factory for drawio.
+ * A widget factory for a drawio diagram.
  */
 export class DrawioFactory extends ABCWidgetFactory<
   DrawioWidget,
   DocumentRegistry.IModel
 > {
+  protected getSettings: ISettingsGetter;
   /**
    * Create a new widget given a context.
    */
-  constructor(options: DocumentRegistry.IWidgetFactoryOptions) {
+  constructor(options: DrawioFactory.IOptions) {
     super(options);
+    this.getSettings = options.getSettings;
   }
 
   protected createNewWidget(context: DocumentRegistry.Context): DrawioWidget {
     const content = new IFrame({
       sandbox: SANDBOX_EXCEPTIONS,
     });
-    return new DrawioWidget({ context, content });
+    return new DrawioWidget({ context, content, getSettings: this.getSettings });
+  }
+}
+
+export namespace DrawioFactory {
+  export interface IOptions extends DocumentRegistry.IWidgetFactoryOptions{
+    getSettings: () => ReadonlyPartialJSONObject;
   }
 }

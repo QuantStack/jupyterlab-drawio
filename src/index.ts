@@ -37,7 +37,7 @@ import { ILauncher } from "@jupyterlab/launcher";
 
 import { IMainMenu } from "@jupyterlab/mainmenu";
 
-import { DrawioWidget, DrawioFactory } from "./editor";
+import { DrawioWidget, DrawioFactory, DEBUG } from "./editor";
 
 import * as IO from "./io";
 
@@ -95,6 +95,9 @@ function activate(
     });
   }
 
+  /**
+   * Create a widget tracker and associated factory for this model type
+   */
   function initTracker(
     modelName: string,
     name: string,
@@ -107,6 +110,7 @@ function activate(
       name,
       fileTypes: fileTypes.map(({ name }) => name),
       defaultFor: defaultFor.map(({ name }) => name),
+      getSettings: () => settings.composite
     });
     const tracker = new WidgetTracker<DrawioWidget>({ namespace });
 
@@ -146,7 +150,7 @@ function activate(
   let settingsReady = new PromiseDelegate<void>();
 
   function updateSettings(widget: DrawioWidget) {
-    widget.updateSettings(settings.composite);
+    widget.updateSettings();
   }
 
   function settingsChanged() {
@@ -158,13 +162,15 @@ function activate(
   settingsRegistry
     .load(plugin.id)
     .then((loadedSettings) => {
+      DEBUG && console.warn('settings loaded', loadedSettings.composite);
       settings = loadedSettings;
-      settingsReady.resolve(void 0);
       settings.changed.connect(() => settingsChanged());
       settingsChanged();
+      settingsReady.resolve(void 0);
     })
     .catch((err) => console.error(err));
 
+  // create the trackers
   const textTracker = initTracker(
     "text",
     TEXT_FACTORY,
@@ -210,6 +216,9 @@ function activate(
       });
   };
 
+  /**
+   * Create commands for all of the known export formats.
+   */
   IO.EXPORT_FORMATS.map((exportFormat) => {
     const { ext, key, format, label, mimetype } = exportFormat;
     const save = exportFormat.save || String;
@@ -279,5 +288,6 @@ function activate(
     menu.fileMenu.newMenu.addGroup([{ command: "drawio:create-new" }], 40);
   }
 
+  // this is very odd, and probably can't be reused. Use the manager pattern?
   return [textTracker, binaryTracker];
 }
