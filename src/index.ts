@@ -128,6 +128,11 @@ function activate(
       // Notify the instance tracker if restore data needs to update.
       widget.context.pathChanged.connect(() => tracker.save(widget));
 
+      // capture clicks inside the frame
+      widget.frameClicked.connect((widget) => {
+        app.shell.activateById(widget.id);
+      });
+
       // complete initialization once context is ready;
       widget.context.ready.then(() => {
         const { mimetype } = widget.context.contentsModel;

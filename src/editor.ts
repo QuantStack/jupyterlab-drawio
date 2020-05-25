@@ -13,6 +13,7 @@
 // limitations under the License.
 import { PromiseDelegate, ReadonlyPartialJSONObject } from "@lumino/coreutils";
 import { Message } from "@lumino/messaging";
+import { Signal } from "@lumino/signaling";
 
 import { PathExt, URLExt, PageConfig } from "@jupyterlab/coreutils";
 import { IFrame } from "@jupyterlab/apputils";
@@ -118,7 +119,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
    */
   handleMessageEvent(evt: MessageEvent) {
     const msg = JSON.parse(evt.data);
-    if (this._frame == null || evt.source !== this._frame.contentWindow) {
+    if (
+      this._frame?.contentWindow == null ||
+      evt.source !== this._frame.contentWindow
+    ) {
       return;
     }
 
@@ -173,14 +177,19 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
    * Install the message listener, the first time, and potentially reload the frame
    */
   onAfterShow(msg: Message): void {
-    if (this._frame == null) {
+    if (this._frame?.contentWindow == null) {
       this._frame = this.content.node.querySelector(
         "iframe"
       ) as HTMLIFrameElement;
       window.addEventListener("message", (evt) => this.handleMessageEvent(evt));
+      this.revealed.then(() => {
+        DEBUG && console.warn("drawio revealed");
+        this.maybeReloadFrame();
+      });
     }
     this.maybeReloadFrame();
   }
+
 
   /**
    * Handle round-tripping to formats that require an export
@@ -232,7 +241,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
    * Post to the iframe, if available. Should be buffered?
    */
   private postMessage(msg: any) {
-    if (this._frame == null) {
+    if (this._frame?.contentWindow == null) {
       return;
     }
     this._frame.contentWindow.postMessage(JSON.stringify(msg), "*");
@@ -242,6 +251,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
    * Determine the URL for the iframe src, reload if changed
    */
   private maybeReloadFrame(force: boolean = false) {
+    if (this.isHidden || !this.isVisible || !this.isRevealed) {
+      return;
+    }
     const query = new URLSearchParams();
     const settingsUrlParams = this.getSettings()
       ?.drawioUrlParams as ReadonlyPartialJSONObject;
@@ -258,12 +270,19 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       DEBUG && console.warn("configuring iframe", params);
       this.removeClass(READY_CLASS);
       this.content.url = url;
+      this._frame.onload = () => {
+        this._frame.contentDocument.body.onclick = () => {
+          DEBUG && console.warn("click");
+          this._frameClicked.emit(void 0);
+        };
+      }
     }
   }
 
   private _onContextReady(): void {
     this.context.model.contentChanged.connect(this._onContentChanged, this);
     this._onContentChanged();
+    this.onAfterShow(null);
   }
 
   /**
@@ -304,6 +323,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     return this._ready.promise;
   }
 
+  get frameClicked() {
+    return this._frameClicked;
+  }
+
   /**
    * Trick webpack into copying ~1000 files into the app's static folder
    * */
@@ -321,6 +344,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   private _frame: HTMLIFrameElement;
   private _lastEmitted: string;
   private _saveNeedsExport: boolean;
+  private _frameClicked = new Signal<DrawioWidget, void>(this);
 }
 
 export interface ISettingsGetter {
@@ -353,12 +377,16 @@ export class DrawioFactory extends ABCWidgetFactory<
     const content = new IFrame({
       sandbox: SANDBOX_EXCEPTIONS,
     });
-    return new DrawioWidget({ context, content, getSettings: this.getSettings });
+    return new DrawioWidget({
+      context,
+      content,
+      getSettings: this.getSettings,
+    });
   }
 }
 
 export namespace DrawioFactory {
-  export interface IOptions extends DocumentRegistry.IWidgetFactoryOptions{
+  export interface IOptions extends DocumentRegistry.IWidgetFactoryOptions {
     getSettings: () => ReadonlyPartialJSONObject;
   }
 }
