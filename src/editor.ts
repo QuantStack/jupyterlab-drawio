@@ -46,25 +46,6 @@ const CORE_EMBED_PARAMS = {
 };
 
 /**
- * Default embed params, mostly to turn off third-party javascript
- */
-const DEFAULT_EMBED_PARAMS = {
-  gapi: 0, // google
-  od: 0, // onedrive
-  tr: 0, // trello
-  gl: 0, // gitlab
-  stealth: 1, // just to be sure
-  noExitBtn: 1, // looks/acts weird
-};
-
-const DEFAULT_CONFIG = {
-  compressXml: false,  // bigger size, _maybe_ diffable
-  debug: DEBUG,  // a lot going on
-  showStartScreen: false, // looks weird
-  override: true, // might help
-};
-
-/**
  * Additional capabilities to allow to sandbox
  */
 const SANDBOX_EXCEPTIONS: IFrame.SandboxExceptions[] = [
@@ -210,10 +191,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   }
 
   private configureDrawio() {
-    let userConfig = this._settings?.drawioConfig as ReadonlyPartialJSONObject;
+    let settingsConfig = this._settings?.drawioConfig as ReadonlyPartialJSONObject;
     const config = {
-      ...DEFAULT_CONFIG,
-      ...(userConfig || {}),
+      ...(settingsConfig || {}),
       version: `${+new Date()}`,
     };
     DEBUG && console.warn("configuring drawio", config);
@@ -229,14 +209,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
 
   private reloadFrame(force: boolean = false) {
     const query = new URLSearchParams();
-    const userUrlParams = this._settings
+    const settingsUrlParams = this._settings
       ?.drawioUrlParams as ReadonlyPartialJSONObject;
     const params = {
-      ...DEFAULT_EMBED_PARAMS,
-      ui: document.querySelector('body[data-jp-theme-light="true"]')
-        ? "kennedy"
-        : "dark",
-      ...(userUrlParams || {}),
+      ...(settingsUrlParams || {}),
       ...CORE_EMBED_PARAMS,
     };
     for (const p in params) {

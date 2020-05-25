@@ -23,18 +23,23 @@
       "description": "URL parameters for the drawio iframe https://desk.draw.io/support/solutions/articles/16000042546-supported-url-parameters",
       "$ref": "#/definitions/drawio-url-params",
       "default": {
-        "stealth": 1,
         "gapi": 0,
-        "od": 0,
-        "tr": 0,
         "gl": 0,
-        "noExitBtn": 1
+        "noExitBtn": 1,
+        "od": 0,
+        "stealth": 1,
+        "tr": 0,
+        "ui": "min"
       }
     },
     "drawioConfig": {
       "description": "Configuration options sent to each drawio editor. https://desk.draw.io/support/solutions/articles/16000058316",
       "$ref": "#/definitions/drawio-config",
-      "default": {}
+      "default": {
+        "compressXML": false,
+        "showStartScreen": false,
+        "override": true
+      }
     }
   },
   "definitions": {
