@@ -14,10 +14,9 @@
       }
     },
     "indent": {
-      "description": "TBD: Number of spaces to indent pretty-printed XML, SVG, and HTML",
-      "type": "number",
-      "minimum": 0,
-      "default": 0
+      "description": "TBD: indent pretty-printed XML, SVG",
+      "type": "boolean",
+      "default": false
     },
     "drawioUrlParams": {
       "description": "URL parameters for the drawio iframe https://desk.draw.io/support/solutions/articles/16000042546-supported-url-parameters",
@@ -36,7 +35,7 @@
       "description": "Configuration options sent to each drawio editor. https://desk.draw.io/support/solutions/articles/16000058316",
       "$ref": "#/definitions/drawio-config",
       "default": {
-        "compressXML": false,
+        "compressXml": false,
         "showStartScreen": false,
         "override": true
       }
