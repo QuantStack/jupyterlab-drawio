@@ -6,18 +6,6 @@
   "description": "Drawio settings.",
   "type": "object",
   "properties": {
-    "stripMetadata": {
-      "description": "TBD: Attributes to remove from drawio XML documents (but not embedded formats e.g. SVG, PNG, HTML). Some values include: host, agent, modified, etag",
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "indent": {
-      "description": "TBD: indent pretty-printed XML, SVG",
-      "type": "boolean",
-      "default": false
-    },
     "drawioUrlParams": {
       "description": "URL parameters for the drawio iframe https://desk.draw.io/support/solutions/articles/16000042546-supported-url-parameters",
       "$ref": "#/definitions/drawio-url-params",
