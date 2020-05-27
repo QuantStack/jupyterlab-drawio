@@ -271,6 +271,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       DEBUG && console.warn("configuring iframe", params);
       this.removeClass(READY_CLASS);
       this.content.url = url;
+      this._initialLoad = false;
       this._frame.onload = () => {
         this._frame.contentDocument.body.onclick = () => {
           DEBUG && console.warn("click");
