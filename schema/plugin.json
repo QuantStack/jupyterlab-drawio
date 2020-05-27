@@ -13,6 +13,7 @@
         "gapi": 0,
         "gl": 0,
         "noExitBtn": 1,
+        "noSaveBtn": 1,
         "od": 0,
         "stealth": 1,
         "tr": 0,

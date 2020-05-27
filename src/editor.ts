@@ -137,6 +137,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
         break;
       case "load":
         this._ready.resolve(void 0);
+        this._initialLoad = true;
         this.addClass(READY_CLASS);
         break;
       case "save":
@@ -190,7 +191,6 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
     this.maybeReloadFrame();
   }
 
-
   /**
    * Handle round-tripping to formats that require an export
    */
@@ -242,9 +242,10 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
    */
   private postMessage(msg: any) {
     if (this._frame?.contentWindow == null) {
-      return;
+      return false;
     }
     this._frame.contentWindow.postMessage(JSON.stringify(msg), "*");
+    return true;
   }
 
   /**
@@ -275,7 +276,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
           DEBUG && console.warn("click");
           this._frameClicked.emit(void 0);
         };
-      }
+      };
     }
   }
 
@@ -296,6 +297,9 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
    * Handle a change to the raw document
    */
   private _onContentChanged(): void {
+    if (!this._frame?.contentWindow) {
+      return;
+    }
     const { model, contentsModel } = this.context;
     let xml = model.toString();
 
@@ -307,13 +311,20 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
       xml = `data:${contentsModel.mimetype};base64,${xml}`;
     }
 
-    this.postMessage({
-      action: "load",
-      autosave: 1,
-      modified: "unsavedChanges",
-      xml,
-      title: PathExt.basename(this.context.localPath),
-    });
+    if (!this._initialLoad) {
+      this.postMessage({
+        action: "load",
+        autosave: 1,
+        noSaveBtn: 1,
+        noExitBtn: 1,
+        xml
+      });
+    } else {
+      this.postMessage({
+        action: "merge",
+        xml,
+      });
+    }
   }
 
   /**
@@ -338,6 +349,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
   public revealed: Promise<void>;
   readonly context: DocumentRegistry.Context;
   protected getSettings: ISettingsGetter;
+  private _initialLoad = false;
   private _ready = new PromiseDelegate<void>();
   private _exportPromise: PromiseDelegate<string>;
   private _saveWithExportPromise: PromiseDelegate<string>;
