@@ -317,7 +317,7 @@ export class DrawioWidget extends DocumentWidget<IFrame> {
         autosave: 1,
         noSaveBtn: 1,
         noExitBtn: 1,
-        xml
+        xml,
       });
     } else {
       this.postMessage({
