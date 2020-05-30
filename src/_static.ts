@@ -2337,6 +2337,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webap
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/resources/dia_eo.txt';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/resources/dia_es.txt';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/resources/dia_et.txt';
+import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/resources/dia_eu.txt';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/resources/dia_fa.txt';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/resources/dia_fi.txt';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/resources/dia_fil.txt';
