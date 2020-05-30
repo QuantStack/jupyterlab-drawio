@@ -16,7 +16,7 @@
   "description": "A JupyterLab extension for embedding drawio / mxgraph.",
   "devDependencies": {
     "rimraf": "^2.6.1",
-    "typescript": "~3.7.0"
+    "typescript": "~3.9.3"
   },
   "files": [
     "{lib,schema,style}/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,css}",
