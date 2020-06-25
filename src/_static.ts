@@ -5,7 +5,6 @@
     
     This file generated from https://github.com/jgraph/drawio
 */
-import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/app.html';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/favicon.ico';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/images/1x1.png';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/images/2x2.png';
@@ -1393,6 +1392,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webap
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/js/croppie/croppie.min.css';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/js/dropbox/Dropbox-sdk.min.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/js/extensions.min.js';
+import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/js/math-print.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/js/onedrive/OneDrive.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/js/shapes.min.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/js/stencils.min.js';
@@ -2404,6 +2404,7 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webap
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/shapes/mxC4.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/shapes/mxCabinets.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/shapes/mxCisco19.js';
+import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/shapes/mxCiscoSafe.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/shapes/mxDFD.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/shapes/mxEip.js';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/shapes/mxElectrical.js';
@@ -2477,8 +2478,13 @@ import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webap
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco/wireless.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco19.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/architecture.xml';
+import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/business_icons.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/capability.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/design.xml';
+import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/iot_things_icons.xml';
+import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/people_places_things_icons.xml';
+import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/security_icons.xml';
+import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/technology_icons.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/cisco_safe/threat.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/citrix.xml';
 import '!!file-loader?name=[path][name].[ext]&context=.!../drawio/src/main/webapp/stencils/eip.xml';
