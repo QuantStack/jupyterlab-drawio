@@ -3,5 +3,12 @@
   "version": "0.8.0-alpha0",
   "dependencies": {
     "@deathbeds/jupyterlab-drawio": "0.8.0-alpha0"
+  },
+  "files": [
+    "{lib,schema,style,src}/**/*.{ts,tsx,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,css}",
+    "LICENSE.txt"
+  ],
+  "jupyterlab": {
+    "extension": "lib/plugin.js"
   }
 }

@@ -15,7 +15,7 @@
   "main": "lib/index.js",
   "name": "@deathbeds/jupyterlab-drawio-webpack",
   "jupyterlab": {
-    "extension": true
+    "extension": "lib/plugin.js"
   },
   "repository": {
     "type": "git",
