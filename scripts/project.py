@@ -175,3 +175,23 @@ OK_JS_BUILD = BUILD / "js.build.ok"
 
 # built artifacts
 EXAMPLE_HTML = [DIST_NBHTML / p.name.replace(".ipynb", ".html") for p in EXAMPLE_IPYNB]
+
+LINK_EXTENSIONS = [
+    "jupyter",
+    "labextension",
+    "link",
+    "--debug",
+    "--no-build",
+    *[v.parent for k, v in JS_PKG_JSON_LABEXT.items()],
+]
+
+INSTALL_EXTENSIONS = [
+    "jupyter",
+    "labextension",
+    "install",
+    "--debug",
+    "--no-build",
+    *EXTENSIONS,
+]
+
+LIST_EXTENSIONS = ["jupyter", "labextension", "list"]

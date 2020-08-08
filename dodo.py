@@ -173,25 +173,12 @@ def task_lab_build():
                 "disable",
                 "@jupyterlab/extension-manager-extension",
             ],
-            [
-                "jupyter",
-                "labextension",
-                "link",
-                "--debug",
-                "--no-build",
-                *[v.parent for k, v in P.JS_PKG_JSON_LABEXT.items()],
-            ],
-            [
-                "jupyter",
-                "labextension",
-                "install",
-                "--debug",
-                "--no-build",
-                *P.EXTENSIONS,
-            ],
-            ["jupyter", "labextension", "list"],
+            P.LINK_EXTENSIONS,
+            P.LIST_EXTENSIONS,
+            P.INSTALL_EXTENSIONS,
+            P.LIST_EXTENSIONS,
             ["jupyter", "lab", "build", "--debug", *build_args],
-            ["jupyter", "labextension", "list"],
+            P.LIST_EXTENSIONS,
         ],
         targets=[P.LAB_INDEX],
     )
@@ -224,11 +211,22 @@ def task_lab():
 
 def task_watch():
     def watch():
-        jlpm_proc = subprocess.Popen(["jlpm", "watch"], cwd=P.JDIO)
+        shutil.rmtree(P.LAB_STATIC, ignore_errors=True)
+        subprocess.check_call(["jupyter", "lab", "build"])
+
+        for sub_ns in (P.LAB_STAGING / "node_modules" / f"@{P.JS_NS}").glob(
+            f"*/node_modules/@{P.JS_NS}"
+        ):
+            shutil.rmtree(sub_ns)
+
+        jlpm_proc = subprocess.Popen(
+            ["jlpm", "lerna", "run", "--parallel", "--stream", "watch"]
+        )
+
+        build_proc = subprocess.Popen(["jlpm", "watch"], cwd=P.LAB_STAGING)
 
         lab_proc = subprocess.Popen(
-            ["jupyter", "lab", "--no-browser", "--debug", "--watch"],
-            stdin=subprocess.PIPE,
+            ["jupyter", "lab", "--no-browser", "--debug"], stdin=subprocess.PIPE,
         )
 
         try:
@@ -239,14 +237,23 @@ def task_watch():
             lab_proc.communicate(b"y\n")
         finally:
             jlpm_proc.terminate()
+            build_proc.terminate()
 
         lab_proc.wait()
         jlpm_proc.wait()
+        build_proc.wait()
 
     return dict(
         uptodate=[lambda: False],
-        file_dep=[P.LAB_INDEX],
-        actions=[PythonInteractiveAction(watch)],
+        file_dep=sorted(P.JS_TARBALL.values()),
+        actions=[
+            P.LIST_EXTENSIONS,
+            P.LINK_EXTENSIONS,
+            P.LIST_EXTENSIONS,
+            P.INSTALL_EXTENSIONS,
+            P.LIST_EXTENSIONS,
+            PythonInteractiveAction(watch),
+        ],
     )
 
 

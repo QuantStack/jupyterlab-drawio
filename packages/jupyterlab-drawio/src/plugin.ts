@@ -34,7 +34,7 @@ import { DEBUG } from './editor';
 
 import * as IO from './io';
 import { DrawioStatus } from './status';
-import { NS } from '.';
+import { NS, PLUGIN_ID } from '.';
 
 import {
   IDiagramManager,
@@ -50,7 +50,7 @@ import { DiagramManager } from './manager';
  */
 const plugin: JupyterFrontEndPlugin<IDiagramManager> = {
   activate,
-  id: NS,
+  id: PLUGIN_ID,
   requires: [
     IFileBrowserFactory,
     ILayoutRestorer,
@@ -100,7 +100,7 @@ function activate(
   }
 
   settingsRegistry
-    .load(plugin.id)
+    .load(PLUGIN_ID)
     .then((loadedSettings) => {
       DEBUG && console.warn('settings loaded', loadedSettings.composite);
       manager.settings = loadedSettings;
@@ -123,7 +123,7 @@ function activate(
 
   if (menu) {
     // Add new text file creation to the file menu.
-    menu.fileMenu.newMenu.addGroup([{ command: 'drawio:create-new' }], 40);
+    menu.fileMenu.newMenu.addGroup([{ command: CommandIds.createNew }], 40);
   }
 
   // this is very odd, and probably can't be reused. Use the manager pattern?
