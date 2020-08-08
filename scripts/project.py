@@ -92,7 +92,7 @@ JS_PKG_NOT_META = {k: v for k, v in JS_PKG_JSON.items() if k.startswith("_")}
 
 JS_TARBALL = {
     k: JS_PKG_JSON[k].parent
-    / f"""{v["name"].replace('@', '').replace("/", "-")}{v["version"]}.tgz"""
+    / f"""{v["name"].replace('@', '').replace("/", "-")}-{v["version"]}.tgz"""
     for k, v in JS_PKG_DATA.items()
     if k not in JS_PKG_NOT_META
 }
@@ -147,15 +147,13 @@ ALL_TS = sum(JS_TSSRC.values(), [])
 ALL_CSS = sum(JS_STYLE.values(), [])
 ALL_PRETTIER = [*ALL_YML, *ALL_JSON, *ALL_MD, *ALL_TS, *ALL_CSS]
 
-
+# package: [dependencies, targets]
 JS_PKG_PACK = {k: [[v.parent / "package.json"], [v]] for k, v in JS_TARBALL.items()}
-
 [
     JS_PKG_PACK[k][0].append(v)
     for k, v in JS_TSBUILDINFO.items()
     if not k.startswith("_")
 ]
-
 JS_PKG_PACK[JDW.name][0] += [
     JDW_IGNORE,
     JDW_APP,
