@@ -16,6 +16,8 @@ import { JupyterLab, JupyterFrontEndPlugin } from '@jupyterlab/application';
 
 import { IDiagramManager } from '@deathbeds/jupyterlab-drawio/lib/tokens';
 
+import { PLUGIN_ID } from '.';
+
 import { PDF_BRANDED, PDF_PLAIN } from './io';
 
 /**
@@ -23,7 +25,7 @@ import { PDF_BRANDED, PDF_PLAIN } from './io';
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   activate,
-  id: '@deathbeds/jupyterlab-drawio-pdf:plugin',
+  id: PLUGIN_ID,
   requires: [IDiagramManager],
   autoStart: true,
 };

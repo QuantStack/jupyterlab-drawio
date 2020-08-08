@@ -50,7 +50,7 @@ import { DiagramManager } from './manager';
  */
 const plugin: JupyterFrontEndPlugin<IDiagramManager> = {
   activate,
-  id: '@deathbeds/jupyterlab-drawio:plugin',
+  id: NS,
   requires: [
     IFileBrowserFactory,
     ILayoutRestorer,
@@ -75,6 +75,7 @@ function activate(
   launcher: ILauncher | null,
   statusBar: IStatusBar | null
 ): IDiagramManager {
+  console.warn('activating', plugin.id);
   const manager = new DiagramManager({
     app,
     restorer,

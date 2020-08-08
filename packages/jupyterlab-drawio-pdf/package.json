@@ -10,5 +10,6 @@
   ],
   "jupyterlab": {
     "extension": "lib/plugin.js"
-  }
+  },
+  "main": "lib/index.js"
 }

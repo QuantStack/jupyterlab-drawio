@@ -4,7 +4,7 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 
-import { NS } from '.';
+import { NS, PLUGIN_ID } from '.';
 import { DiagramWidget } from './editor';
 
 import ICON_SVG from '../style/img/drawio.svg';
@@ -30,7 +30,7 @@ export interface IDiagramManager {
 
 export const DRAWIO_ICON_CLASS_RE = /jp-icon-warn0/;
 
-export const IDiagramManager = new Token<IDiagramManager>(NS);
+export const IDiagramManager = new Token<IDiagramManager>(PLUGIN_ID);
 
 export namespace IDiagramManager {
   export interface IOptions {}
