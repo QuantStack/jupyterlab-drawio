@@ -1,0 +1,694 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "jupyter.lab.setting-icon-label": "Drawio",
+  "jupyter.lab.setting-icon": "drawio:drawio",
+  "title": "Drawio",
+  "description": "Drawio settings.",
+  "type": "object",
+  "properties": {
+    "drawioExportDemo": {
+      "properties": {
+        "url": {
+          "description": "URL for (local) drawio-export server https://github.com/jgraph/draw-image-export2",
+          "type": "string",
+          "default": "./drawio-export-demo"
+        },
+        "params": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "string",
+              "description": "The renderering format for the diagram png pdf"
+            },
+            "w": {
+              "type": "number",
+              "description": "Set the view port height 0 10"
+            },
+            "h": {
+              "type": "number",
+              "description": "Set the view port width 0 10"
+            },
+            "embedXml": {
+              "type": "string",
+              "description": "Embed the diagram data in the png 0 or 1"
+            },
+            "base64": {
+              "type": "string",
+              "description": "Whether the response data should be base64 (and png embedded data) encoded 0 or 1"
+            },
+            "bg": {
+              "type": "string",
+              "description": "The background colour for the image #ff8888"
+            },
+            "embedData": {
+              "type": "string",
+              "description": "Embed data in the png with the dataHeader key null 0 or 1"
+            },
+            "data": {
+              "type": "string",
+              "description": "The data to embed into the png -"
+            },
+            "dataHeader": {
+              "type": "string",
+              "description": "The key to use when embedding the data into the png myKey"
+            },
+            "filename": {
+              "type": "string",
+              "description": "The filename to included in the content-disposition header myFile.png"
+            },
+            "border": {
+              "type": "number",
+              "description": "The size of the border for the page 0 10"
+            },
+            "from": {
+              "type": "number",
+              "description": "The index of the page to start rendering from 1"
+            },
+            "to": {
+              "type": "number",
+              "description": "The index of the page to finish rendering at 2"
+            },
+            "pageId": {
+              "type": "string",
+              "description": "The id of the page to render page id"
+            },
+            "allPages": {
+              "type": "string",
+              "description": "Whether all pages should be rendered 0 0 1"
+            },
+            "scale": {
+              "type": "number",
+              "description": "The scale for the rendered diagram 1 1.5"
+            },
+            "extras": {
+              "description": "Additional detail how what should be rendered, e.g. layer-names"
+            }
+          }
+        }
+      }
+    },
+    "drawioUrlParams": {
+      "description": "URL parameters for the drawio iframe https://desk.draw.io/support/solutions/articles/16000042546-supported-url-parameters",
+      "$ref": "#/definitions/drawio-url-params",
+      "default": {
+        "gapi": 0,
+        "gl": 0,
+        "noExitBtn": 1,
+        "noSaveBtn": 1,
+        "od": 0,
+        "stealth": 1,
+        "tr": 0,
+        "ui": "min",
+        "p": "ex;tips;svgdata;sql;anim;trees;replay;anon;flow;webcola;tags"
+      }
+    },
+    "drawioConfig": {
+      "description": "Configuration options sent to each drawio editor. https://desk.draw.io/support/solutions/articles/16000058316",
+      "$ref": "#/definitions/drawio-config",
+      "default": {
+        "compressXml": false,
+        "showStartScreen": false,
+        "override": true
+      }
+    }
+  },
+  "definitions": {
+    "drawio-url-params": {
+      "type": "object",
+      "properties": {
+        "open": {
+          "description": "prefix+ID: If location hash properties are not available, this can be used as a replacement. The browser will add the hash property to the URL immediately and not remove the URL parameter. Existing hash property has precedence.",
+          "type": "string"
+        },
+        "lang": {
+          "description": "xy: Specifies the language of the user interface.",
+          "type": "string"
+        },
+        "libs": {
+          "description": "key1;key2;...;keyN: Specifies the current libraries. Possible keys are allied_telesis, android, archimate, archimate3, arrows2, atlassian, aws3, aws3d, aws4, azure, basic, bootstrap, bpmn, cabinets, cisco, cisco_safe, citrix, clipart, dfd, eip, electrical, er, floorplan, flowchart, gcp2, general, gmdl, ibm, images, infographic, ios, lean_mapping, mockups, mscae, network, office, pid, rack, signs, sitemap, sysml, uml, veeam and webicons.",
+          "$ref": "#/definitions/library-keys-string"
+        },
+        "clibs": {
+          "description": "key1;key2;key;...;keyN: Specifies custom libraries (keys are file IDs or URLs with a U-prefix)",
+          "$ref": "#/definitions/library-keys-string"
+        },
+        "page": {
+          "description": "index: Starts with the given page (the default is first page, index for first page is 0)",
+          "type": "number",
+          "minimum": 0
+        },
+        "page-id": {
+          "description": "ID: Starts with the given page ID (has precedence over page parameter). To find the ID of the current page, right click on the canvas and select Edit Data. The ID is the first entry in the dialog.",
+          "type": "string"
+        },
+        "ui": {
+          "description": "[min|atlas|dark]: Uses the Minimal, Atlas or Dark UI theme (default is Kennedy).",
+          "$ref": "#/definitions/ui-theme"
+        },
+        "drafts": {
+          "description": "0: Disables draft states (does not save unsaved files in IndexedDB).",
+          "$ref": "#/definitions/off-switch"
+        },
+        "splash": {
+          "description": "0: Does not show the splash screen.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "plugins": {
+          "description": "0: Does not load plugins.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "format": {
+          "description": "0: Disables the format panel on the right.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "picker": {
+          "description": "0/1: Disables/enables the Google file picker in dialogs.",
+          "$ref": "#/definitions/on-off-switch"
+        },
+        "thumb": {
+          "description": "0: Disables the creation of thumbnails in Drive.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "chrome": {
+          "description": "0: Uses the chromeless read-only viewer.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "target": {
+          "description": "[auto|self|frame|blank]: Opens links in the same window or frame or in a blank window in chromeless mode (auto is the default which opens relative links and anchors in same window in chromeless mode, and all links in a new window in editing mode).",
+          "$ref": "#/definitions/url-param-target"
+        },
+        "highlight": {
+          "description": "hex: Specifies the highlight colour (with no leading #) for links in chromeless mode.",
+          "$ref": "#/definitions/color"
+        },
+        "edge": {
+          "description": "move: Disables the handling of connector segments without having previously selected the connector.",
+          "type": "string"
+        },
+        "rt": {
+          "description": "1: Uses chromeless mode with Google Drive realtime enabled.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "edit": {
+          "description": "url: Adds a link for the Edit button in chromeless mode (use edit=_blank to edit the diagram as a new copy).",
+          "$ref": "#/definitions/url-param-url-or-blank"
+        },
+        "lightbox": {
+          "description": "1: Uses the lightbox in chromeless mode (larger zoom, no page visible, chromeless).",
+          "$ref": "#/definitions/on-switch"
+        },
+        "grid": {
+          "description": "1: Uses the chromeles mode with the grid enabled.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "nav": {
+          "description": "1: Enables folding in chromeless mode.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "layers": {
+          "description": "1: Adds layer control in chromeless mode.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "close": {
+          "description": "1: Shows the Close button in chromeless mode which closes the window when selected.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "rev": {
+          "description": "id: Selects a specific revision of a Google Drive or Dropbox file.",
+          "type": "string"
+        },
+        "pv": {
+          "description": "0: Sets the default pageVisible to false.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "sb": {
+          "description": "0: Starts with scrollbars disabled.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "ruler": {
+          "description": "1: Starts with the ruler enabled.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "toolbar": {
+          "description": "0: Disables the toolbar in chromeless mode.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "border": {
+          "description": "60: Sets the border used in lightbox mode (default is 60).",
+          "type": "number",
+          "minimum": 0
+        },
+        "p": {
+          "description": "id1;id2;...;idN: Selects which plugins to load. See list of available plugins.",
+          "$ref": "#/definitions/library-keys-string"
+        },
+        "cors": {
+          "description": "regex: Checks whether URLS have CORS enabled using a URL encoded regular expression, e.g.cors=%5Ehttps%3F%3A%5C%2F%5C%2F.*%5C.github%5C.io%5C%2F",
+          "type": "string",
+          "format": "regex"
+        },
+        "base": {
+          "description": "url: Sets the base URL to use for links (use this if document.referrer is not available in embed mode).",
+          "type": "string",
+          "format": "uri"
+        },
+        "gitlab": {
+          "description": "url: Sets the URL encoded path to a custom Gitlab installation to use for Gitlab file operations.",
+          "type": "string",
+          "format": "uri"
+        },
+        "gitlab-id": {
+          "description": "ID: Specifies the client ID of the custom Gitlab application when using custom Gitlab instance.",
+          "type": "string"
+        },
+        "vars": {
+          "description": "json: Uses a URI encoded JSON string for global placeholders for use in labels and tooltips where enabled, e.g. vars={%22key%22:%22value%22}",
+          "type": "string"
+        },
+        "zoom": {
+          "description": "nocss: Disables the CSS zoom preview.",
+          "type": "string"
+        },
+        "override-mime": {
+          "description": "1: Saves all Google Drive files as application/vnd.jgraph.mxfile.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "template-filename": {
+          "description": "name: If #U hash property is used but the URL does not contain a filename to determine binary mode. See https://desk.draw.io/support/solutions/articles/16000080686",
+          "type": "string"
+        },
+        "math-font": {
+          "description": ": Sets the font to use for math typesetting. Possible values are STIX-Web and TeX (default).",
+          "type": "string"
+        },
+        "local": {
+          "description": "1: Uses device mode only.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "sync": {
+          "description": "[none|manual|auto]: Enables/disables collaborative editing (default is auto).",
+          "$ref": "#/definitions/url-param-sync"
+        },
+        "save": {
+          "description": "local/remote: Enables/disables saving files locally (default is local). If this is disabled then files are echoed via a servlet for a local save.",
+          "$ref": "#/definitions/url-param-save"
+        },
+        "storage": {
+          "description": "device: Adds a device storage option for touch devices.",
+          "$ref": "#/definitions/url-param-storage"
+        },
+        "math": {
+          "description": "0: Disables MathJax support.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "browser": {
+          "description": "0/1: Disables local storage as a storage location (0) or shows the browser option in the storage dialog (1).",
+          "$ref": "#/definitions/on-off-switch"
+        },
+        "gapi": {
+          "description": "0: Disables the Google integration.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "db": {
+          "description": "0: Disables the Dropbox integration.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "od": {
+          "description": "0: Disables the OneDrive integration.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "tr": {
+          "description": "0: Disables the Trello integration.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "gh": {
+          "description": "0: Disables the GitHub integration.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "gl": {
+          "description": "0: Disables the GitLab integration.",
+          "$ref": "#/definitions/off-switch"
+        },
+        "drive": {
+          "description": "0: Simulates app.diagrams.net regardless of the domain name (uses the old app ID).",
+          "$ref": "#/definitions/off-switch"
+        },
+        "mode": {
+          "description": "[google|onedrive|github|dropobox|device|browser]: Switches to the specified mode.",
+          "$ref": "#/definitions/url-param-mode"
+        },
+        "offline": {
+          "description": "[1|0]: Registers or unregisters the progressive web app (all remote storage locations are disabled).",
+          "$ref": "#/definitions/on-off-switch"
+        },
+        "stealth": {
+          "description": "1: Disables all features that require external web services (such as PDF export).",
+          "$ref": "#/definitions/on-switch"
+        },
+        "demo": {
+          "description": "1: Shortcut for db=0&gapi=0&math=0&picker=0, disables the splash screen and creates an empty, local diagram file.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "data": {
+          "description": "data: Gets the XML data for the diagram (used in client mode to bypass message passing and cross frame access).",
+          "type": "string"
+        },
+        "client": {
+          "description": "1: Runs diagrams.net in client mode. This displays a normal UI and sends a ready message to the opener or parent when the page is loaded. After receiving a message containing XML or compressed XML, a local file is created. The file is then set to modified so the connection to the window can be closed after sending the initial XML. Whether the XML is loaded again after a page refresh, depends on the caller implementation. Use proto=json to use a custom protocol for special cases.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "create": {
+          "description": "url/name: Creates a new file from a template URL. If the value is not a URL and is not empty, the script will try to use window.opener[url]. In embed mode, window.opener[name] will be used to get the initial XML. Note that this requires the same origin policy in the opener/parent for reading the variable.",
+          "type": "string"
+        },
+        "title": {
+          "description": "title: Sets a new file title (used with the create and url parameters).",
+          "type": "string"
+        },
+        "notitle": {
+          "description": "1: Uses the default filename for new files (used with the url parameter).",
+          "$ref": "#/definitions/on-switch"
+        },
+        "nowarn": {
+          "description": "1: Suppresses the warning before unload for local files.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "spin": {
+          "description": "1: Shows a Loading... spinner while waiting for the diagram data to load in embed mode.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "keepmodified": {
+          "description": "1: If modified specifies a resource key, this is used to keep the modified state after Save is selected.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "libraries": {
+          "description": "1: Specifies whether libraries should be enabled in embed mode. The default is disabled (0).",
+          "$ref": "#/definitions/on-switch"
+        },
+        "noSaveBtn": {
+          "description": "1: Displays a Save and Exit button instead of a Save button. Instead of using this URL parameter, you can specify this setting in the load message. If this is used, then saveAndExit is ignored.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "saveAndExit": {
+          "description": "1: Displays a Save and Exit button ne. Instead of using this URL parameter, you can specify this setting in the load message.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "noExitBtn": {
+          "description": "1: Displays no Exit button. Instead of using this URL parameter, you can specify this setting in the load message.",
+          "$ref": "#/definitions/on-switch"
+        },
+        "returnbounds": {
+          "description": "1: Returns a JSON structure with the diagram bounds in embed and client mode. This message is dispatched immediately after receiving the diagram XML.",
+          "$ref": "#/definitions/on-switch"
+        }
+      }
+    },
+    "drawio-config": {
+      "type": "object",
+      "defaultFonts": {
+        "description": "An array of font family names in the format panel font drop-down list. All fonts must be installed on the server and all clients or be added using the fontCss option.",
+        "$ref": "#/definitions/font-set"
+      },
+      "customFonts": {
+        "description": "An array of font family names to be added before defaultFonts",
+        "$ref": "#/definitions/font-set"
+      },
+      "presetColors": {
+        "description": "Colour codes for the upper palette in the colour dialog (no leading # for the colour codes).",
+        "$ref": "#/definitions/color-set"
+      },
+      "customPresetColors": {
+        "description": "Colour codes to be added before presetColors (no leading # for the colour codes)",
+        "$ref": "#/definitions/color-set"
+      },
+      "defaultColors": {
+        "description": "Colour codes for the lower palette in the colour dialog (no leading # for the colour codes).",
+        "$ref": "#/definitions/color-set"
+      },
+      "defaultColorSchemes": {
+        "description": "TBD: see https://desk.draw.io/support/solutions/articles/16000058316"
+      },
+      "customColorSchemes": {
+        "description": "TBD: see https://desk.draw.io/support/solutions/articles/16000058316"
+      },
+      "defaultVertexStyle": {
+        "description": "TBD: see https://desk.draw.io/support/solutions/articles/16000058316"
+      },
+      "defaultEdgeStyle": {
+        "description": "TBD: see https://desk.draw.io/support/solutions/articles/16000058316"
+      },
+      "defaultLibraries": {
+        "description": "Defines a semicolon-separated list of library keys (unique names) in a string to be initially displayed in the left panel (e.g. general;uml;company-graphics). Possible keys include custom entry IDs from the libraries field, or keys for the libs URL parameter ",
+        "default": "general;uml;er;bpmn;flowchart;basic;arrows2",
+        "$ref": "#/definitions/library-keys-string"
+      },
+      "enabledLibraries": {
+        "description": "Defines an array of strings of library keys which will be available in the More Shapes dialog. If you define this as null, all libraries will be visible. If you leave the array empty, no libraries will be visible",
+        "$ref": "#/definitions/library-key-list"
+      },
+      "libraries": {
+        "description": "Defines an array of objects that list additional libraries and sections in the left panel and the More Shapes dialog",
+        "$ref": "#/definitions/library-def-list"
+      },
+      "defaultCustomLibraries": {
+        "description": "Defines an array of IDs to load custom libraries.",
+        "$ref": "#/definitions/library-id-list"
+      },
+      "enableCustomLibraries": {
+        "description": "Specifies if the open and new library functions are enabled (true or false, the default true).",
+        "type": "boolean"
+      },
+      "templateFile": {
+        "description": "Defines the URL of the source file for the Templates dialog (multiple <template> tags are allowed).",
+        "type": "string",
+        "format": "uri"
+      },
+      "css": {
+        "description": "Defines a string with CSS rules to be used to configure the diagrams.net user interface.",
+        "type": "string"
+      },
+      "fontCss": {
+        "description": "Defines a string with CSS rules for web fonts to be used in diagrams. This should be one or more @font-face rule,",
+        "type": "string"
+      },
+      "plugins": {
+        "description": "Defines an array of plugin URLs that should be loaded with the diagram editor. Plugins are JavaScript files that can modify the editor UI and behaviour.",
+        "$ref": "#/definitions/plugin-url-list"
+      },
+      "thumbWidth": {
+        "description": "Defines the width for the entries in the left panel",
+        "type": "number"
+      },
+      "thumbHeight": {
+        "description": "Defines the height for the entries in the left panel",
+        "type": "number"
+      },
+      "emptyDiagramXml": {
+        "description": "Defines the XML for blank diagrams",
+        "type": "string"
+      },
+      "emptyLibraryXml": {
+        "description": "Defines the XML for blank diagrams and libraries",
+        "type": "string"
+      },
+      "defaultEdgeLength": {
+        "description": "Defines the default length for new connectors",
+        "type": "number"
+      },
+      "autosaveDelay": {
+        "description": "Defines the delay (in ms) between the last change and the autosave of the file",
+        "type": "number"
+      },
+      "version": {
+        "description": "The current version of the configuration (any string, e.g. 1.0). If this is different from the last used version, then the current settings on the client-side (.drawio-config) will be reset. The default is null. Change this to force the stored settings in the client to be reset and apply the current configuration",
+        "type": "string"
+      },
+      "override": {
+        "description": "Ignores the current settings on the client-side if this is set to true",
+        "type": "boolean"
+      },
+      "globalVars": {
+        "description": "JSON structure with key, value pairs to define global variables for system-wide placeholders. You should keep the number of entries small.",
+        "type": "object"
+      },
+      "compressXml": {
+        "description": "Specifies if the XML output should be compressed.",
+        "type": "boolean"
+      }
+    },
+    "font-set": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "uniqueItems": true
+      }
+    },
+    "color-set": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/color"
+      }
+    },
+    "color": {
+      "type": "string",
+      "uniqueItems": true
+    },
+    "library-keys-string": {
+      "type": "string"
+    },
+    "library-key-list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "plugin-url-list": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "library-id-list": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "library-def-list": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/library-section"
+      }
+    },
+    "library-section": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "$ref": "#/definitions/library-resource"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/library-entry"
+          }
+        }
+      }
+    },
+    "library-entry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "preview": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "#/definitions/library-resource"
+        },
+        "desc": {
+          "$ref": "#/definitions/library-resource"
+        },
+        "libs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/library"
+          }
+        }
+      }
+    },
+    "library": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "$ref": "#/definitions/library-resource"
+        },
+        "tags": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "xml": {
+              "description": "NB: appears to be base64-encoded",
+              "type": "string"
+            },
+            "w": {
+              "type": "number"
+            },
+            "h": {
+              "type": "number"
+            },
+            "aspect": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "library-resource": {
+      "type": "object",
+      "properties": {
+        "main": {
+          "type": "string"
+        }
+      }
+    },
+    "ui-theme": {
+      "type": "string",
+      "enum": ["min", "atlas", "dark", "kennedy"]
+    },
+    "off-switch": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 0
+    },
+    "on-switch": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "on-off-switch": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "url-param-target": {
+      "type": "string",
+      "enum": ["auto", "self", "frame", "blank"]
+    },
+    "url-param-url-or-blank": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "string",
+          "enum": ["_blank"]
+        }
+      ]
+    },
+    "url-param-sync": {
+      "type": "string",
+      "enum": ["none", "manual", "auto"]
+    },
+    "url-param-save": {
+      "type": "string",
+      "enum": ["local", "remote"]
+    },
+    "url-param-storage": {
+      "type": "string",
+      "enum": ["device"]
+    },
+    "url-param-mode": {
+      "type": "string",
+      "enum": ["google", "onedrive", "github", "dropobox", "device", "browser"]
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "author": "Dead Pixels Collective",
+  "bugs": {
+    "url": "https://github.com/deathbeds/jupyterlab-drawio/issues"
+  },
+  "dependencies": {
+    "@deathbeds/jupyterlab-drawio-webpack": "^13.6.1-alpha0",
+    "@jupyterlab/application": "^2.0.0",
+    "@jupyterlab/apputils": "^2.0.0",
+    "@jupyterlab/coreutils": "^4.0.0",
+    "@jupyterlab/docregistry": "^2.0.0",
+    "@jupyterlab/filebrowser": "^2.0.0",
+    "@jupyterlab/launcher": "^2.0.0",
+    "@jupyterlab/mainmenu": "^2.0.0",
+    "@jupyterlab/notebook": "^2.0.0",
+    "@jupyterlab/settingregistry": "^2.0.0"
+  },
+  "description": "A JupyterLab extension for embedding drawio / mxgraph.",
+  "devDependencies": {
+    "rimraf": "^2.6.1",
+    "typescript": "~3.9.3"
+  },
+  "files": [
+    "{lib,schema,style,src}/**/*.{ts,tsx,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,css}",
+    "LICENSE.txt"
+  ],
+  "homepage": "https://github.com/deathbeds/jupyterlab-drawio",
+  "jupyterlab": {
+    "extension": true,
+    "schemaDir": "schema"
+  },
+  "keywords": [
+    "jupyter",
+    "jupyterlab",
+    "jupyterlab-extension"
+  ],
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "name": "@deathbeds/jupyterlab-drawio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deathbeds/jupyterlab-drawio.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib",
+    "watch": "tsc -w"
+  },
+  "types": "lib/index.d.ts",
+  "version": "0.8.0-alpha0"
+}

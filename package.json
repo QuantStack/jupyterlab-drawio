@@ -1,50 +1,21 @@
 {
-  "name": "jupyterlab-drawio",
-  "version": "0.7.0",
-  "description": "A JupyterLab extension for embedding drawio / mxgraph.",
-  "keywords": [
-    "extension",
-    "jupyter",
-    "jupyterlab",
-    "jupyterlab-extension"
-  ],
-  "homepage": "https://github.com/QuantStack/jupyterlab-drawio",
-  "bugs": {
-    "url": "https://github.com/QuantStack/jupyterlab-drawio/issues"
-  },
-  "license": "Apache-2.0",
-  "author": "Wolf Vollprecht",
-  "files": [
-    "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf,css}",
-    "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
-  ],
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/wolfv/jupyterlab-drawio.git"
+  "private": true,
+  "devDependencies": {
+    "lerna": "^3.22.1",
+    "prettier": "~2.0.5",
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
+    "eslint": "^7.5.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-react": "^7.19.0"
   },
   "scripts": {
-    "build": "node scripts/copyfiles.js && tsc",
-    "clean": "rimraf lib && rimraf tsconfig.tsbuildinfo",
-    "watch": "tsc -w"
+    "bootstrap": "jlpm --prefer-offline && lerna bootstrap",
+    "eslint": "eslint --ext .js,.ts,.tsx --fix packages",
+    "eslint:check": "eslint --ext .js,.ts,.tsx packages"
   },
-  "dependencies": {
-    "@jupyterlab/application": "^2.0.0",
-    "@jupyterlab/apputils": "^2.0.0",
-    "@jupyterlab/coreutils": "^4.0.0",
-    "@jupyterlab/docregistry": "^2.0.0",
-    "@jupyterlab/filebrowser": "^2.0.0",
-    "@jupyterlab/launcher": "^2.0.0",
-    "@jupyterlab/mainmenu": "^2.0.0"
-  },
-  "devDependencies": {
-    "rimraf": "^2.6.1",
-    "typescript": "~3.7.0",
-    "fs-extra": "^8.1.0",
-    "@lumino/messaging": "^1.1.0"
-  },
-  "jupyterlab": {
-    "extension": true
-  }
+  "workspaces": [
+    "packages/*"
+  ]
 }

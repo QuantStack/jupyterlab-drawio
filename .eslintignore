@@ -1,0 +1,3 @@
+node_modules/
+**/drawio/**
+packages/jupyterlab-drawio/lib/

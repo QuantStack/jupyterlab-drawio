@@ -1,33 +1,64 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+env:
+  PYTHONUNBUFFERED: 1
+  PYTHONIOENCODING: utf-8
+
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  ci:
+    name: CI
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+      - name: checkout
+        uses: actions/checkout@v2
 
-    # Runs a single command using the runners shell
-    - name: Run a one-line script
-      run: echo Hello, world!
+      - name: cache (yarn)
+        uses: actions/cache@v1
+        with:
+          path: .yarn-packages
+          key: yarn-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+            yarn-
 
-    # Runs a set of commands using the runners shell
-    - name: Run a multi-line script
-      run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
+      - name: install (conda)
+        uses: goanpeca/setup-miniconda@v1.6.0
+        with:
+          environment-file: environment.yml
+
+      - name: build (linux)
+        if: ${{ contains(matrix.os, 'ubuntu') }}
+        shell: bash -l {0}
+        run: |
+          source /usr/share/miniconda/bin/deactivate
+          source /usr/share/miniconda/bin/activate /usr/share/miniconda/envs/jupyterlab-drawio
+          doit all || doit all
+
+      - name: build (macos)
+        if: ${{ contains(matrix.os, 'macos') }}
+        shell: bash -l {0}
+        run: |
+          source /usr/local/miniconda/bin/deactivate
+          source /usr/local/miniconda/bin/activate /usr/local/miniconda/envs/jupyterlab-drawio
+          doit all || doit all
+
+      - name: build (windows)
+        if: ${{ contains(matrix.os, 'windows') }}
+        shell: cmd /C CALL {0}
+        run: |
+          call C:\Miniconda\Scripts\deactivate
+          call C:\Miniconda\Scripts\activate C:\Miniconda\envs\jupyterlab-drawio
+          doit all || doit all

@@ -1,8 +1,6 @@
-#!/usr/bin/env bash
-set -eux
-npm install
-npm run build
-npm pack
-jupyter labextension install ./jupyterlab-drawio-*.tgz --no-build --debug
-jupyter lab build --dev-build=False --minimize=True --debug
-jupyter labextension list
+#!/usr/bin/env python
+from pathlib import Path
+import subprocess
+import sys
+
+sys.exit(subprocess.call(["doit"]))
