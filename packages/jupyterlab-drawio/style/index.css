@@ -1,17 +1,17 @@
-.jp-Drawio {
+.jp-Diagram {
   background-color: var(--jp-layout-color1);
 }
 
-.jp-Drawio .jp-IFrame {
+.jp-Diagram .jp-IFrame {
   opacity: 0;
 }
 
-.jp-Drawio.jp-Drawio-ready .jp-IFrame {
+.jp-Diagram.jp-Diagram-ready .jp-IFrame {
   opacity: 1;
   transition: opacity 0.2s;
 }
 
-.jp-Drawio .jp-Toolbar:empty {
+.jp-Diagram .jp-Toolbar:empty {
   height: 0 !important;
   max-height: 0;
   min-height: 0;

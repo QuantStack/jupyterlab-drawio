@@ -61,8 +61,8 @@ export class DrawioStatus extends VDomRenderer<DrawioStatus.Model> {
   /**
    * Create a new tab/space status item.
    */
-  constructor(options: DrawioStatus.IOptions) {
-    super(new DrawioStatus.Model());
+  constructor(model: DrawioStatus.Model) {
+    super(model);
     this.addClass(interactiveItem);
   }
 
