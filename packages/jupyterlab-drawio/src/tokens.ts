@@ -26,6 +26,7 @@ export interface IDiagramManager {
   isExportable(mimetype: string): boolean;
   formatForType(mimetype: string): IDiagramManager.IFormat | null;
   activeWidget: DiagramWidget | null;
+  drawioURL: string;
 }
 
 export const DRAWIO_ICON_CLASS_RE = /jp-icon-warn0/;

@@ -18,6 +18,9 @@ import { Contents } from '@jupyterlab/services';
 import { DrawioStatus } from './status';
 import * as IO from './io';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { DRAWIO_URL } from '@deathbeds/jupyterlab-drawio-webpack';
+
+console.warn('DRAWIO_URL', DRAWIO_URL);
 
 const DEFAULT_EXPORTER = async (
   drawio: DiagramWidget,
@@ -70,6 +73,10 @@ export class DiagramManager implements IDiagramManager {
       }
     }
     return null;
+  }
+
+  get drawioURL() {
+    return DRAWIO_URL;
   }
 
   get status() {

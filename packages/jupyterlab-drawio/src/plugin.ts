@@ -126,6 +126,7 @@ function activate(
     menu.fileMenu.newMenu.addGroup([{ command: CommandIds.createNew }], 40);
   }
 
+  console.warn('activated', plugin.id);
   // this is very odd, and probably can't be reused. Use the manager pattern?
   return manager;
 }

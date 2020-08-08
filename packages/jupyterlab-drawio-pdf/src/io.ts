@@ -63,5 +63,6 @@ export const PDF_PLAIN: IDiagramManager.IFormat = {
 
 export const PDF_BRANDED = {
   ...PDF_PLAIN,
+  key: 'pdf-editable',
   ext: '.dio.pdf',
 };

@@ -23,8 +23,6 @@ import {
   DocumentWidget,
 } from '@jupyterlab/docregistry';
 
-import { DRAWIO_URL } from '@deathbeds/jupyterlab-drawio-webpack';
-
 import * as IO from './io';
 
 import '../style/index.css';
@@ -312,7 +310,8 @@ export class DiagramWidget extends DocumentWidget<IFrame> {
       }
       query.append(p, (params as any)[p]);
     }
-    const url = DRAWIO_URL + '?' + query.toString() + `&p=${plugins}`;
+    const url =
+      this._manager.drawioURL + '?' + query.toString() + `&p=${plugins}`;
 
     if (force || this.content.url !== url) {
       DEBUG && console.warn('configuring iframe', params);
