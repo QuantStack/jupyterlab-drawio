@@ -128,17 +128,19 @@ def task_build():
             name="js",
             file_dep=[P.YARN_INTEGRITY, P.OK_JS_BUILD_PRE, *P.ALL_TS, *P.ALL_CSS],
             actions=[[*P.JLPM, "lerna", "run", "build"]],
-            targets=[P.JDIO_TSBUILD],
+            targets=sorted(P.JS_TSBUILDINFO.values()),
         ),
         P.OK_JS_BUILD,
     )
 
-    for pkg, (file_dep, target) in P.PKG_PACK.items():
+    for pkg, (file_dep, targets) in P.JS_PKG_PACK.items():
         yield dict(
-            name=f"pack:{pkg.name}",
+            name=f"pack:{pkg}",
             file_dep=file_dep,
-            actions=[CmdAction([P.NPM, "pack", "."], cwd=pkg, shell=False)],
-            targets=[target],
+            actions=[
+                CmdAction([P.NPM, "pack", "."], cwd=str(targets[0].parent), shell=False)
+            ],
+            targets=targets,
         )
 
 
@@ -153,7 +155,7 @@ def task_lab_build():
     def _build():
         return subprocess.call() == 0
 
-    file_dep = [P.JDW_TARBALL, P.JDIO_TARBALL]
+    file_dep = sorted(P.JS_TARBALL.values())
 
     build_args = ["--dev-build=False", "--minimize=True"]
     if P.WIN:
@@ -171,7 +173,14 @@ def task_lab_build():
                 "disable",
                 "@jupyterlab/extension-manager-extension",
             ],
-            ["jupyter", "labextension", "link", "--debug", "--no-build", P.JDW, P.JDIO],
+            [
+                "jupyter",
+                "labextension",
+                "link",
+                "--debug",
+                "--no-build",
+                *[v.parent for k, v in P.JS_PKG_JSON_LABEXT.items()],
+            ],
             [
                 "jupyter",
                 "labextension",

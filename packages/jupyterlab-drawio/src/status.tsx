@@ -1,9 +1,9 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import React from "react";
+import React from 'react';
 
-import { VDomRenderer, VDomModel } from "@jupyterlab/apputils";
+import { VDomRenderer, VDomModel } from '@jupyterlab/apputils';
 
 import {
   interactiveItem,
@@ -11,9 +11,9 @@ import {
   Popup,
   showPopup,
   TextItem,
-} from "@jupyterlab/statusbar";
+} from '@jupyterlab/statusbar';
 
-import { Menu } from "@lumino/widgets";
+import { Menu } from '@lumino/widgets';
 
 /**
  * A namespace for TabSpaceComponent statics.
@@ -48,7 +48,7 @@ function DrawioStatusComponent(
   return (
     <TextItem
       onClick={props.handleClick}
-      source={`drawio: ${props.status || "ready"}`}
+      source={`drawio: ${props.status || 'ready'}`}
       title={`TBD…`}
     />
   );
@@ -96,7 +96,7 @@ export class DrawioStatus extends VDomRenderer<DrawioStatus.Model> {
     this._popup = showPopup({
       body: menu,
       anchor: this,
-      align: "right",
+      align: 'right',
     });
   }
 
@@ -110,7 +110,7 @@ export class DrawioStatus extends VDomRenderer<DrawioStatus.Model> {
 
 export namespace DrawioStatus {
   export class Model extends VDomModel {
-    _status: string = "";
+    _status: string = '';
 
     get status() {
       return this._status;

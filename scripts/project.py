@@ -72,30 +72,70 @@ EXAMPLE_IPYNB = [
 DIST_NBHTML = DIST / "nbsmoke"
 
 # js packages
-JS_NS = "@deathbeds"
+JS_NS = "deathbeds"
 JDIO = PACKAGES / "jupyterlab-drawio"
-JDIO_SRC = JDIO / "src"
-JDIO_PKG = JDIO / "package.json"
-JDIO_PKG_DATA = json.loads(JDIO_PKG.read_text(encoding="utf-8"))
-JDIO_STYLE = JDIO / "style"
-JDIO_TSBUILD = JDIO / "lib" / ".tsbuildinfo"
-JDIO_TARBALL = JDIO / f"""deathbeds-jupyterlab-drawio-{JDIO_PKG_DATA["version"]}.tgz"""
 
-JDW = PACKAGES / "jupyterlab-drawio-webpack"
+# so many js packages
+JS_PKG_JSON = {p.parent.name: p for p in PACKAGES.glob("*/package.json")}
+
+JS_PKG_DATA = {
+    k: json.loads(v.read_text(encoding="utf-8")) for k, v in JS_PKG_JSON.items()
+}
+
+JS_PKG_JSON_LABEXT = {
+    k: v
+    for k, v in JS_PKG_JSON.items()
+    if JS_PKG_DATA[k].get("jupyterlab", {}).get("extension")
+}
+
+JS_PKG_NOT_META = {k: v for k, v in JS_PKG_JSON.items() if k.startswith("_")}
+
+JS_TARBALL = {
+    k: JS_PKG_JSON[k].parent
+    / f"""{v["name"].replace('@', '').replace("/", "-")}{v["version"]}.tgz"""
+    for k, v in JS_PKG_DATA.items()
+    if k not in JS_PKG_NOT_META
+}
+
+JS_TSCONFIG = {
+    k: v.parent / "tsconfig.json"
+    for k, v in JS_PKG_JSON.items()
+    if (v.parent / "tsconfig.json").exists()
+}
+
+JS_TSSRC = {
+    k: sorted(
+        [*(v.parent / "src").rglob("*.ts")] + [*(v.parent / "src").rglob("*.tsx")]
+    )
+    for k, v in JS_TSCONFIG.items()
+    if (v.parent / "src").exists()
+}
+
+JS_TSBUILDINFO = {k: v.parent / "lib" / ".tsbuildinfo" for k, v in JS_TSCONFIG.items()}
+
+JS_STYLE = {
+    k: sorted((v.parent / "style").glob("*.css"))
+    for k, v in JS_PKG_JSON.items()
+    if (v.parent / "style").exists()
+}
+
+JS_PY_SCRIPTS = {
+    k: sorted((v.parent / "scripts").glob("*.py"))
+    for k, v in JS_PKG_JSON.items()
+    if (v.parent / "scripts").exists()
+}
+
+# special things for jupyterlab-drawio-webpack
+JDW = JS_PKG_JSON["jupyterlab-drawio-webpack"].parent
 JDW_APP = JDW / "drawio/src/main/webapp/js/app.min.js"
-JDW_PKG = JDW / "package.json"
-JDW_PKG_DATA = json.loads(JDW_PKG.read_text(encoding="utf-8"))
 JDW_PY = (JDW / "scripts").rglob("*.py")
 DRAWIO = JDW / "drawio"
 JDW_LIB = JDW / "lib"
 JDW_IGNORE = JDW / ".npmignore"
 ALL_JDW_JS = JDW_LIB.glob("*.js")
-JDW_TARBALL = (
-    JDW / f"""deathbeds-jupyterlab-drawio-webpack-{JDW_PKG_DATA["version"]}.tgz"""
-)
 
 # mostly linting
-ALL_PY = [DODO, *SCRIPTS.glob("*.py"), *JDW_PY]
+ALL_PY = [DODO, *SCRIPTS.glob("*.py"), *sum(JS_PY_SCRIPTS.values(), [])]
 ALL_YML = [*ROOT.glob("*.yml"), *CI.rglob("*.yml")]
 ALL_JSON = [
     *ROOT.glob("*.json"),
@@ -103,14 +143,24 @@ ALL_JSON = [
     *PACKAGES.glob("*/schema/*.json"),
 ]
 ALL_MD = [*ROOT.glob("*.md"), *PACKAGES.glob("*/*.md")]
-ALL_TS = [*JDIO_SRC.rglob("*.ts")]
-ALL_CSS = [*JDIO_STYLE.rglob("*.css")]
+ALL_TS = sum(JS_TSSRC.values(), [])
+ALL_CSS = sum(JS_STYLE.values(), [])
 ALL_PRETTIER = [*ALL_YML, *ALL_JSON, *ALL_MD, *ALL_TS, *ALL_CSS]
 
-PKG_PACK = {
-    JDIO: [[JDIO / "package.json", JDIO_TSBUILD], JDIO_TARBALL],
-    JDW: [[JDW / "package.json", JDW_IGNORE, JDW_APP, *ALL_JDW_JS], JDW_TARBALL],
-}
+
+JS_PKG_PACK = {k: [[v.parent / "package.json"], [v]] for k, v in JS_TARBALL.items()}
+
+[
+    JS_PKG_PACK[k][0].append(v)
+    for k, v in JS_TSBUILDINFO.items()
+    if not k.startswith("_")
+]
+
+JS_PKG_PACK[JDW.name][0] += [
+    JDW_IGNORE,
+    JDW_APP,
+    *ALL_JDW_JS,
+]
 
 
 # built files

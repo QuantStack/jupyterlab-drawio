@@ -17,7 +17,6 @@
   },
   "description": "A JupyterLab extension for embedding drawio / mxgraph.",
   "devDependencies": {
-    "rimraf": "^2.6.1",
     "typescript": "~3.9.3"
   },
   "files": [
@@ -26,7 +25,7 @@
   ],
   "homepage": "https://github.com/deathbeds/jupyterlab-drawio",
   "jupyterlab": {
-    "extension": true,
+    "extension": "lib/plugin.js",
     "schemaDir": "schema"
   },
   "keywords": [
@@ -40,11 +39,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/deathbeds/jupyterlab-drawio.git"
-  },
-  "scripts": {
-    "build": "tsc",
-    "clean": "rimraf lib",
-    "watch": "tsc -w"
   },
   "types": "lib/index.d.ts",
   "version": "0.8.0-alpha0"
