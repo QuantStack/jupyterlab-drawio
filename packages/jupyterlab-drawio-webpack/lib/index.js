@@ -7,5 +7,3 @@ export const DRAWIO_URL = URLExt.join(
   'lab',
   'node_modules/@deathbeds/jupyterlab-drawio-webpack/drawio/src/main/webapp/index.html'
 );
-
-console.warn("DRAWIO_URL", DRAWIO_URL);

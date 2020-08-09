@@ -30,19 +30,11 @@ import { ILauncher } from '@jupyterlab/launcher';
 
 import { IMainMenu } from '@jupyterlab/mainmenu';
 
-import { DEBUG } from './editor';
-
 import * as IO from './io';
 import { DrawioStatus } from './status';
 import { NS, PLUGIN_ID } from '.';
 
-import {
-  IDiagramManager,
-  TEXT_FACTORY,
-  BINARY_FACTORY,
-  JSON_FACTORY,
-  CommandIds,
-} from './tokens';
+import { IDiagramManager, CommandIds, DEBUG } from './tokens';
 import { DiagramManager } from './manager';
 
 /**
@@ -75,7 +67,6 @@ function activate(
   launcher: ILauncher | null,
   statusBar: IStatusBar | null
 ): IDiagramManager {
-  console.warn('activating', plugin.id);
   const manager = new DiagramManager({
     app,
     restorer,
@@ -104,11 +95,6 @@ function activate(
     .then((loadedSettings) => {
       DEBUG && console.warn('settings loaded', loadedSettings.composite);
       manager.settings = loadedSettings;
-
-      // create the trackers
-      manager.initTracker('text', TEXT_FACTORY, 'drawio-text');
-      manager.initTracker('base64', BINARY_FACTORY, 'drawio-binary');
-      manager.initTracker('notebook', JSON_FACTORY, 'drawio-notebook');
     })
     .catch((err) => console.error(err));
 
@@ -126,7 +112,6 @@ function activate(
     menu.fileMenu.newMenu.addGroup([{ command: CommandIds.createNew }], 40);
   }
 
-  console.warn('activated', plugin.id);
   // this is very odd, and probably can't be reused. Use the manager pattern?
   return manager;
 }

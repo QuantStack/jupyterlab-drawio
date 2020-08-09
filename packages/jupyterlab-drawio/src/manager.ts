@@ -6,21 +6,13 @@ import {
 import { JupyterLab, ILayoutRestorer } from '@jupyterlab/application';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { PathExt } from '@jupyterlab/coreutils';
-import {
-  IDiagramManager,
-  TEXT_FACTORY,
-  CommandIds,
-  BINARY_FACTORY,
-  JSON_FACTORY,
-} from './tokens';
+import { IDiagramManager, TEXT_FACTORY, CommandIds } from './tokens';
 import { DiagramWidget, DiagramFactory } from './editor';
 import { Contents } from '@jupyterlab/services';
 import { DrawioStatus } from './status';
 import * as IO from './io';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { DRAWIO_URL } from '@deathbeds/jupyterlab-drawio-webpack';
-
-console.warn('DRAWIO_URL', DRAWIO_URL);
 
 const DEFAULT_EXPORTER = async (
   drawio: DiagramWidget,
@@ -95,9 +87,14 @@ export class DiagramManager implements IDiagramManager {
     this._settings = settings;
     this._settings.changed.connect(this._onSettingsChanged, this);
   }
-
-  protected updateWidgetSettings(widget: DiagramWidget) {
-    widget.updateSettings();
+  get activeWidget() {
+    const { currentWidget } = this._app.shell;
+    for (const tracker of this._trackers.values()) {
+      if (tracker.currentWidget === currentWidget) {
+        return tracker.currentWidget;
+      }
+    }
+    return null;
   }
 
   // Function to create a new untitled diagram file, given
@@ -129,6 +126,9 @@ export class DiagramManager implements IDiagramManager {
   }
 
   addFormat(format: IDiagramManager.IFormat) {
+    if (this._formats.has(format.key)) {
+      throw Error(`cannot reregister ${format.key}`);
+    }
     this._formats.set(format.key, format);
     this._app.docRegistry.addFileType({
       name: format.name,
@@ -144,6 +144,18 @@ export class DiagramManager implements IDiagramManager {
     if (format.isExport) {
       this._initExportCommands(format);
     }
+
+    this._initTracker(
+      format.format,
+      format.factoryName,
+      format.key,
+      [format],
+      format.isDefault ? [format] : []
+    );
+  }
+
+  protected updateWidgetSettings(widget: DiagramWidget) {
+    widget.updateSettings();
   }
 
   protected _initExportCommands(exportFormat: IDiagramManager.IFormat) {
@@ -223,54 +235,20 @@ export class DiagramManager implements IDiagramManager {
     });
   }
 
-  get activeWidget() {
-    const { currentWidget } = this._app.shell;
-    for (const tracker of this._trackers.values()) {
-      if (tracker.currentWidget === currentWidget) {
-        return tracker.currentWidget;
-      }
-    }
-    return null;
-  }
-
   /**
    * Create a widget tracker and associated factory for this model type
    */
-  initTracker(modelName: string, name: string, namespace: string) {
-    let fileTypes: IDiagramManager.IFormat[] = [];
-    let defaultFor: IDiagramManager.IFormat[] = [];
-
-    for (const fmt of this._formats.values()) {
-      switch (name) {
-        case TEXT_FACTORY:
-          if (fmt.isText) {
-            fileTypes.push(fmt);
-            if (fmt.isBinary) {
-              defaultFor.push(fmt);
-            }
-          }
-          break;
-        case BINARY_FACTORY:
-          if (fmt.isBinary) {
-            fileTypes.push(fmt);
-            if (fmt.isBinary) {
-              defaultFor.push(fmt);
-            }
-          }
-          break;
-        case JSON_FACTORY:
-          if (fmt.isJson) {
-            fileTypes.push(fmt);
-            if (fmt.isBinary) {
-              defaultFor.push(fmt);
-            }
-          }
-          break;
-        default:
-          console.warn('dunno', name, fmt);
-          break;
-      }
+  protected _initTracker(
+    modelName: string,
+    name: string,
+    namespace: string,
+    fileTypes: IDiagramManager.IFormat[],
+    defaultFor: IDiagramManager.IFormat[]
+  ) {
+    if (this._trackers.has(name)) {
+      throw Error(name);
     }
+
     const factory = new DiagramFactory({
       modelName,
       name,

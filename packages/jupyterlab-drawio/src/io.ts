@@ -8,6 +8,9 @@ import {
   DRAWIO_METADATA,
   IDiagramManager,
   DRAWIO_ICON_CLASS_RE,
+  TEXT_FACTORY,
+  BINARY_FACTORY,
+  JSON_FACTORY,
 } from './tokens';
 
 import { stripDataURI, unbase64SVG } from './utils';
@@ -40,6 +43,8 @@ export const XML_NATIVE: IDiagramManager.IFormat = {
   label: 'Diagram',
   mimetype: 'application/dio',
   name: 'dio',
+  factoryName: TEXT_FACTORY,
+  // behavior
   isExport: true,
   isEditable: true,
   isText: true,
@@ -54,6 +59,7 @@ export const XML_LEGACY: IDiagramManager.IFormat = {
   label: 'Diagram (mxgraph)',
   mimetype: 'application/mxgraph',
   name: 'dio-legacy',
+  factoryName: `${TEXT_FACTORY} (Legacy)`,
   isExport: true,
   isEditable: true,
   isText: true,
@@ -63,6 +69,7 @@ export const XML_LEGACY: IDiagramManager.IFormat = {
 export const SVG_PLAIN: IDiagramManager.IFormat = {
   ext: '.svg',
   format: 'text',
+  factoryName: `${TEXT_FACTORY} (SVG)`,
   icon: drawioSvgIcon,
   key: 'svg',
   label: 'SVG',
@@ -75,6 +82,7 @@ export const SVG_PLAIN: IDiagramManager.IFormat = {
 
 export const SVG_EDITABLE: IDiagramManager.IFormat = {
   ...SVG_PLAIN,
+  factoryName: `${TEXT_FACTORY} (Editable SVG)`,
   ext: '.dio.svg',
   key: 'xmlsvg',
   label: 'SVG (Editable)',
@@ -87,6 +95,7 @@ export const SVG_EDITABLE: IDiagramManager.IFormat = {
 export const PNG_PLAIN: IDiagramManager.IFormat = {
   ext: '.png',
   format: 'base64',
+  factoryName: `${BINARY_FACTORY} (PNG)`,
   icon: drawioPngIcon,
   key: 'png',
   label: 'PNG',
@@ -99,6 +108,7 @@ export const PNG_PLAIN: IDiagramManager.IFormat = {
 
 export const PNG_EDITABLE: IDiagramManager.IFormat = {
   ...PNG_PLAIN,
+  factoryName: `${BINARY_FACTORY} (Editable PNG)`,
   ext: '.dio.png',
   key: 'xmlpng',
   label: 'PNG (Editable)',
@@ -110,6 +120,7 @@ export const PNG_EDITABLE: IDiagramManager.IFormat = {
 
 export const IPYNB_EDITABLE: IDiagramManager.IFormat<any> = {
   ext: '.dio.ipynb',
+  factoryName: `${JSON_FACTORY} (Notebook)`,
   key: 'ipynb',
   format: 'json',
   icon: drawioIpynbIcon,

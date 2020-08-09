@@ -21,6 +21,11 @@ export const DRAWIO_ICON_SVG = ICON_SVG;
 
 export const DRAWIO_METADATA = NS;
 
+/**
+ * Escape hatch for runtime debugging.
+ */
+export const DEBUG = window.location.hash.indexOf('DRAWIO_DEBUG') > -1;
+
 export interface IDiagramManager {
   addFormat(format: IDiagramManager.IFormat): void;
   isExportable(mimetype: string): boolean;
@@ -54,6 +59,9 @@ export namespace IDiagramManager {
       key: string,
       settings: ISettingRegistry.ISettings
     ) => Promise<T | null>;
+    // factory info
+    factoryName: string;
+    // behavior switches
     isExport?: boolean;
     isBinary?: boolean;
     isText?: boolean;

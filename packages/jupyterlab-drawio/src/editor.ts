@@ -26,12 +26,7 @@ import {
 import * as IO from './io';
 
 import '../style/index.css';
-import { IDiagramManager } from './tokens';
-
-/**
- * Escape hatch for runtime debugging.
- */
-export const DEBUG = window.location.hash.indexOf('DRAWIO_DEBUG') > -1;
+import { IDiagramManager, DEBUG } from './tokens';
 
 /**
  * Core URL params that are required to function properly

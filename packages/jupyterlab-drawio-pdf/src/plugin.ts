@@ -33,8 +33,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
 export default plugin;
 
 function activate(app: JupyterLab, diagrams: IDiagramManager) {
-  console.log('activating', PLUGIN_ID);
   diagrams.addFormat(PDF_PLAIN);
   diagrams.addFormat(PDF_BRANDED);
-  console.log('activated', PLUGIN_ID);
 }

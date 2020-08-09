@@ -17,6 +17,7 @@ export const drawioPdfIcon = new LabIcon({
 export const PDF_PLAIN: IDiagramManager.IFormat = {
   ext: '.pdf',
   format: 'base64',
+  factoryName: `Diagram (PDF)`,
   icon: drawioPdfIcon,
   key: 'pdf',
   label: 'PDF',
@@ -63,6 +64,7 @@ export const PDF_PLAIN: IDiagramManager.IFormat = {
 
 export const PDF_BRANDED = {
   ...PDF_PLAIN,
+  factoryName: `Diagram (Editable PDF)`,
   key: 'pdf-editable',
   ext: '.dio.pdf',
 };
