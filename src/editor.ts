@@ -31,6 +31,7 @@ w.mxLoadResources = false;
 /* This is a typing-only import. If you use it directly, the mxgraph content
    will be included in the main JupyterLab js bundle.
 */
+// @ts-ignore
 import * as MXModuleType from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
 
 import {
@@ -257,10 +258,8 @@ namespace Private {
         }
 
         _mxLoading = new PromiseDelegate();
-        _mx = await import(
-            /* webpackChunkName: "mxgraph" */
-            './mxgraph/javascript/examples/grapheditor/www/modulated.js'
-        );
+        // @ts-ignore
+        _mx = await import('./mxgraph/javascript/examples/grapheditor/www/modulated.js');
         _mxLoading.resolve(_mx);
         return _mx;
     }
