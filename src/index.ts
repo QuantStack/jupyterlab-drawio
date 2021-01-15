@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {
-  ILayoutRestorer, JupyterLab, JupyterFrontEndPlugin
+  ILayoutRestorer, JupyterFrontEnd, JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
 import {
@@ -53,20 +53,20 @@ const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
 /**
  * The editor tracker extension.
  */
-const plugin: JupyterFrontEndPlugin<IDrawioTracker> = {
-  activate,
+const extension: JupyterFrontEndPlugin<IDrawioTracker> = {
   id: '@jupyterlab/drawio-extension:plugin',
+  autoStart: true,
   requires: [IFileBrowserFactory, ILayoutRestorer, IMainMenu, ICommandPalette],
   optional: [ILauncher],
   provides: IDrawioTracker,
-  autoStart: true
+  activate
 };
 
-export default plugin;
+export default extension;
 
-function activate(app: JupyterLab,
+function activate(app: JupyterFrontEnd,
                   browserFactory: IFileBrowserFactory,
-                  restorer: ILayoutRestorer, 
+                  restorer: ILayoutRestorer,
                   menu: IMainMenu,
                   palette: ICommandPalette,
                   launcher: ILauncher | null
