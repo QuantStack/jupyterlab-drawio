@@ -1,9 +1,9 @@
 // Copyright (c) 2018 JGraph Ltd
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export const grapheditor_txt = `# Resources from graph.properties
+export const grapheditorTxt = `# Resources from graph.properties
 alreadyConnected=Nodes already connected
 cancel=Cancel
 close=Close
@@ -329,13 +329,13 @@ zoom=Zoom
 zoomIn=Zoom In
 zoomOut=Zoom Out`;
 
-export const graph_txt = `askZoom=Enter zoom (%)
+export const graphTxt = `askZoom=Enter zoom (%)
 properties=Properties
 outline=Outline
 tasks=Tasks
 help=Help`;
 
-export const common_txt = `alreadyConnected=Nodes already connected
+export const commonTxt = `alreadyConnected=Nodes already connected
 containsValidationErrors=Contains validation errors
 updatingDocument=Updating Document. Please wait...
 updatingSelection=Updating Selection. Please wait...
@@ -347,7 +347,7 @@ done=Done
 cancel=Cancel
 ok=OK`;
 
-export const default_xml = `<mxStylesheet>
+export const defaultXml = `<mxStylesheet>
 	<add as="defaultVertex">
 		<add as="shape" value="label"/>
 		<add as="perimeter" value="rectanglePerimeter"/>
