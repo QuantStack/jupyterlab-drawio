@@ -247,10 +247,11 @@ namespace Private {
     }
 
     _mxLoading = new PromiseDelegate();
+    /*eslint-disable */
     // @ts-ignore
-    _mx = await import(
-      './mxgraph/javascript/examples/grapheditor/www/modulated.js'
-    );
+    _mx = await import('./mxgraph/javascript/examples/grapheditor/www/modulated.js');
+    /*eslint-enable */
+
     _mxLoading.resolve(_mx);
     return _mx;
   }
