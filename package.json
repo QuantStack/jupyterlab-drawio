@@ -44,15 +44,16 @@
     "watch:src": "tsc -w"
   },
   "dependencies": {
-    "@jupyterlab/application": "^3.0.2",
-    "@jupyterlab/apputils": "^3.0.2",
-    "@jupyterlab/coreutils": "^5.0.1",
-    "@jupyterlab/docregistry": "^3.0.2",
-    "@jupyterlab/filebrowser": "^3.0.2",
-    "@jupyterlab/launcher": "^3.0.2",
-    "@jupyterlab/mainmenu": "^3.0.2",
+    "@jupyterlab/application": "^3.1.0-alpha.2",
+    "@jupyterlab/apputils": "^3.1.0-alpha.2",
+    "@jupyterlab/coreutils": "^5.1.0-alpha.2",
+    "@jupyterlab/docregistry": "^3.1.0-alpha.2",
+    "@jupyterlab/filebrowser": "^3.1.0-alpha.2",
+    "@jupyterlab/launcher": "^3.1.0-alpha.2",
+    "@jupyterlab/mainmenu": "^3.1.0-alpha.2",
     "@lumino/coreutils": "^1.5.3",
-    "@lumino/widgets": "^1.18.0"
+    "@lumino/widgets": "^1.18.0",
+    "yjs": "^13.5.0"
   },
   "devDependencies": {
     "@jupyterlab/builder": "^3.0.0",
@@ -67,6 +68,14 @@
     "prettier": "^1.19.0",
     "rimraf": "^3.0.2",
     "typescript": "~3.9.3"
+  },
+  "resolutions": {
+    "@lumino/widgets": "~1.18.0",
+    "@types/react": "~17.0.0",
+    "csstype": "~2.4.0",
+    "react": "~17.0.1",
+    "typestyle": "~2.0.4",
+    "yjs": "~13.5.0"
   },
   "jupyterlab": {
     "extension": true,

@@ -79,7 +79,9 @@ export class DrawioWidget extends DocumentWidget<Widget> {
   onAfterShow(msg: Message): void {
     Private.ensureMx().then(() => {
       this._loadEditor(this.node);
-      this._onContentChanged();
+      const contextModel = this.context.model;
+      const xml = this.mx.mxUtils.parseXml(contextModel.toString());
+      this._editor.editor.setGraphXml(xml.documentElement);
     });
   }
 
@@ -90,8 +92,8 @@ export class DrawioWidget extends DocumentWidget<Widget> {
   private _onContextReady(): void {
     const contextModel = this.context.model;
 
-    // Set the editor model value.
-    this._onContentChanged();
+    const xml = this.mx.mxUtils.parseXml(contextModel.toString());
+    this._editor.editor.setGraphXml(xml.documentElement);
 
     contextModel.contentChanged.connect(this._onContentChanged, this);
     contextModel.stateChanged.connect(this._onModelStateChangedNew, this);
@@ -129,13 +131,17 @@ export class DrawioWidget extends DocumentWidget<Widget> {
     // Workaround for TS2351: Cannot use 'new' with an expression whose type lacks a call or construct signature
     const _Editor: any = mx.Editor;
     this._editor = new mx.EditorUi(new _Editor(false, themes), node);
-
+    
     this._editor.editor.graph.model.addListener(
-      mx.mxEvent.NOTIFY,
+      mx.mxEvent.CHANGE,
       (sender: any, evt: any) => {
+        //console.log(mx.mxEvent.CHANGE, sender, evt);
+        const changes: any[] = evt.properties.changes;
+        for (let i=0; i<changes.length; i++) {
+          if (changes[i].root) return;
+        }
         this._saveToContext();
-      }
-    );
+      });
 
     return this._editor;
   }
@@ -157,10 +163,8 @@ export class DrawioWidget extends DocumentWidget<Widget> {
     const newValue = this.context.model.toString();
 
     if (oldValue !== newValue && !this._editor.editor.graph.isEditing()) {
-      if (newValue.length) {
-        const xml = mx.mxUtils.parseXml(newValue);
-        this._editor.editor.setGraphXml(xml.documentElement);
-      }
+      const xml = mx.mxUtils.parseXml(newValue);
+      this._editor.editor.setGraphXml(xml.documentElement);
     }
   }
 
@@ -168,6 +172,7 @@ export class DrawioWidget extends DocumentWidget<Widget> {
     if (this._editor.editor.graph.isEditing()) {
       this._editor.editor.graph.stopEditing();
     }
+
     const xml = this.mx.mxUtils.getXml(this._editor.editor.getGraphXml());
     this.context.model.fromString(xml);
   }

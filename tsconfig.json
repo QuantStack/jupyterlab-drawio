@@ -16,9 +16,21 @@
     "outDir": "lib",
     "rootDir": "src",
     "strict": true,
+    "skipLibCheck": true,
     "strictNullChecks": false,
     "target": "es2017",
-    "types": []
+    "types": [],
+    "baseUrl": ".",
+    "paths": {
+      "@jupyterlab/application": ["../jupyterlab/packages/application"],
+      "@jupyterlab/apputils": ["../jupyterlab/packages/apputils"],
+      "@jupyterlab/coreutils": ["../jupyterlab/packages/coreutils"],
+      "@jupyterlab/docregistry": ["../jupyterlab/packages/docregistry"],
+      "@jupyterlab/filebrowser": ["../jupyterlab/packages/filebrowser"],
+      "@jupyterlab/launcher": ["../jupyterlab/packages/launcher"],
+      "@jupyterlab/mainmenu": ["../jupyterlab/packages/mainmenu"],
+      "*": ["node_modules/*"]
+    }
   },
   "include": ["src/**/*"]
 }
