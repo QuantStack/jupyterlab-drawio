@@ -68,8 +68,8 @@ function activate(
   const namespace = 'drawio';
   const factory = new DrawioFactory({
     name: FACTORY,
-    fileTypes: ['dio'],
-    defaultFor: ['dio']
+    fileTypes: ['dio', 'drawio'],
+    defaultFor: ['dio', 'drawio']
   });
   const { commands } = app;
   const tracker = new WidgetTracker<DrawioWidget>({ namespace });
@@ -104,10 +104,10 @@ function activate(
 
   // register the filetype
   app.docRegistry.addFileType({
-    name: 'dio',
+    name: 'drawio',
     displayName: 'Diagram',
-    mimeTypes: ['application/dio'],
-    extensions: ['.dio'],
+    mimeTypes: ['application/dio', 'application/drawio'],
+    extensions: ['.dio', 'drawio'],
     iconClass: 'jp-MaterialIcon jp-ImageIcon',
     fileFormat: 'text'
   });
@@ -143,7 +143,7 @@ function activate(
         app.serviceManager.contents.save(model.path, model);
       });
   };
-
+  
   // Add a command for creating a new diagram file.
   commands.addCommand('drawio:create-new', {
     label: 'Diagram',
@@ -177,7 +177,6 @@ function activate(
   if (menu) {
     // Add new text file creation to the file menu.
     menu.fileMenu.newMenu.addGroup([{ command: 'drawio:create-new' }], 40);
-    //palette.addItem({ command: 'drawio:export-svg', category: 'Notebook Operations', args: args });
     menu.fileMenu.addGroup([{ command: 'drawio:export-svg' }], 40);
   }
 

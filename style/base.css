@@ -1,0 +1,3 @@
+.dio-toolbar-dropdown:not(:-internal-list-box) {
+	overflow: visible !important;
+}
