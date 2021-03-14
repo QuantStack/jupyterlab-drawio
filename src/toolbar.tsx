@@ -11,10 +11,7 @@ export class DrawIOToolbarButton extends ReactWidget {
     this._action = action;
 
     if (this._action.eventListeners) {
-      this._action.addListener(
-        "stateChanged",
-        (action: any) => this.update()
-      );
+      this._action.addListener('stateChanged', (action: any) => this.update());
     }
   }
 
@@ -23,10 +20,10 @@ export class DrawIOToolbarButton extends ReactWidget {
       this._action.funct();
     };
 
-    const icon = this._action.iconCls || "";
-    const label = this._action.iconCls ? "" : (this._action.label || "");
-    const shortcut = this._action.shortcut || "";
-    const tooltip = label + " (" + shortcut + ")";
+    const icon = this._action.iconCls || '';
+    const label = this._action.iconCls ? '' : this._action.label || '';
+    const shortcut = this._action.shortcut || '';
+    const tooltip = label + ' (' + shortcut + ')';
     const enabled = this._action.enabled;
 
     return (

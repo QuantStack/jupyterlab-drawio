@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  DocumentRegistry,
-  DocumentWidget
-} from '@jupyterlab/docregistry';
+import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 
 import { MainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
 
@@ -63,7 +60,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     this._menuInsert.menu.title.iconClass = 'geSprite geSprite-plus';
     this._menubar.addMenu(this._menuInsert.menu, { rank: 2 });
 
-    this.context.ready.then( async value => {
+    this.context.ready.then(async value => {
       await this.content.ready.promise;
 
       this._onTitleChanged();
@@ -71,12 +68,15 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       this.content.setContent(this.context.model.toString());
       this._handleDirtyStateNew();
 
-      // Adding command to the command registry
+      //Adding command to the command registry
       this._addCommands();
 
       this.context.pathChanged.connect(this._onTitleChanged, this);
       //this.context.model.contentChanged.connect(this._onContentChanged, this);
-      this.context.model.stateChanged.connect(this._onModelStateChangedNew, this);
+      this.context.model.stateChanged.connect(
+        this._onModelStateChangedNew,
+        this
+      );
       this.content.graphChanged.connect(this._saveToContext, this);
     });
   }
@@ -84,7 +84,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
   /**
    * Dispose of the resources held by the widget.
    */
-   dispose(): void {
+  dispose(): void {
     Signal.clearData(this);
     super.dispose();
   }
@@ -97,7 +97,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
   }
 
   public getSVG(): string {
-    return "";//this.mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
+    return ''; //this.mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
   }
 
   public execute(action: string): void {
@@ -107,7 +107,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
   /**
    * Handle a change to the title.
    */
-   private _onTitleChanged(): void {
+  private _onTitleChanged(): void {
     this.title.label = PathExt.basename(this.context.localPath);
   }
 
@@ -161,32 +161,44 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       { command: 'drawio:command/insertLink' },
       { command: 'drawio:command/insertImage' }
     ]);
-    
+
     this.toolbar.addItem('ViewDropdown', this._menubar);
-    
-    actions['zoomIn'].iconCls = "geSprite geSprite-zoomin";
+
+    actions['zoomIn'].iconCls = 'geSprite geSprite-zoomin';
     this.toolbar.addItem('zoomIn', new DrawIOToolbarButton(actions['zoomIn']));
-    actions['zoomOut'].iconCls = "geSprite geSprite-zoomout";
-    this.toolbar.addItem('zoomOut', new DrawIOToolbarButton(actions['zoomOut']));
-    
-    actions['undo'].iconCls = "geSprite geSprite-undo";
+    actions['zoomOut'].iconCls = 'geSprite geSprite-zoomout';
+    this.toolbar.addItem(
+      'zoomOut',
+      new DrawIOToolbarButton(actions['zoomOut'])
+    );
+
+    actions['undo'].iconCls = 'geSprite geSprite-undo';
     this.toolbar.addItem('undo', new DrawIOToolbarButton(actions['undo']));
-    actions['redo'].iconCls = "geSprite geSprite-redo";
+    actions['redo'].iconCls = 'geSprite geSprite-redo';
     this.toolbar.addItem('redo', new DrawIOToolbarButton(actions['redo']));
 
-    actions['delete'].iconCls = "geSprite geSprite-delete";
+    actions['delete'].iconCls = 'geSprite geSprite-delete';
     this.toolbar.addItem('delete', new DrawIOToolbarButton(actions['delete']));
-    
-    actions['toFront'].iconCls = "geSprite geSprite-tofront";
-    this.toolbar.addItem('toFront', new DrawIOToolbarButton(actions['toFront']));
-    actions['toBack'].iconCls = "geSprite geSprite-toback";
+
+    actions['toFront'].iconCls = 'geSprite geSprite-tofront';
+    this.toolbar.addItem(
+      'toFront',
+      new DrawIOToolbarButton(actions['toFront'])
+    );
+    actions['toBack'].iconCls = 'geSprite geSprite-toback';
     this.toolbar.addItem('toBack', new DrawIOToolbarButton(actions['toBack']));
-    
-    actions['fillColor'].iconCls = "geSprite geSprite-fillcolor";
-    this.toolbar.addItem('fillColor', new DrawIOToolbarButton(actions['fillColor']));
-    actions['strokeColor'].iconCls = "geSprite geSprite-strokecolor";
-    this.toolbar.addItem('strokeColor', new DrawIOToolbarButton(actions['strokeColor']));
-    actions['shadow'].iconCls = "geSprite geSprite-shadow";
+
+    actions['fillColor'].iconCls = 'geSprite geSprite-fillcolor';
+    this.toolbar.addItem(
+      'fillColor',
+      new DrawIOToolbarButton(actions['fillColor'])
+    );
+    actions['strokeColor'].iconCls = 'geSprite geSprite-strokecolor';
+    this.toolbar.addItem(
+      'strokeColor',
+      new DrawIOToolbarButton(actions['strokeColor'])
+    );
+    actions['shadow'].iconCls = 'geSprite geSprite-shadow';
     this.toolbar.addItem('shadow', new DrawIOToolbarButton(actions['shadow']));
   }
 
@@ -199,24 +211,25 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     //Not Working: new, open, save, save as, import, export
     //Working: pageSetup, print
     const fileCommands = ['pageSetup', 'print'];
-    fileCommands.forEach( name => {
-      const label = actions[name].shortcut ? 
-        actions[name].label + " (" + actions[name].shortcut + ")" : 
-        actions[name].label;
-      
+    fileCommands.forEach(name => {
+      const label = actions[name].shortcut
+        ? actions[name].label + ' (' + actions[name].shortcut + ')'
+        : actions[name].label;
+
       this._commands.addCommand('drawio:command/' + name, {
         label: label,
         caption: label,
         isToggleable: actions[name].toggleAction ? true : false,
         isVisible: () => actions[name].visible,
         isEnabled: () => actions[name].enabled,
-        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        isToggled: () =>
+          actions[name].toggleAction ? actions[name].isSelected() : false,
         execute: () => actions[name].funct()
       });
     });
 
     // Edit MENU
-    //Not Working: 
+    //Not Working:
     //Working:
     //  undo, redo,
     //  cut, copy, paste, delete
@@ -227,33 +240,44 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     //  Select vertices, select edges, select all, select none
     //  lock/unlock
     const editCommands = [
-      'undo', 'redo',
-      'cut', 'copy', 'paste', 'delete',
+      'undo',
+      'redo',
+      'cut',
+      'copy',
+      'paste',
+      'delete',
       'duplicate',
-      'editData', 'editTooltip', 'editStyle',
+      'editData',
+      'editTooltip',
+      'editStyle',
       'edit',
-      'editLink', 'openLink',
-      'selectVertices', 'selectEdges', 'selectAll', 'selectNone',
+      'editLink',
+      'openLink',
+      'selectVertices',
+      'selectEdges',
+      'selectAll',
+      'selectNone',
       'lockUnlock'
     ];
-    editCommands.forEach( name => {
-      const label = actions[name].shortcut ? 
-        actions[name].label + " (" + actions[name].shortcut + ")" : 
-        actions[name].label;
-      
+    editCommands.forEach(name => {
+      const label = actions[name].shortcut
+        ? actions[name].label + ' (' + actions[name].shortcut + ')'
+        : actions[name].label;
+
       this._commands.addCommand('drawio:command/' + name, {
         label: label,
         caption: label,
         isToggleable: actions[name].toggleAction ? true : false,
         isVisible: () => actions[name].visible,
         isEnabled: () => actions[name].enabled,
-        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        isToggled: () =>
+          actions[name].toggleAction ? actions[name].isSelected() : false,
         execute: () => actions[name].funct()
       });
     });
 
     // View MENU
-    //Not Working: 
+    //Not Working:
     //Working:
     //  formatPanel, outline, layers
     //  pageView, pageScale
@@ -262,41 +286,50 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     //  connectionArrows, connectionPoints
     //  resetView, zoomIn, zoomOut
     const viewCommands = [
-      'formatPanel', 'outline', 'layers',
-      'pageView', 'pageScale',
-      'scrollbars', 'tooltips',
-      'grid', 'guides',
-      'connectionArrows', 'connectionPoints',
-      'resetView', 'zoomIn', 'zoomOut'
+      'formatPanel',
+      'outline',
+      'layers',
+      'pageView',
+      'pageScale',
+      'scrollbars',
+      'tooltips',
+      'grid',
+      'guides',
+      'connectionArrows',
+      'connectionPoints',
+      'resetView',
+      'zoomIn',
+      'zoomOut'
     ];
-    viewCommands.forEach( name => {
-      const label = actions[name].shortcut ? 
-        actions[name].label + " (" + actions[name].shortcut + ")" : 
-        actions[name].label;
-      
+    viewCommands.forEach(name => {
+      const label = actions[name].shortcut
+        ? actions[name].label + ' (' + actions[name].shortcut + ')'
+        : actions[name].label;
+
       this._commands.addCommand('drawio:command/' + name, {
         label: label,
         caption: label,
         isToggleable: actions[name].toggleAction ? true : false,
         isVisible: () => actions[name].visible,
         isEnabled: () => actions[name].enabled,
-        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        isToggled: () =>
+          actions[name].toggleAction ? actions[name].isSelected() : false,
         execute: () => actions[name].funct()
       });
     });
 
     // Arrange MENU
-    //Not Working: 
+    //Not Working:
     //Working:
     //  toFront, toBack
     //  Direction->(flipH, flipV, rotation), turn
     //  Align->(alignCellsRight, alignCellsCenter, alignCellsRight
-    //          alignCellsTop, alignCellsMiddle, alignCellsBottom), 
+    //          alignCellsTop, alignCellsMiddle, alignCellsBottom),
     //    Distribute->(horizontal, vertical)
     //  Navigation->(home,
     //               exitGroup, enterGroup
     //               expand, collapse
-    //               collapsible), 
+    //               collapsible),
     //    Insert->(insertLink, insertImage)
     //    Layout->(horizontalFlow, verticalFlow
     //             horizontalTree, verticalTree, radialTree
@@ -304,25 +337,38 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     //  group, ungroup, removeFromGroup
     //  clearWaypoints, autosize
     const arrangeCommands = [
-      'toFront', 'toBack',
-      'rotation', 'turn',
+      'toFront',
+      'toBack',
+      'rotation',
+      'turn',
       //'alignCellsLeft', 'alignCellsCenter', 'alignCellsRight', 'alignCellsTop', 'alignCellsMiddle', 'alignCellsBottom',
-      'home', 'exitGroup', 'enterGroup', 'expand', 'collapse', 'collapsible', 'insertLink', 'insertImage',
-      'group', 'ungroup', 'removeFromGroup',
-      'clearWaypoints', 'autosize'
+      'home',
+      'exitGroup',
+      'enterGroup',
+      'expand',
+      'collapse',
+      'collapsible',
+      'insertLink',
+      'insertImage',
+      'group',
+      'ungroup',
+      'removeFromGroup',
+      'clearWaypoints',
+      'autosize'
     ];
-    arrangeCommands.forEach( name => {
-      const label = actions[name].shortcut ? 
-        actions[name].label + " (" + actions[name].shortcut + ")" : 
-        actions[name].label;
-      
+    arrangeCommands.forEach(name => {
+      const label = actions[name].shortcut
+        ? actions[name].label + ' (' + actions[name].shortcut + ')'
+        : actions[name].label;
+
       this._commands.addCommand('drawio:command/' + name, {
         label: label,
         caption: label,
         isToggleable: actions[name].toggleAction ? true : false,
         isVisible: () => actions[name].visible,
         isEnabled: () => actions[name].enabled,
-        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        isToggled: () =>
+          actions[name].toggleAction ? actions[name].isSelected() : false,
         execute: () => actions[name].funct()
       });
     });
@@ -364,7 +410,9 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       caption: 'Center',
       execute: () => {
         if (this.content.graph.isEnabled()) {
-          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_CENTER);
+          this.content.graph.alignCells(
+            this.content.mx.mxConstants.ALIGN_CENTER
+          );
         }
       }
     });
@@ -373,7 +421,9 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       caption: 'Right Align',
       execute: () => {
         if (this.content.graph.isEnabled()) {
-          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_RIGHT);
+          this.content.graph.alignCells(
+            this.content.mx.mxConstants.ALIGN_RIGHT
+          );
         }
       }
     });
@@ -391,7 +441,9 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       caption: 'Middle',
       execute: () => {
         if (this.content.graph.isEnabled()) {
-          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_MIDDLE);
+          this.content.graph.alignCells(
+            this.content.mx.mxConstants.ALIGN_MIDDLE
+          );
         }
       }
     });
@@ -400,7 +452,9 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       caption: 'Bottom Align',
       execute: () => {
         if (this.content.graph.isEnabled()) {
-          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_BOTTOM);
+          this.content.graph.alignCells(
+            this.content.mx.mxConstants.ALIGN_BOTTOM
+          );
         }
       }
     });
@@ -427,14 +481,14 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
           this.content.graph,
           this.content.mx.mxConstants.DIRECTION_WEST
         );
-			
-    		this.content.editor.executeLayout(() => {
-    			const selectionCells = this.content.graph.getSelectionCells();
-    			layout.execute(
+
+        this.content.editor.executeLayout(() => {
+          const selectionCells = this.content.graph.getSelectionCells();
+          layout.execute(
             this.content.graph.getDefaultParent(),
-            selectionCells.length == 0 ? null : selectionCells
+            selectionCells.length === 0 ? null : selectionCells
           );
-    		}, true);
+        }, true);
       }
     });
     this._commands.addCommand('drawio:command/verticalFlow', {
@@ -446,31 +500,34 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
           this.content.graph,
           this.content.mx.mxConstants.DIRECTION_NORTH
         );
-			
-    		this.content.editor.executeLayout(() => {
-    			const selectionCells = this.content.graph.getSelectionCells();
-    			layout.execute(
+
+        this.content.editor.executeLayout(() => {
+          const selectionCells = this.content.graph.getSelectionCells();
+          layout.execute(
             this.content.graph.getDefaultParent(),
-            selectionCells.length == 0 ? null : selectionCells
+            selectionCells.length === 0 ? null : selectionCells
           );
-    		}, true);
+        }, true);
       }
     });
 
-    const promptSpacing = this.content.mx.mxUtils.bind(this, (defaultValue: any, fn: any) => {
-      const FilenameDialog = this.content.mx.FilenameDialog;
-			const dlg = new FilenameDialog(
-        this.content.editor,
-        defaultValue,
-        this.content.mx.mxResources.get('apply'),
-        (newValue: any) => {
-				  fn(parseFloat(newValue));
-			  },
-        this.content.mx.mxResources.get('spacing')
-      );
-			this.content.editor.showDialog(dlg.container, 300, 80, true, true);
-			dlg.init();
-		});
+    const promptSpacing = this.content.mx.mxUtils.bind(
+      this,
+      (defaultValue: any, fn: any) => {
+        const FilenameDialog = this.content.mx.FilenameDialog;
+        const dlg = new FilenameDialog(
+          this.content.editor,
+          defaultValue,
+          this.content.mx.mxResources.get('apply'),
+          (newValue: any) => {
+            fn(parseFloat(newValue));
+          },
+          this.content.mx.mxResources.get('spacing')
+        );
+        this.content.editor.showDialog(dlg.container, 300, 80, true, true);
+        dlg.init();
+      }
+    );
 
     this._commands.addCommand('drawio:command/horizontalTree', {
       label: 'Horizontal Tree',
@@ -478,30 +535,40 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       execute: () => {
         let tmp = this.content.graph.getSelectionCell();
         let roots = null;
-        
-        if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
-          if (this.content.graph.getModel().getEdgeCount(tmp) == 0) {
-            roots = this.content.graph.findTreeRoots(this.content.graph.getDefaultParent());
+
+        if (
+          tmp === null ||
+          this.content.graph.getModel().getChildCount(tmp) === 0
+        ) {
+          if (this.content.graph.getModel().getEdgeCount(tmp) === 0) {
+            roots = this.content.graph.findTreeRoots(
+              this.content.graph.getDefaultParent()
+            );
           }
         } else {
           roots = this.content.graph.findTreeRoots(tmp);
         }
 
-        if (roots != null && roots.length > 0) tmp = roots[0];
-        
-        if (tmp != null) {
+        if (roots !== null && roots.length > 0) {
+          tmp = roots[0];
+        }
+
+        if (tmp !== null) {
           const mxCompactTreeLayout = this.content.mx.mxCompactTreeLayout;
           const layout = new mxCompactTreeLayout(this.content.graph, true);
           layout.edgeRouting = false;
           layout.levelDistance = 30;
-          
-          promptSpacing(layout.levelDistance, this.content.mx.mxUtils.bind(this, (newValue: any) => {
-            layout.levelDistance = newValue;
-            
-            this.content.editor.executeLayout(() => {
-              layout.execute(this.content.graph.getDefaultParent(), tmp);
-            }, true);
-          }));
+
+          promptSpacing(
+            layout.levelDistance,
+            this.content.mx.mxUtils.bind(this, (newValue: any) => {
+              layout.levelDistance = newValue;
+
+              this.content.editor.executeLayout(() => {
+                layout.execute(this.content.graph.getDefaultParent(), tmp);
+              }, true);
+            })
+          );
         }
       }
     });
@@ -511,30 +578,40 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       execute: () => {
         let tmp = this.content.graph.getSelectionCell();
         let roots = null;
-        
-        if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
-          if (this.content.graph.getModel().getEdgeCount(tmp) == 0) {
-            roots = this.content.graph.findTreeRoots(this.content.graph.getDefaultParent());
+
+        if (
+          tmp === null ||
+          this.content.graph.getModel().getChildCount(tmp) === 0
+        ) {
+          if (this.content.graph.getModel().getEdgeCount(tmp) === 0) {
+            roots = this.content.graph.findTreeRoots(
+              this.content.graph.getDefaultParent()
+            );
           }
         } else {
           roots = this.content.graph.findTreeRoots(tmp);
         }
 
-        if (roots != null && roots.length > 0) tmp = roots[0];
-        
-        if (tmp != null) {
+        if (roots !== null && roots.length > 0) {
+          tmp = roots[0];
+        }
+
+        if (tmp !== null) {
           const mxCompactTreeLayout = this.content.mx.mxCompactTreeLayout;
           const layout = new mxCompactTreeLayout(this.content.graph, false);
           layout.edgeRouting = false;
           layout.levelDistance = 30;
-          
-          promptSpacing(layout.levelDistance, this.content.mx.mxUtils.bind(this, (newValue: any) => {
-            layout.levelDistance = newValue;
-            
-            this.content.editor.executeLayout(() => {
-              layout.execute(this.content.graph.getDefaultParent(), tmp);
-            }, true);
-          }));
+
+          promptSpacing(
+            layout.levelDistance,
+            this.content.mx.mxUtils.bind(this, (newValue: any) => {
+              layout.levelDistance = newValue;
+
+              this.content.editor.executeLayout(() => {
+                layout.execute(this.content.graph.getDefaultParent(), tmp);
+              }, true);
+            })
+          );
         }
       }
     });
@@ -544,42 +621,52 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       execute: () => {
         let tmp = this.content.graph.getSelectionCell();
         let roots = null;
-        
-        if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
-          if (this.content.graph.getModel().getEdgeCount(tmp) == 0) {
-            roots = this.content.graph.findTreeRoots(this.content.graph.getDefaultParent());
+
+        if (
+          tmp === null ||
+          this.content.graph.getModel().getChildCount(tmp) === 0
+        ) {
+          if (this.content.graph.getModel().getEdgeCount(tmp) === 0) {
+            roots = this.content.graph.findTreeRoots(
+              this.content.graph.getDefaultParent()
+            );
           }
         } else {
           roots = this.content.graph.findTreeRoots(tmp);
         }
 
-        if (roots != null && roots.length > 0) tmp = roots[0];
-        
-        if (tmp != null) {
+        if (roots !== null && roots.length > 0) {
+          tmp = roots[0];
+        }
+
+        if (tmp !== null) {
           const mxRadialTreeLayout = this.content.mx.mxRadialTreeLayout;
           const layout = new mxRadialTreeLayout(this.content.graph, false);
           layout.levelDistance = 80;
           layout.autoRadius = true;
-          
-          promptSpacing(layout.levelDistance, this.content.mx.mxUtils.bind(this, (newValue: any) => {
-            layout.levelDistance = newValue;
-            
-            this.content.editor.executeLayout(() => {
-              layout.execute(this.content.graph.getDefaultParent(), tmp);
-              
-              if (!this.content.graph.isSelectionEmpty()) {
-                tmp = this.content.graph.getModel().getParent(tmp);
-                
-                if (this.content.graph.getModel().isVertex(tmp)) {
-                  this.content.graph.updateGroupBounds(
-                    [tmp],
-                    this.content.graph.gridSize * 2,
-                    true
-                  );
+
+          promptSpacing(
+            layout.levelDistance,
+            this.content.mx.mxUtils.bind(this, (newValue: any) => {
+              layout.levelDistance = newValue;
+
+              this.content.editor.executeLayout(() => {
+                layout.execute(this.content.graph.getDefaultParent(), tmp);
+
+                if (!this.content.graph.isSelectionEmpty()) {
+                  tmp = this.content.graph.getModel().getParent(tmp);
+
+                  if (this.content.graph.getModel().isVertex(tmp)) {
+                    this.content.graph.updateGroupBounds(
+                      [tmp],
+                      this.content.graph.gridSize * 2,
+                      true
+                    );
+                  }
                 }
-              }
-            }, true);
-          }));
+              }, true);
+            })
+          );
         }
       }
     });
@@ -589,19 +676,24 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       execute: () => {
         const mxFastOrganicLayout = this.content.mx.mxFastOrganicLayout;
         const layout = new mxFastOrganicLayout(this.content.graph);
-			
-        promptSpacing(layout.forceConstant, this.content.mx.mxUtils.bind(this, (newValue: any) => {
-          layout.forceConstant = newValue;
-          
+
+        promptSpacing(
+          layout.forceConstant,
+          this.content.mx.mxUtils.bind(this, (newValue: any) => {
+            layout.forceConstant = newValue;
+
             this.content.editor.executeLayout(() => {
               let tmp = this.content.graph.getSelectionCell();
-              
-              if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
+
+              if (
+                tmp === null ||
+                this.content.graph.getModel().getChildCount(tmp) === 0
+              ) {
                 tmp = this.content.graph.getDefaultParent();
               }
-              
+
               layout.execute(tmp);
-              
+
               if (this.content.graph.getModel().isVertex(tmp)) {
                 this.content.graph.updateGroupBounds(
                   [tmp],
@@ -610,7 +702,8 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
                 );
               }
             }, true);
-        }));
+          })
+        );
       }
     });
     this._commands.addCommand('drawio:command/circle', {
@@ -619,42 +712,41 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       execute: () => {
         const mxCircleLayout = this.content.mx.mxCircleLayout;
         const layout = new mxCircleLayout(this.content.graph);
-			
-    		this.content.editor.executeLayout(() => {
-    			let tmp = this.content.graph.getSelectionCell();
-    			
-    			if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
-    				tmp = this.content.graph.getDefaultParent();
-    			}
-    			
-    			layout.execute(tmp);
-    			
-    			if (this.content.graph.getModel().isVertex(tmp)) {
-    				this.content.graph.updateGroupBounds(
+
+        this.content.editor.executeLayout(() => {
+          let tmp = this.content.graph.getSelectionCell();
+
+          if (
+            tmp === null ||
+            this.content.graph.getModel().getChildCount(tmp) === 0
+          ) {
+            tmp = this.content.graph.getDefaultParent();
+          }
+
+          layout.execute(tmp);
+
+          if (this.content.graph.getModel().isVertex(tmp)) {
+            this.content.graph.updateGroupBounds(
               [tmp],
               this.content.graph.gridSize * 2,
               true
             );
-    			}
-    		}, true);
+          }
+        }, true);
       }
     });
 
-
     // Extras MENU
-    //Not Working: 
+    //Not Working:
     //Working:
     //  copyConnect, collapseExpand
     //  editDiagram
-    const extrasCommands = [
-      'copyConnect', 'collapseExpand',
-      'editDiagram'
-    ];
-    extrasCommands.forEach( name => {
-      const label = actions[name].shortcut ? 
-        actions[name].label + " (" + actions[name].shortcut + ")" : 
-        actions[name].label;
-      
+    const extrasCommands = ['copyConnect', 'collapseExpand', 'editDiagram'];
+    extrasCommands.forEach(name => {
+      const label = actions[name].shortcut
+        ? actions[name].label + ' (' + actions[name].shortcut + ')'
+        : actions[name].label;
+
       this._commands.addCommand('drawio:command/' + name, {
         label: label,
         caption: label,
@@ -662,7 +754,8 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
         isToggleable: actions[name].toggleAction ? true : false,
         isVisible: () => actions[name].visible,
         isEnabled: () => actions[name].enabled,
-        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        isToggled: () =>
+          actions[name].toggleAction ? actions[name].isSelected() : false,
         execute: () => actions[name].funct()
       });
     });
@@ -672,40 +765,47 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     //Working:
     //  about
     const helpCommands = ['about'];
-    helpCommands.forEach( name => {
-      const label = actions[name].shortcut ? 
-        actions[name].label + " (" + actions[name].shortcut + ")" : 
-        actions[name].label;
-      
+    helpCommands.forEach(name => {
+      const label = actions[name].shortcut
+        ? actions[name].label + ' (' + actions[name].shortcut + ')'
+        : actions[name].label;
+
       this._commands.addCommand('drawio:command/' + name, {
         label: label,
         caption: label,
         isToggleable: actions[name].toggleAction ? true : false,
         isVisible: () => actions[name].visible,
         isEnabled: () => actions[name].enabled,
-        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        isToggled: () =>
+          actions[name].toggleAction ? actions[name].isSelected() : false,
         execute: () => actions[name].funct()
       });
     });
-    
 
     /**************************************************************************************
      *                                     Toolbar                                        *
      **************************************************************************************/
     //Working: fitWindow, fitPageWidth, fitPage, fitTwoPages, customZoom
-    const toolbarCommands = ['fitWindow', 'fitPageWidth', 'fitPage', 'fitTwoPages', 'customZoom'];
-    toolbarCommands.forEach( name => {
-      const label = actions[name].shortcut ? 
-        actions[name].label + " (" + actions[name].shortcut + ")" : 
-        actions[name].label;
-      
+    const toolbarCommands = [
+      'fitWindow',
+      'fitPageWidth',
+      'fitPage',
+      'fitTwoPages',
+      'customZoom'
+    ];
+    toolbarCommands.forEach(name => {
+      const label = actions[name].shortcut
+        ? actions[name].label + ' (' + actions[name].shortcut + ')'
+        : actions[name].label;
+
       this._commands.addCommand('drawio:command/' + name, {
         label: label,
         caption: label,
         isToggleable: actions[name].toggleAction ? true : false,
         isVisible: () => actions[name].visible,
         isEnabled: () => actions[name].enabled,
-        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        isToggled: () =>
+          actions[name].toggleAction ? actions[name].isSelected() : false,
         execute: () => actions[name].funct()
       });
     });
@@ -714,23 +814,48 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
      *                                     Other                                          *
      **************************************************************************************/
     const otherCommands = [
-      'addWaypoint', 'autosave', 'backgroundColor', 'bold', 'borderColor', 'clearDefaultStyle',
-      'curved', 'dashed', 'deleteAll', 'dotted', 'fontColor', 'formattedText', 'gradientColor', 'image', 'italic',
-      'link', 'pasteHere', 'preview', 'removeWaypoint', 'rounded', 'setAsDefaultStyle', 'sharp', 'solid', 'subscript',
-      'superscript', 'toggleRounded', 'underline', 'wordWrap'
+      'addWaypoint',
+      'autosave',
+      'backgroundColor',
+      'bold',
+      'borderColor',
+      'clearDefaultStyle',
+      'curved',
+      'dashed',
+      'deleteAll',
+      'dotted',
+      'fontColor',
+      'formattedText',
+      'gradientColor',
+      'image',
+      'italic',
+      'link',
+      'pasteHere',
+      'preview',
+      'removeWaypoint',
+      'rounded',
+      'setAsDefaultStyle',
+      'sharp',
+      'solid',
+      'subscript',
+      'superscript',
+      'toggleRounded',
+      'underline',
+      'wordWrap'
     ];
-    otherCommands.forEach( name => {
-      const label = actions[name].shortcut ? 
-        actions[name].label + " (" + actions[name].shortcut + ")" : 
-        actions[name].label;
-      
+    otherCommands.forEach(name => {
+      const label = actions[name].shortcut
+        ? actions[name].label + ' (' + actions[name].shortcut + ')'
+        : actions[name].label;
+
       this._commands.addCommand('drawio:command/' + name, {
         label: label,
         caption: label,
         isToggleable: actions[name].toggleAction ? true : false,
         isVisible: () => actions[name].visible,
         isEnabled: () => actions[name].enabled,
-        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        isToggled: () =>
+          actions[name].toggleAction ? actions[name].isSelected() : false,
         execute: () => actions[name].funct()
       });
     });
@@ -744,7 +869,8 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 }
 
 export namespace DrawIODocumentWidget {
-  export interface IOptions<T> extends DocumentWidget.IOptions<DrawIOWidget, DocumentRegistry.IModel> {
-    commands: CommandRegistry
+  export interface IOptions<T>
+    extends DocumentWidget.IOptions<DrawIOWidget, DocumentRegistry.IModel> {
+    commands: CommandRegistry;
   }
 }
