@@ -12,182 +12,156 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const w = window as any;
-
-const webPath =
-  'https://raw.githubusercontent.com/jgraph/mxgraph/master/javascript/examples/grapheditor/www/';
-
-w.RESOURCES_BASE = webPath + 'resources/';
-w.STENCIL_PATH = webPath + 'stencils/';
-w.IMAGE_PATH = webPath + 'images/';
-w.STYLE_PATH = webPath + 'styles/';
-w.CSS_PATH = webPath + 'styles/';
-w.OPEN_FORM = webPath + 'open.html';
-
-// w.mxBasePath = "http://localhost:8000/src/mxgraph/javascript/src/";
-
-//w.imageBasePath = 'http://localhost:8000/src/mxgraph/javascript/';
-w.mxLoadStylesheets = false; // disable loading stylesheets
-w.mxLoadResources = false;
-
-/* This is a typing-only import. If you use it directly, the mxgraph content
-   will be included in the main JupyterLab js bundle.
-*/
-// @ts-ignore
-import * as MXModuleType from './mxgraph/javascript/examples/grapheditor/www/modulated.js';
-
 import {
-  ABCWidgetFactory,
   DocumentRegistry,
   DocumentWidget
 } from '@jupyterlab/docregistry';
 
+import { MainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
+
 import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
-
-import { Widget, MenuBar, Menu } from '@lumino/widgets';
-
-import { Message } from '@lumino/messaging';
 
 import { CommandRegistry } from '@lumino/commands';
 
-import { PromiseDelegate } from '@lumino/coreutils';
+import { Signal } from '@lumino/signaling';
 
-import './mxgraph/javascript/src/css/common.css';
-import './mxgraph/javascript/examples/grapheditor/www/styles/grapheditor.css';
+import { DrawIOWidget } from './widget';
 
-import { grapheditorTxt, defaultXml } from './pack';
-
-import {
-  //ViewDropdown,
-  DrawIOToolbarButton
-} from './toolbar';
+import { DrawIOToolbarButton } from './toolbar';
 
 const DIRTY_CLASS = 'jp-mod-dirty';
 
-export class DrawioWidget extends DocumentWidget<Widget> {
-  constructor(options: DocumentWidget.IOptions<Widget>) {
+export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
+  constructor(options: DrawIODocumentWidget.IOptions<DrawIOWidget>) {
     super(options);
     // Adding the buttons to the widget toolbar
     // Modify containers style: line ~92700
     // modulated.js, line: 84246
     // actions: modulated.js line: ~93000
     // actions: modulated.js line: ~111000
-    void Private.ensureMx().then(mx => this.onMxLoaded(mx));
 
-    this._commands = new CommandRegistry();
-    this._menubar = new MenuBar();// new ViewDropdown(this._commands);
+    this._commands = options.commands;
+    this._menubar = new MainMenu(this._commands);
 
-    this._menuView = new Menu({ commands: this._commands });
-    this._menuView.title.caption = 'View (Space+Drag to Scroll)';
-    this._menuView.title.iconClass = 'geSprite geSprite-formatpanel';
-    this._menubar.addMenu(this._menuView);
+    this._menubar.clearMenus();
 
-    this._menuZoom = new Menu({ commands: this._commands });
-    this._menuZoom.title.label = 'Zoom';
-    this._menuZoom.title.caption = 'Zoom (Alt+Mousewheel)';
-    this._menubar.addMenu(this._menuZoom);
+    //TODO:
+    // Add toolbar actions to change the default style of arrows and conections.
+    this._menuView = new JupyterLabMenu({ commands: this._commands });
+    this._menuView.menu.title.caption = 'View (Space+Drag to Scroll)';
+    this._menuView.menu.title.iconClass = 'geSprite geSprite-formatpanel';
+    this._menubar.addMenu(this._menuView.menu, { rank: 1 });
 
-    this._menuInsert = new Menu({ commands: this._commands });
-    this._menuInsert.title.caption = 'Insert';
-    this._menuInsert.title.iconClass = 'geSprite geSprite-plus';
-    this._menubar.addMenu(this._menuInsert);
-  }
+    this._menuZoom = new JupyterLabMenu({ commands: this._commands });
+    //TODO: Change label to a view percentage
+    this._menuZoom.menu.title.label = 'Zoom';
+    this._menuZoom.menu.title.caption = 'Zoom (Alt+Mousewheel)';
+    this._menubar.addMenu(this._menuZoom.menu, { rank: 2 });
 
-  protected async onMxLoaded(mx: Private.MX) {
-    this.mx = mx;
-    this._onTitleChanged();
-    this.context.pathChanged.connect(this._onTitleChanged, this);
+    this._menuInsert = new JupyterLabMenu({ commands: this._commands });
+    this._menuInsert.menu.title.caption = 'Insert';
+    this._menuInsert.menu.title.iconClass = 'geSprite geSprite-plus';
+    this._menubar.addMenu(this._menuInsert.menu, { rank: 2 });
 
-    await this.context.ready;
+    this.context.ready.then( async value => {
+      await this.content.ready.promise;
 
-    this._onContextReady();
-    this._handleDirtyStateNew();
-  }
+      this._onTitleChanged();
+      this._addToolbarItems();
+      this.content.setContent(this.context.model.toString());
+      this._handleDirtyStateNew();
 
-  onAfterShow(msg: Message): void {
-    Private.ensureMx().then(() => {
-      this._loadEditor(this.content.node);
-      const contextModel = this.context.model;
-      const xml = this.mx.mxUtils.parseXml(contextModel.toString());
-      this._editor.editor.setGraphXml(xml.documentElement);
+      // Adding command to the command registry
+      this._addCommands();
+
+      this.context.pathChanged.connect(this._onTitleChanged, this);
+      //this.context.model.contentChanged.connect(this._onContentChanged, this);
+      this.context.model.stateChanged.connect(this._onModelStateChangedNew, this);
+      this.content.graphChanged.connect(this._saveToContext, this);
     });
   }
 
+  /**
+   * Dispose of the resources held by the widget.
+   */
+   dispose(): void {
+    Signal.clearData(this);
+    super.dispose();
+  }
+
+  /**
+   * A promise that resolves when the csv viewer is ready.
+   */
+  get ready(): Promise<void> {
+    return this.content.ready.promise;
+  }
+
   public getSVG(): string {
-    return this.mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
+    return "";//this.mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
   }
 
-  private _onContextReady(): void {
-    const contextModel = this.context.model;
+  public execute(action: string): void {
+    this.content.getAction(action).funct();
+  }
 
-    const xml = this.mx.mxUtils.parseXml(contextModel.toString());
-    this._editor.editor.setGraphXml(xml.documentElement);
+  /**
+   * Handle a change to the title.
+   */
+   private _onTitleChanged(): void {
+    this.title.label = PathExt.basename(this.context.localPath);
+  }
 
-    contextModel.contentChanged.connect(this._onContentChanged, this);
-    contextModel.stateChanged.connect(this._onModelStateChangedNew, this);
+  /* private _onContentChanged(): void {
+    this.content.setContent(this.context.model.toString());
+  } */
 
-    const footer = document.getElementsByClassName('geFooterContainer');
-    this._editor.sidebarContainer.style.width = "208px";
+  private _saveToContext(emiter: DrawIOWidget, content: string): void {
+    this.context.model.fromString(content);
+  }
 
-    this._editor.refresh();
-
-    if (footer.length) {
-      this._editor.footerHeight = 0;
-      for (let i = 0; i < footer.length; i++) {
-        const f = footer[i] as HTMLElement;
-        f.style.height = '0px';
-        f.style.display = 'none';
-      }
-      this._editor.refresh();
+  private _onModelStateChangedNew(
+    sender: DocumentRegistry.IModel,
+    args: IChangedArgs<any>
+  ): void {
+    if (args.name === 'dirty') {
+      this._handleDirtyStateNew();
     }
-
-    this._ready.resolve(void 0);
   }
 
-  private _loadEditor(node: HTMLElement, contents?: string): void {
-    const { mx } = this;
-    // Adds required resources (disables loading of fallback properties, this can only
-    // be used if we know that all keys are defined in the language specific file)
-    mx.mxResources.loadDefaultBundle = false;
-
-    // Fixes possible asynchronous requests
-    mx.mxResources.parse(grapheditorTxt);
-    const oParser = new DOMParser();
-    const oDOM = oParser.parseFromString(defaultXml, 'text/xml');
-    const themes: any = new Object(null);
-    themes[(mx.Graph as any).prototype.defaultThemeName] = oDOM.documentElement;
-    // Workaround for TS2351: Cannot use 'new' with an expression whose type lacks a call or construct signature
-    const _Editor: any = mx.Editor;
-    this._editor = new mx.EditorUi(new _Editor(false, themes), node);
-
-    this._addToolbarItems();
-
-    //Dialog.prototype.closeImage
-
-    //var elem: HTMLElement = this._editor.menubarContainer;
-    //elem.parentNode.removeChild(elem);
-    console.debug(this._editor);
-
-    this._editor.editor.graph.model.addListener(
-      mx.mxEvent.NOTIFY,
-      (sender: any, evt: any) => {
-        const changes: any[] = evt.properties.changes;
-        for (let i=0; i<changes.length; i++) {
-          if (changes[i].root) return;
-        }
-        this._saveToContext();
-      });
-
-    return this._editor;
+  private _handleDirtyStateNew(): void {
+    if (this.context.model.dirty) {
+      this.title.className += ` ${DIRTY_CLASS}`;
+    } else {
+      this.title.className = this.title.className.replace(DIRTY_CLASS, '');
+    }
   }
 
   private _addToolbarItems(): void {
-    // ADD TOOLBAR BUTTONS
-    if (!this._commands.hasCommand('drawio:toolbar/formatPanel')) {
-      this._addCommands();
-    }
+    const actions = this.content.getActions();
+
+    // Menu view
+    this._menuView.addGroup([
+      { command: 'drawio:command/formatPanel' },
+      { command: 'drawio:command/outline' },
+      { command: 'drawio:command/layers' }
+    ]);
+
+    // Menu Zoom
+    this._menuZoom.addGroup([
+      { command: 'drawio:command/resetView' },
+      { command: 'drawio:command/fitWindow' },
+      { command: 'drawio:command/fitPageWidth' },
+      { command: 'drawio:command/fitPage' },
+      { command: 'drawio:command/fitTwoPages' },
+      { command: 'drawio:command/customZoom' }
+    ]);
+
+    // Menu insert
+    this._menuInsert.addGroup([
+      { command: 'drawio:command/insertLink' },
+      { command: 'drawio:command/insertImage' }
+    ]);
     
-    const actions = this._editor.actions.actions;
     this.toolbar.addItem('ViewDropdown', this._menubar);
     
     actions['zoomIn'].iconCls = "geSprite geSprite-zoomin";
@@ -217,523 +191,560 @@ export class DrawioWidget extends DocumentWidget<Widget> {
   }
 
   private _addCommands(): void {
-    const actions = this._editor.actions.actions;
+    const actions = this.content.getActions();
+
+    console.debug(actions);
+
+    // FILE MENU
+    //Not Working: new, open, save, save as, import, export
+    //Working: pageSetup, print
+    const fileCommands = ['pageSetup', 'print'];
+    fileCommands.forEach( name => {
+      const label = actions[name].shortcut ? 
+        actions[name].label + " (" + actions[name].shortcut + ")" : 
+        actions[name].label;
+      
+      this._commands.addCommand('drawio:command/' + name, {
+        label: label,
+        caption: label,
+        isToggleable: actions[name].toggleAction ? true : false,
+        isVisible: () => actions[name].visible,
+        isEnabled: () => actions[name].enabled,
+        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        execute: () => actions[name].funct()
+      });
+    });
+
+    // Edit MENU
+    //Not Working: 
+    //Working:
+    //  undo, redo,
+    //  cut, copy, paste, delete
+    //  Duplicate
+    //  Edit data, edit tooltip, Edit style
+    //  Edit
+    //  Edit link, open link
+    //  Select vertices, select edges, select all, select none
+    //  lock/unlock
+    const editCommands = [
+      'undo', 'redo',
+      'cut', 'copy', 'paste', 'delete',
+      'duplicate',
+      'editData', 'editTooltip', 'editStyle',
+      'edit',
+      'editLink', 'openLink',
+      'selectVertices', 'selectEdges', 'selectAll', 'selectNone',
+      'lockUnlock'
+    ];
+    editCommands.forEach( name => {
+      const label = actions[name].shortcut ? 
+        actions[name].label + " (" + actions[name].shortcut + ")" : 
+        actions[name].label;
+      
+      this._commands.addCommand('drawio:command/' + name, {
+        label: label,
+        caption: label,
+        isToggleable: actions[name].toggleAction ? true : false,
+        isVisible: () => actions[name].visible,
+        isEnabled: () => actions[name].enabled,
+        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        execute: () => actions[name].funct()
+      });
+    });
+
+    // View MENU
+    //Not Working: 
+    //Working:
+    //  formatPanel, outline, layers
+    //  pageView, pageScale
+    //  scrollbars, tooltips
+    //  grid, guides
+    //  connectionArrows, connectionPoints
+    //  resetView, zoomIn, zoomOut
+    const viewCommands = [
+      'formatPanel', 'outline', 'layers',
+      'pageView', 'pageScale',
+      'scrollbars', 'tooltips',
+      'grid', 'guides',
+      'connectionArrows', 'connectionPoints',
+      'resetView', 'zoomIn', 'zoomOut'
+    ];
+    viewCommands.forEach( name => {
+      const label = actions[name].shortcut ? 
+        actions[name].label + " (" + actions[name].shortcut + ")" : 
+        actions[name].label;
+      
+      this._commands.addCommand('drawio:command/' + name, {
+        label: label,
+        caption: label,
+        isToggleable: actions[name].toggleAction ? true : false,
+        isVisible: () => actions[name].visible,
+        isEnabled: () => actions[name].enabled,
+        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        execute: () => actions[name].funct()
+      });
+    });
+
+    // Arrange MENU
+    //Not Working: 
+    //Working:
+    //  toFront, toBack
+    //  Direction->(flipH, flipV, rotation), turn
+    //  Align->(alignCellsRight, alignCellsCenter, alignCellsRight
+    //          alignCellsTop, alignCellsMiddle, alignCellsBottom), 
+    //    Distribute->(horizontal, vertical)
+    //  Navigation->(home,
+    //               exitGroup, enterGroup
+    //               expand, collapse
+    //               collapsible), 
+    //    Insert->(insertLink, insertImage)
+    //    Layout->(horizontalFlow, verticalFlow
+    //             horizontalTree, verticalTree, radialTree
+    //              organic, circle)
+    //  group, ungroup, removeFromGroup
+    //  clearWaypoints, autosize
+    const arrangeCommands = [
+      'toFront', 'toBack',
+      'rotation', 'turn',
+      //'alignCellsLeft', 'alignCellsCenter', 'alignCellsRight', 'alignCellsTop', 'alignCellsMiddle', 'alignCellsBottom',
+      'home', 'exitGroup', 'enterGroup', 'expand', 'collapse', 'collapsible', 'insertLink', 'insertImage',
+      'group', 'ungroup', 'removeFromGroup',
+      'clearWaypoints', 'autosize'
+    ];
+    arrangeCommands.forEach( name => {
+      const label = actions[name].shortcut ? 
+        actions[name].label + " (" + actions[name].shortcut + ")" : 
+        actions[name].label;
+      
+      this._commands.addCommand('drawio:command/' + name, {
+        label: label,
+        caption: label,
+        isToggleable: actions[name].toggleAction ? true : false,
+        isVisible: () => actions[name].visible,
+        isEnabled: () => actions[name].enabled,
+        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        execute: () => actions[name].funct()
+      });
+    });
+
+    //Direction
+    this._commands.addCommand('drawio:command/flipH', {
+      label: 'Left Align',
+      caption: 'Left Align',
+      execute: () => {
+        this.content.graph.toggleCellStyles(
+          this.content.mx.mxConstants.STYLE_FLIPH,
+          false
+        );
+      }
+    });
+    this._commands.addCommand('drawio:command/flipV', {
+      label: 'Left Align',
+      caption: 'Left Align',
+      execute: () => {
+        this.content.graph.toggleCellStyles(
+          this.content.mx.mxConstants.STYLE_FLIPV,
+          false
+        );
+      }
+    });
+
+    //Align
+    this._commands.addCommand('drawio:command/alignCellsLeft', {
+      label: 'Left Align',
+      caption: 'Left Align',
+      execute: () => {
+        if (this.content.graph.isEnabled()) {
+          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_LEFT);
+        }
+      }
+    });
+    this._commands.addCommand('drawio:command/alignCellsCenter', {
+      label: 'Center',
+      caption: 'Center',
+      execute: () => {
+        if (this.content.graph.isEnabled()) {
+          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_CENTER);
+        }
+      }
+    });
+    this._commands.addCommand('drawio:command/alignCellsRight', {
+      label: 'Right Align',
+      caption: 'Right Align',
+      execute: () => {
+        if (this.content.graph.isEnabled()) {
+          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_RIGHT);
+        }
+      }
+    });
+    this._commands.addCommand('drawio:command/alignCellsTop', {
+      label: 'Top Align',
+      caption: 'Top Align',
+      execute: () => {
+        if (this.content.graph.isEnabled()) {
+          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_TOP);
+        }
+      }
+    });
+    this._commands.addCommand('drawio:command/alignCellsMiddle', {
+      label: 'Middle',
+      caption: 'Middle',
+      execute: () => {
+        if (this.content.graph.isEnabled()) {
+          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_MIDDLE);
+        }
+      }
+    });
+    this._commands.addCommand('drawio:command/alignCellsBottom', {
+      label: 'Bottom Align',
+      caption: 'Bottom Align',
+      execute: () => {
+        if (this.content.graph.isEnabled()) {
+          this.content.graph.alignCells(this.content.mx.mxConstants.ALIGN_BOTTOM);
+        }
+      }
+    });
+
+    //Distribute
+    this._commands.addCommand('drawio:command/horizontal', {
+      label: 'Horizontal',
+      caption: 'Horizontal',
+      execute: () => this.content.graph.distributeCells(true)
+    });
+    this._commands.addCommand('drawio:command/vertical', {
+      label: 'Vertical',
+      caption: 'Vertical',
+      execute: () => this.content.graph.distributeCells(false)
+    });
+
+    //Layout
+    this._commands.addCommand('drawio:command/horizontalFlow', {
+      label: 'Horizontal Flow',
+      caption: 'Horizontal Flow',
+      execute: () => {
+        const mxHierarchicalLayout = this.content.mx.mxHierarchicalLayout;
+        const layout = new mxHierarchicalLayout(
+          this.content.graph,
+          this.content.mx.mxConstants.DIRECTION_WEST
+        );
+			
+    		this.content.editor.executeLayout(() => {
+    			const selectionCells = this.content.graph.getSelectionCells();
+    			layout.execute(
+            this.content.graph.getDefaultParent(),
+            selectionCells.length == 0 ? null : selectionCells
+          );
+    		}, true);
+      }
+    });
+    this._commands.addCommand('drawio:command/verticalFlow', {
+      label: 'Vertical Flow',
+      caption: 'Vertical Flow',
+      execute: () => {
+        const mxHierarchicalLayout = this.content.mx.mxHierarchicalLayout;
+        const layout = new mxHierarchicalLayout(
+          this.content.graph,
+          this.content.mx.mxConstants.DIRECTION_NORTH
+        );
+			
+    		this.content.editor.executeLayout(() => {
+    			const selectionCells = this.content.graph.getSelectionCells();
+    			layout.execute(
+            this.content.graph.getDefaultParent(),
+            selectionCells.length == 0 ? null : selectionCells
+          );
+    		}, true);
+      }
+    });
+
+    const promptSpacing = this.content.mx.mxUtils.bind(this, (defaultValue: any, fn: any) => {
+      const FilenameDialog = this.content.mx.FilenameDialog;
+			const dlg = new FilenameDialog(
+        this.content.editor,
+        defaultValue,
+        this.content.mx.mxResources.get('apply'),
+        (newValue: any) => {
+				  fn(parseFloat(newValue));
+			  },
+        this.content.mx.mxResources.get('spacing')
+      );
+			this.content.editor.showDialog(dlg.container, 300, 80, true, true);
+			dlg.init();
+		});
+
+    this._commands.addCommand('drawio:command/horizontalTree', {
+      label: 'Horizontal Tree',
+      caption: 'Horizontal Tree',
+      execute: () => {
+        let tmp = this.content.graph.getSelectionCell();
+        let roots = null;
+        
+        if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
+          if (this.content.graph.getModel().getEdgeCount(tmp) == 0) {
+            roots = this.content.graph.findTreeRoots(this.content.graph.getDefaultParent());
+          }
+        } else {
+          roots = this.content.graph.findTreeRoots(tmp);
+        }
+
+        if (roots != null && roots.length > 0) tmp = roots[0];
+        
+        if (tmp != null) {
+          const mxCompactTreeLayout = this.content.mx.mxCompactTreeLayout;
+          const layout = new mxCompactTreeLayout(this.content.graph, true);
+          layout.edgeRouting = false;
+          layout.levelDistance = 30;
+          
+          promptSpacing(layout.levelDistance, this.content.mx.mxUtils.bind(this, (newValue: any) => {
+            layout.levelDistance = newValue;
+            
+            this.content.editor.executeLayout(() => {
+              layout.execute(this.content.graph.getDefaultParent(), tmp);
+            }, true);
+          }));
+        }
+      }
+    });
+    this._commands.addCommand('drawio:command/verticalTree', {
+      label: 'Vertical Tree',
+      caption: 'Vertical Tree',
+      execute: () => {
+        let tmp = this.content.graph.getSelectionCell();
+        let roots = null;
+        
+        if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
+          if (this.content.graph.getModel().getEdgeCount(tmp) == 0) {
+            roots = this.content.graph.findTreeRoots(this.content.graph.getDefaultParent());
+          }
+        } else {
+          roots = this.content.graph.findTreeRoots(tmp);
+        }
+
+        if (roots != null && roots.length > 0) tmp = roots[0];
+        
+        if (tmp != null) {
+          const mxCompactTreeLayout = this.content.mx.mxCompactTreeLayout;
+          const layout = new mxCompactTreeLayout(this.content.graph, false);
+          layout.edgeRouting = false;
+          layout.levelDistance = 30;
+          
+          promptSpacing(layout.levelDistance, this.content.mx.mxUtils.bind(this, (newValue: any) => {
+            layout.levelDistance = newValue;
+            
+            this.content.editor.executeLayout(() => {
+              layout.execute(this.content.graph.getDefaultParent(), tmp);
+            }, true);
+          }));
+        }
+      }
+    });
+    this._commands.addCommand('drawio:command/radialTree', {
+      label: 'Radial Tree',
+      caption: 'Radial Tree',
+      execute: () => {
+        let tmp = this.content.graph.getSelectionCell();
+        let roots = null;
+        
+        if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
+          if (this.content.graph.getModel().getEdgeCount(tmp) == 0) {
+            roots = this.content.graph.findTreeRoots(this.content.graph.getDefaultParent());
+          }
+        } else {
+          roots = this.content.graph.findTreeRoots(tmp);
+        }
+
+        if (roots != null && roots.length > 0) tmp = roots[0];
+        
+        if (tmp != null) {
+          const mxRadialTreeLayout = this.content.mx.mxRadialTreeLayout;
+          const layout = new mxRadialTreeLayout(this.content.graph, false);
+          layout.levelDistance = 80;
+          layout.autoRadius = true;
+          
+          promptSpacing(layout.levelDistance, this.content.mx.mxUtils.bind(this, (newValue: any) => {
+            layout.levelDistance = newValue;
+            
+            this.content.editor.executeLayout(() => {
+              layout.execute(this.content.graph.getDefaultParent(), tmp);
+              
+              if (!this.content.graph.isSelectionEmpty()) {
+                tmp = this.content.graph.getModel().getParent(tmp);
+                
+                if (this.content.graph.getModel().isVertex(tmp)) {
+                  this.content.graph.updateGroupBounds(
+                    [tmp],
+                    this.content.graph.gridSize * 2,
+                    true
+                  );
+                }
+              }
+            }, true);
+          }));
+        }
+      }
+    });
+    this._commands.addCommand('drawio:command/organic', {
+      label: 'Organic',
+      caption: 'Organic',
+      execute: () => {
+        const mxFastOrganicLayout = this.content.mx.mxFastOrganicLayout;
+        const layout = new mxFastOrganicLayout(this.content.graph);
+			
+        promptSpacing(layout.forceConstant, this.content.mx.mxUtils.bind(this, (newValue: any) => {
+          layout.forceConstant = newValue;
+          
+            this.content.editor.executeLayout(() => {
+              let tmp = this.content.graph.getSelectionCell();
+              
+              if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
+                tmp = this.content.graph.getDefaultParent();
+              }
+              
+              layout.execute(tmp);
+              
+              if (this.content.graph.getModel().isVertex(tmp)) {
+                this.content.graph.updateGroupBounds(
+                  [tmp],
+                  this.content.graph.gridSize * 2,
+                  true
+                );
+              }
+            }, true);
+        }));
+      }
+    });
+    this._commands.addCommand('drawio:command/circle', {
+      label: 'Circle',
+      caption: 'Circle',
+      execute: () => {
+        const mxCircleLayout = this.content.mx.mxCircleLayout;
+        const layout = new mxCircleLayout(this.content.graph);
+			
+    		this.content.editor.executeLayout(() => {
+    			let tmp = this.content.graph.getSelectionCell();
+    			
+    			if (tmp == null || this.content.graph.getModel().getChildCount(tmp) == 0) {
+    				tmp = this.content.graph.getDefaultParent();
+    			}
+    			
+    			layout.execute(tmp);
+    			
+    			if (this.content.graph.getModel().isVertex(tmp)) {
+    				this.content.graph.updateGroupBounds(
+              [tmp],
+              this.content.graph.gridSize * 2,
+              true
+            );
+    			}
+    		}, true);
+      }
+    });
+
+
+    // Extras MENU
+    //Not Working: 
+    //Working:
+    //  copyConnect, collapseExpand
+    //  editDiagram
+    const extrasCommands = [
+      'copyConnect', 'collapseExpand',
+      'editDiagram'
+    ];
+    extrasCommands.forEach( name => {
+      const label = actions[name].shortcut ? 
+        actions[name].label + " (" + actions[name].shortcut + ")" : 
+        actions[name].label;
+      
+      this._commands.addCommand('drawio:command/' + name, {
+        label: label,
+        caption: label,
+
+        isToggleable: actions[name].toggleAction ? true : false,
+        isVisible: () => actions[name].visible,
+        isEnabled: () => actions[name].enabled,
+        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        execute: () => actions[name].funct()
+      });
+    });
+
+    // Help MENU
+    //Not Working: help
+    //Working:
+    //  about
+    const helpCommands = ['about'];
+    helpCommands.forEach( name => {
+      const label = actions[name].shortcut ? 
+        actions[name].label + " (" + actions[name].shortcut + ")" : 
+        actions[name].label;
+      
+      this._commands.addCommand('drawio:command/' + name, {
+        label: label,
+        caption: label,
+        isToggleable: actions[name].toggleAction ? true : false,
+        isVisible: () => actions[name].visible,
+        isEnabled: () => actions[name].enabled,
+        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        execute: () => actions[name].funct()
+      });
+    });
+    
+
     /**************************************************************************************
-     *                                    _menuView                                       *
+     *                                     Toolbar                                        *
      **************************************************************************************/
-    this._commands.addCommand('drawio:toolbar/formatPanel', {
-      label: actions['formatPanel'].label + " (" + actions['formatPanel'].shortcut + ")",
-      caption: actions['formatPanel'].label + " (" + actions['formatPanel'].shortcut + ")",
-      isEnabled: () => actions['formatPanel'].enabled,
-      isToggled: () => actions['formatPanel'].enabled,
-      execute: () => actions['formatPanel'].funct()
+    //Working: fitWindow, fitPageWidth, fitPage, fitTwoPages, customZoom
+    const toolbarCommands = ['fitWindow', 'fitPageWidth', 'fitPage', 'fitTwoPages', 'customZoom'];
+    toolbarCommands.forEach( name => {
+      const label = actions[name].shortcut ? 
+        actions[name].label + " (" + actions[name].shortcut + ")" : 
+        actions[name].label;
+      
+      this._commands.addCommand('drawio:command/' + name, {
+        label: label,
+        caption: label,
+        isToggleable: actions[name].toggleAction ? true : false,
+        isVisible: () => actions[name].visible,
+        isEnabled: () => actions[name].enabled,
+        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        execute: () => actions[name].funct()
+      });
     });
-    this._menuView.addItem({ command: 'drawio:toolbar/formatPanel' });
-    this._commands.addCommand('drawio:toolbar/outline', {
-      label: actions['outline'].label,
-      caption: actions['outline'].label + " (" + actions['outline'].shortcut + ")",
-      isEnabled: () => actions['outline'].enabled,
-      isToggled: () => actions['outline'].enabled,
-      execute: () => actions['outline'].funct()
-    });
-    this._menuView.addItem({ command: 'drawio:toolbar/outline' });
-    this._commands.addCommand('drawio:toolbar/layers', {
-      label: actions['layers'].label,
-      caption: actions['layers'].label + " (" + actions['layers'].shortcut + ")",
-      isEnabled: () => actions['layers'].enabled,
-      isToggled: () => actions['layers'].enabled,
-      execute: () => actions['layers'].funct()
-    });
-    this._menuView.addItem({ command: 'drawio:toolbar/layers' });
 
     /**************************************************************************************
-     *                                     _menuZoom                                      *
+     *                                     Other                                          *
      **************************************************************************************/
-    this._commands.addCommand('drawio:toolbar/resetView', {
-      label: actions['resetView'].label,
-      caption: actions['resetView'].label + " (" + actions['resetView'].shortcut + ")",
-      isEnabled: () => actions['resetView'].enabled,
-      isToggled: () => actions['resetView'].enabled,
-      execute: () => actions['resetView'].funct()
+    const otherCommands = [
+      'addWaypoint', 'autosave', 'backgroundColor', 'bold', 'borderColor', 'clearDefaultStyle',
+      'curved', 'dashed', 'deleteAll', 'dotted', 'fontColor', 'formattedText', 'gradientColor', 'image', 'italic',
+      'link', 'pasteHere', 'preview', 'removeWaypoint', 'rounded', 'setAsDefaultStyle', 'sharp', 'solid', 'subscript',
+      'superscript', 'toggleRounded', 'underline', 'wordWrap'
+    ];
+    otherCommands.forEach( name => {
+      const label = actions[name].shortcut ? 
+        actions[name].label + " (" + actions[name].shortcut + ")" : 
+        actions[name].label;
+      
+      this._commands.addCommand('drawio:command/' + name, {
+        label: label,
+        caption: label,
+        isToggleable: actions[name].toggleAction ? true : false,
+        isVisible: () => actions[name].visible,
+        isEnabled: () => actions[name].enabled,
+        isToggled: () => actions[name].toggleAction ? actions[name].isSelected() : false,
+        execute: () => actions[name].funct()
+      });
     });
-    this._menuZoom.addItem({ command: 'drawio:toolbar/resetView' });
-    this._commands.addCommand('drawio:toolbar/fitWindow', {
-      label: actions['fitWindow'].label,
-      caption: actions['fitWindow'].label + " (" + actions['fitWindow'].shortcut + ")",
-      isEnabled: () => actions['fitWindow'].enabled,
-      isToggled: () => actions['fitWindow'].enabled,
-      execute: () => actions['fitWindow'].funct()
-    });
-    this._menuZoom.addItem({ command: 'drawio:toolbar/fitWindow' });
-    this._commands.addCommand('drawio:toolbar/fitPageWidth', {
-      label: actions['fitPageWidth'].label,
-      caption: actions['fitPageWidth'].label + " (" + actions['fitPageWidth'].shortcut + ")",
-      isEnabled: () => actions['fitPageWidth'].enabled,
-      isToggled: () => actions['fitPageWidth'].enabled,
-      execute: () => actions['fitPageWidth'].funct()
-    });
-    this._menuZoom.addItem({ command: 'drawio:toolbar/fitPageWidth' });
-    this._commands.addCommand('drawio:toolbar/fitPage', {
-      label: actions['fitPage'].label,
-      caption: actions['fitPage'].label + " (" + actions['fitPage'].shortcut + ")",
-      isEnabled: () => actions['fitPage'].enabled,
-      isToggled: () => actions['fitPage'].enabled,
-      execute: () => actions['fitPage'].funct()
-    });
-    this._menuZoom.addItem({ command: 'drawio:toolbar/fitPage' });
-    this._commands.addCommand('drawio:toolbar/fitTwoPages', {
-      label: actions['fitTwoPages'].label,
-      caption: actions['fitTwoPages'].label + " (" + actions['fitTwoPages'].shortcut + ")",
-      isEnabled: () => actions['fitTwoPages'].enabled,
-      isToggled: () => actions['fitTwoPages'].enabled,
-      execute: () => actions['fitTwoPages'].funct()
-    });
-    this._menuZoom.addItem({ command: 'drawio:toolbar/fitTwoPages' });
-    this._commands.addCommand('drawio:toolbar/customZoom', {
-      label: actions['customZoom'].label,
-      caption: actions['customZoom'].label + " (" + actions['customZoom'].shortcut + ")",
-      isEnabled: () => actions['customZoom'].enabled,
-      isToggled: () => actions['customZoom'].enabled,
-      execute: () => actions['customZoom'].funct()
-    });
-    this._menuZoom.addItem({ command: 'drawio:toolbar/customZoom' });
-
-    /**************************************************************************************
-     *                                   _menuInsert                                      *
-     **************************************************************************************/
-    this._commands.addCommand('drawio:toolbar/insertLink', {
-      label: actions['insertLink'].label,
-      caption: actions['insertLink'].label + " (" + actions['insertLink'].shortcut + ")",
-      isEnabled: () => actions['insertLink'].enabled,
-      isToggled: () => actions['insertLink'].enabled,
-      execute: () => actions['insertLink'].funct()
-    });
-    this._menuInsert.addItem({ command: 'drawio:toolbar/insertLink' });
-    this._commands.addCommand('drawio:toolbar/insertImage', {
-      label: actions['insertImage'].label,
-      caption: actions['insertImage'].label + " (" + actions['insertImage'].shortcut + ")",
-      isEnabled: () => actions['insertImage'].enabled,
-      isToggled: () => actions['insertImage'].enabled,
-      execute: () => actions['insertImage'].funct()
-    });
-    this._menuInsert.addItem({ command: 'drawio:toolbar/insertImage' });
   }
 
-  /**
-   * Handle a change to the title.
-   */
-  private _onTitleChanged(): void {
-    this.title.label = PathExt.basename(this.context.localPath);
-  }
-
-  private _onContentChanged(): void {
-    const { mx } = this;
-    if (this._editor === undefined) {
-      return;
-    }
-
-    const graph = this._editor.editor.getGraphXml();
-    const oldValue = mx.mxUtils.getXml(graph);
-    const newValue = this.context.model.toString();
-
-    if (oldValue !== newValue && !this._editor.editor.graph.isEditing()) {
-      const xml = mx.mxUtils.parseXml(newValue);
-      this._editor.editor.setGraphXml(xml.documentElement);
-    }
-  }
-
-  private _saveToContext(): void {
-    if (this._editor.editor.graph.isEditing()) {
-      this._editor.editor.graph.stopEditing();
-    }
-
-    const graph = this._editor.editor.getGraphXml();
-    const xml = this.mx.mxUtils.getXml(graph);
-    this.context.model.fromString(xml);
-  }
-
-  private _onModelStateChangedNew(
-    sender: DocumentRegistry.IModel,
-    args: IChangedArgs<any>
-  ): void {
-    if (args.name === 'dirty') {
-      this._handleDirtyStateNew();
-    }
-  }
-
-  private _handleDirtyStateNew(): void {
-    if (this.context.model.dirty) {
-      this.title.className += ` ${DIRTY_CLASS}`;
-    } else {
-      this.title.className = this.title.className.replace(DIRTY_CLASS, '');
-    }
-  }
-
-  /**
-   * A promise that resolves when the csv viewer is ready.
-   */
-  get ready(): Promise<void> {
-    return this._ready.promise;
-  }
-
-  /******************************************************************
-  *                            MENUBAR                              *
-  ******************************************************************/
-  // FILE MENU
-  //Not Working: new, open, save, save as, import, export
-  //Working: Page setup, Print
-  public getAction(name: string): any {
-    return this._editor.actions.actions[name];
-  }
-
-  public pageSetup(): void {
-    const action = this._editor.actions.actions.pageSetup;
-    action.funct();
-  }
-
-  public print(): void {
-    const action = this._editor.actions.actions.print;
-    action.funct();
-  }
-  // END FILE MENU
-  
-  // FILE MENU
-  //Not Working: 
-  //Working:
-  //  Undo, redo,
-  //  cut, copy, Paste, Delete
-  //  Duplicate
-  //  Edit data, edit tooltip, Edit style
-  //  Edit
-  //  Edit link, open link
-  //  Select vertices, select edges, select all, select node
-  //  lock/unlock
-  public undo(): void {
-    const action = this._editor.actions.actions.undo;
-    action.funct();
-    //action.label; Undo
-    //tooltip: Undo (Ctrl+Z)
-    //action.iconCls; sprite-undo geSprite geSprite-undo
-  }
-
-  public redo(): void {
-    const action = this._editor.actions.actions.redo;
-    action.funct();
-    //action.label; Redo
-    //tooltip: Redo (Ctrl+Shift+Z)
-    //action.iconCls; sprite-redo geSprite geSprite-redo
-  }
-
-  public cut(): void {
-    const action = this._editor.actions.actions.cut;
-    action.funct();
-    //action.label; Cut
-    //tooltip: Cut (Ctrl+X)
-    //action.iconCls; sprite-cut geSprite geSprite-cut
-  }
-
-  public copy(): void {
-    const action = this._editor.actions.actions.copy;
-    action.funct();
-    //action.label; Copy
-    //tooltip: Copy (Ctrl+C)
-    //action.iconCls; sprite-copy geSprite geSprite-copy
-  }
-
-  public paste(): void {
-    const action = this._editor.actions.actions.paste;
-    action.funct();
-    //action.label; Paste
-    //tooltip: Paste (Ctrl+V)
-    //action.iconCls; sprite-paste geSprite geSprite-paste
-  }
-
-  public delete(): void {
-    const action = this._editor.actions.actions.delete;
-    action.funct();
-    //action.label; Delete
-    //tooltip: Delete
-    //action.iconCls; geSprite geSprite-delete
-  }
-
-  public duplicate(): void {
-    const action = this._editor.actions.actions.duplicate;
-    action.funct();
-    //action.label; Duplicate
-    //tooltip: Duplicate (Ctrl+D)
-  }
-
-  public editData(): void {
-    const action = this._editor.actions.actions.editData;
-    action.funct();
-    //action.label; Edit Data...
-    //tooltip: Edit Data... (Ctrl+M)
-  }
-
-  public editTooltip(): void {
-    const action = this._editor.actions.actions.editTooltip;
-    action.funct();
-    //action.label; Edit Tooltip...
-    //tooltip: Edit Tooltip...
-  }
-
-  public editStyle(): void {
-    const action = this._editor.actions.actions.editStyle;
-    action.funct();
-    //action.label; Edit Style...
-    //tooltip: Edit Style... (Ctrl+E)
-  }
-
-  public edit(): void {
-    const action = this._editor.actions.actions.edit;
-    action.funct();
-    //action.label; Edit
-    //tooltip: Edit (F2/Enter)
-  }
-
-
-  public editDiagram(): void {
-    const action = this._editor.actions.actions.editDiagram;
-    action.funct();
-    //action.iconCls;
-  }
-
-
-
-  public pageScale(): void {
-    const action = this._editor.actions.actions.pageScale;
-    action.funct();
-    //action.iconCls;
-  }
-
-  public about(): void {
-    const action = this._editor.actions.actions.about;
-    action.funct();
-    //action.iconCls;
-  }
-
-  public connectionArrows(): void {
-    const action = this._editor.actions.actions.connectionArrows;
-    action.funct();
-    //action.label; Connection arrows
-    //tooltip: Connection arrows (Alt+Shift+A)
-  }
-
-  public connectionPoints(): void {
-    const action = this._editor.actions.actions.connectionPoints;
-    action.funct();
-    //action.label; Connection points
-    //tooltip: Connection points (Alt+Shift+P)
-  }
-
-  /******************************************************************
-  *                            TOOLBAR                              *
-  ******************************************************************/
-  // VIEW Dropbown
-  //action.label; View (Space+Drag to Scroll)
-  //action.iconCls; geSprite geSprite-formatpanel
-  public formatPanel(): void {
-    const action = this._editor.actions.actions.formatPanel;
-    action.funct();
-    //action.label; Format Panel (Ctrl+Shift+P)
-  }
-
-  public outline(): void {
-    const action = this._editor.actions.actions.outline;
-    action.funct();
-    //action.label; Outline (Ctrl+Shift+O)
-  }
-
-  public layers(): void {
-    const action = this._editor.actions.actions.layers;
-    action.funct();
-    //action.label; Layers (Ctrl+Shift+L)
-  }
-  // END VIEW Dropbown
-
-  // ZOOM Dropbown
-  //action.label; Zoom (Alt+Mousewheel)
-  //action.iconCls; 100%
-  public resetView(): void {
-    const action = this._editor.actions.actions.resetView;
-    action.funct();
-    //action.label; Reset View (Ctrl+H)
-  }
-
-  public fitWindow(): void {
-    const action = this._editor.actions.actions.fitWindow;
-    action.funct();
-    //action.label; Fit Window (Ctrl+Shift+H)
-  }
-
-  public fitPageWidth(): void {
-    const action = this._editor.actions.actions.fitPageWidth;
-    action.funct();
-    //action.label; Page Width
-  }
-
-  public fitPage(): void {
-    const action = this._editor.actions.actions.fitPage;
-    action.funct();
-    //action.label; One Page (Ctrl+J)
-  }
-
-  public fitTwoPages(): void {
-    const action = this._editor.actions.actions.fitTwoPages;
-    action.funct();
-    //action.label; Two Pages (Ctrl+Shift+J)
-  }
-
-  public customZoom(): void {
-    const action = this._editor.actions.actions.customZoom;
-    action.funct();
-    //action.label; Custom... (Ctrl+O)
-  }
-  // END ZOOM Dropbown
-
-  public zoomIn(): void {
-    const action = this._editor.actions.actions.zoomIn;
-    action.funct();
-    //action.label; Zoom In (Ctrl + (Numpad) / Alt+Mousewheel)
-    //action.iconCls; geSprite geSprite-zoomin
-  }
-
-  public zoomOut(): void {
-    const action = this._editor.actions.actions.zoomOut;
-    action.funct();
-    //action.label; Zoom Out (Ctrl - (Numpad) / Alt+Mousewheel)
-    //action.iconCls; geSprite geSprite-zoomout
-  }
-
-  // In Menu section: undo, redo, delete
-
-  
-
-  public toFront(): void {
-    const action = this._editor.actions.actions.toFront;
-    action.funct();
-    //action.label; To Front (Ctrl+Shift+F)
-    //action.iconCls; geSprite geSprite-tofront
-  }
-
-  public toBack(): void {
-    const action = this._editor.actions.actions.toBack;
-    action.funct();
-    //action.label; To Back (Ctrl+Shift+B)
-    //action.iconCls; geSprite geSprite-toback
-  }
-
-  public fillColor(): void {
-    const action = this._editor.actions.actions.fillColor;
-    action.funct();
-    //action.label; Fill Color...
-    //action.iconCls; geSprite geSprite-fillcolor
-  }
-
-  public strokeColor(): void {
-    const action = this._editor.actions.actions.strokeColor;
-    action.funct();
-    //action.label; Line Color...
-    //action.iconCls; geSprite geSprite-strokecolor
-  }
-
-  public shadow(): void {
-    const action = this._editor.actions.actions.shadow;
-    action.funct();
-    //action.label; Shadow
-    //action.iconCls; geSprite geSprite-shadow
-  }
-
-  // CONNECTION Dropbown
-  //action.label; Connection
-  //action.iconCls; geSprite geSprite-connection
-  
-    // mxResources.get('connection')
-
-  // END CONNECTION Dropbown
-
-  // WAYPOINTS Dropbown
-  //action.label; Waypoints
-  //action.iconCls; geSprite geSprite-orthogonal
-
-    // mxResources.get('pattern')
-  
-  // END WAYPOINTS Dropbown
-
-  // INSERT Dropbown
-  //action.label; Insert
-  //action.iconCls; geSprite geSprite-plus
-  public insertLink(): void {
-    const action = this._editor.actions.actions.insertLink;
-    action.funct();
-    //action.label; Insert Link...
-  }
-
-  public insertImage(): void {
-    const action = this._editor.actions.actions.insertImage;
-    action.funct();
-    //action.label; Insert Image...
-  }
-  // END INSERT Dropbown
-
-  private _editor: any;
   private _commands: CommandRegistry;
-  private _menubar: MenuBar;
-  private _menuView: Menu;
-  private _menuZoom: Menu;
-  private _menuInsert: Menu;
-  private _ready = new PromiseDelegate<void>();
-  protected mx: Private.MX;
+  private _menubar: MainMenu;
+  private _menuView: JupyterLabMenu;
+  private _menuZoom: JupyterLabMenu;
+  private _menuInsert: JupyterLabMenu;
 }
 
-/**
- * A widget factory for drawio.
- */
-export class DrawioFactory extends ABCWidgetFactory<
-  DrawioWidget,
-  DocumentRegistry.IModel
-> {
-  /**
-   * Create a new widget given a context.
-   */
-  constructor(options: DocumentRegistry.IWidgetFactoryOptions) {
-    super(options);
-  }
-
-  protected createNewWidget(context: DocumentRegistry.Context): DrawioWidget {
-    return new DrawioWidget({ context, content: new Widget() });
-  }
-}
-
-/**
- * A namespace for module-level concerns like loading mxgraph
- */
-
-namespace Private {
-  export type MX = typeof MXModuleType;
-
-  let _mx: typeof MXModuleType;
-  let _mxLoading: PromiseDelegate<MX>;
-
-  /**
-   * Asynchronously load the mx bundle, or return it if already available
-   */
-  export async function ensureMx(): Promise<MX> {
-    if (_mx) {
-      return _mx;
-    }
-
-    if (_mxLoading) {
-      return await _mxLoading.promise;
-    }
-
-    _mxLoading = new PromiseDelegate();
-    /*eslint-disable */
-    // @ts-ignore
-    _mx = await import('./mxgraph/javascript/examples/grapheditor/www/modulated.js');
-    /*eslint-enable */
-
-    _mxLoading.resolve(_mx);
-    return _mx;
+export namespace DrawIODocumentWidget {
+  export interface IOptions<T> extends DocumentWidget.IOptions<DrawIOWidget, DocumentRegistry.IModel> {
+    commands: CommandRegistry
   }
 }
