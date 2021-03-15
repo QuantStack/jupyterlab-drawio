@@ -375,8 +375,8 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     //Direction
     this._commands.addCommand('drawio:command/flipH', {
-      label: 'Left Align',
-      caption: 'Left Align',
+      label: 'Flip Horizintal',
+      caption: 'Flip Horizintal',
       execute: () => {
         this.content.graph.toggleCellStyles(
           this.content.mx.mxConstants.STYLE_FLIPH,
@@ -385,8 +385,8 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       }
     });
     this._commands.addCommand('drawio:command/flipV', {
-      label: 'Left Align',
-      caption: 'Left Align',
+      label: 'Flip Vertical',
+      caption: 'Flip Vertical',
       execute: () => {
         this.content.graph.toggleCellStyles(
           this.content.mx.mxConstants.STYLE_FLIPV,
