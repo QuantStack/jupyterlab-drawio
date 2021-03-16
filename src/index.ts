@@ -185,16 +185,22 @@ function addMenus(
   menu: IMainMenu,
   tracker: IDrawioTracker
 ): void {
+  const diagram = new JupyterLabMenu({ commands });
+  diagram.menu.title.label = 'Diagram';
+
   // FILE MENU
   // Add new text file creation to the file menu.
   menu.fileMenu.newMenu.addGroup([{ command: 'drawio:create-new' }], 40);
-  menu.fileMenu.addGroup(
+  const fileMenu = new JupyterLabMenu({ commands });
+  fileMenu.menu.title.label = 'File';
+  fileMenu.addGroup([{ command: 'drawio:create-new' }], 0);
+  fileMenu.addGroup(
     [
       { command: 'drawio:export-svg' },
       { command: 'drawio:command/pageSetup' },
       { command: 'drawio:command/print' }
     ],
-    40
+    1
   );
 
   // Edit MENU
@@ -203,9 +209,9 @@ function addMenus(
     undo: (widget: any) => widget.execute('undo'),
     redo: (widget: any) => widget.execute('redo')
   } as any);
-
+  
   const editMenu = new JupyterLabMenu({ commands });
-  editMenu.menu.title.label = 'Diagram Edit';
+  editMenu.menu.title.label = 'Edit';
   editMenu.addGroup(
     [{ command: 'drawio:command/undo' }, { command: 'drawio:command/redo' }],
     0
@@ -246,11 +252,10 @@ function addMenus(
     6
   );
   editMenu.addGroup([{ command: 'drawio:command/lockUnlock' }], 7);
-  menu.addMenu(editMenu.menu, { rank: 20 });
 
   // View MENU
   const viewMenu = new JupyterLabMenu({ commands });
-  viewMenu.menu.title.label = 'Diagram View';
+  viewMenu.menu.title.label = 'View';
   viewMenu.addGroup(
     [
       { command: 'drawio:command/formatPanel' },
@@ -292,11 +297,10 @@ function addMenus(
     ],
     5
   );
-  menu.addMenu(viewMenu.menu, { rank: 20 });
 
   // Arrange MENU
   const arrangeMenu = new JupyterLabMenu({ commands });
-  arrangeMenu.menu.title.label = 'Diagram Arrange';
+  arrangeMenu.menu.title.label = 'Arrange';
   arrangeMenu.addGroup(
     [
       { command: 'drawio:command/toFront' },
@@ -435,11 +439,9 @@ function addMenus(
     5
   );
 
-  menu.addMenu(arrangeMenu.menu, { rank: 60 });
-
   // Extras MENU
   const extrasMenu = new JupyterLabMenu({ commands });
-  extrasMenu.menu.title.label = 'Diagram Extras';
+  extrasMenu.menu.title.label = 'Extras';
   extrasMenu.addGroup(
     [
       { command: 'drawio:command/copyConnect' },
@@ -448,8 +450,17 @@ function addMenus(
     0
   );
   extrasMenu.addGroup([{ command: 'drawio:command/editDiagram' }], 1);
-  menu.addMenu(extrasMenu.menu, { rank: 70 });
 
   // Help MENU
-  menu.helpMenu.addGroup([{ command: 'drawio:command/about' }], 77);
+  //menu.helpMenu.addGroup([{ command: 'drawio:command/about' }], 77);
+
+  diagram.addGroup([
+    { type: 'submenu', submenu: fileMenu.menu },
+    { type: 'submenu', submenu: editMenu.menu },
+    { type: 'submenu', submenu: viewMenu.menu },
+    { type: 'submenu', submenu: arrangeMenu.menu },
+    { type: 'submenu', submenu: extrasMenu.menu },
+    { command: 'drawio:command/about' }
+  ], 0);
+  menu.addMenu(diagram.menu, { rank: 60 });
 }

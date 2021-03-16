@@ -90857,7 +90857,7 @@ EditorUi.compactUi = true;
 EditorUi.prototype.splitSize = (mxClient.IS_TOUCH || mxClient.IS_POINTER) ? 12 : 8;
 
 /**
- * Specifies the height of the menubar. Default is 34. MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+ * Specifies the height of the menubar. Default is 34.
  */
 EditorUi.prototype.menubarHeight = 0;
 
@@ -90872,12 +90872,12 @@ EditorUi.prototype.formatEnabled = true;
 EditorUi.prototype.formatWidth = 240;
 
 /**
- * Specifies the height of the toolbar. Default is 36. MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+ * Specifies the height of the toolbar. Default is 36.
  */
 EditorUi.prototype.toolbarHeight = 0;
 
 /**
- * Specifies the height of the footer. Default is 28. MMMMMMMMMMMMMMMMM
+ * Specifies the height of the footer. Default is 28.
  */
 EditorUi.prototype.footerHeight = 0;
 
