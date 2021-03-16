@@ -106,7 +106,7 @@ export class DrawIOWidget extends Widget {
   //Direction
   public toggleCellStyles(flip: string): void {
     let styleFlip = this._editor.mx.mxConstants.STYLE_FLIPH;
-    switch(flip) {
+    switch (flip) {
       case 'flipH':
         styleFlip = this._editor.mx.mxConstants.STYLE_FLIPH;
         break;
@@ -121,7 +121,7 @@ export class DrawIOWidget extends Widget {
   public alignCells(align: string): void {
     if (this._editor.graph.isEnabled()) {
       let pos = this._editor.mx.mxConstants.ALIGN_CENTER;
-      switch(align) {
+      switch (align) {
         case 'alignCellsLeft':
           pos = this._editor.mx.mxConstants.ALIGN_LEFT;
           break;
@@ -157,7 +157,7 @@ export class DrawIOWidget extends Widget {
   //drawio:command/verticalFlow
   public layoutFlow(direction: string): void {
     let directionFlow = this._editor.mx.mxConstants.DIRECTION_WEST;
-    switch(direction) {
+    switch (direction) {
       case 'horizontalFlow':
         directionFlow = this._editor.mx.mxConstants.DIRECTION_WEST;
         break;
@@ -167,10 +167,7 @@ export class DrawIOWidget extends Widget {
     }
 
     const mxHierarchicalLayout = this._editor.mx.mxHierarchicalLayout;
-    const layout = new mxHierarchicalLayout(
-      this._editor.graph,
-      directionFlow
-    );
+    const layout = new mxHierarchicalLayout(this._editor.graph, directionFlow);
 
     this._editor.editor.executeLayout(() => {
       const selectionCells = this._editor.graph.getSelectionCells();
@@ -260,7 +257,7 @@ export class DrawIOWidget extends Widget {
       );
     }
   }
-  
+
   public radialTree(): void {
     let tmp = this._editor.graph.getSelectionCell();
     let roots = null;
@@ -312,7 +309,7 @@ export class DrawIOWidget extends Widget {
       );
     }
   }
-  
+
   public organic(): void {
     const mxFastOrganicLayout = this._editor.mx.mxFastOrganicLayout;
     const layout = new mxFastOrganicLayout(this._editor.graph);
@@ -345,7 +342,7 @@ export class DrawIOWidget extends Widget {
       })
     );
   }
-  
+
   public circle(): void {
     const mxCircleLayout = this._editor.mx.mxCircleLayout;
     const layout = new mxCircleLayout(this._editor.graph);

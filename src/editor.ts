@@ -128,15 +128,15 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
   public verticalTree(): void {
     this.content.verticalTree();
   }
-  
+
   public radialTree(): void {
     this.content.radialTree();
   }
-  
+
   public organic(): void {
     this.content.organic();
   }
-  
+
   public circle(): void {
     this.content.circle();
   }
