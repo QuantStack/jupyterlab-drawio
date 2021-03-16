@@ -92774,7 +92774,7 @@ EditorUi.prototype.refresh = function(sizeDidChange)
 		}
 	}
 	
-	var effHsplitPosition = Math.max(0, Math.min(this.hsplitPosition, w - this.splitSize - 20));
+	var effHsplitPosition = Math.max(50, Math.min(this.hsplitPosition, w - this.splitSize - 20));
 
 	var tmp = 0;
 	
