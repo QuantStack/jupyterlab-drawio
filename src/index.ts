@@ -473,7 +473,7 @@ function addCommands(
   //Working: pageSetup, print
   const fileCommands = [
     { name: 'pageSetup', label: "Page Setup..." },
-    { name: 'print', label: "Print..." }// Ctrl+P
+    { name: 'print', label: "Print..." }//Ctrl+P
   ];
   fileCommands.forEach( action => {
     app.commands.addCommand('drawio:command/' + action.name, {
@@ -1043,7 +1043,7 @@ function addCommands(
    **************************************************************************************/
   //Working: fitWindow, fitPageWidth, fitPage, fitTwoPages, customZoom
   const toolbarCommands = [
-    { name: 'fitWindow', label: "Fit Window" },//Ctrl+ShiftH
+    { name: 'fitWindow', label: "Fit Window" },//Ctrl+Shift+H
     { name: 'fitPageWidth', label: "Page Width" },
     { name: 'fitPage', label: "One Page" },//Ctrl+J
     { name: 'fitTwoPages', label: "Two Pages" },//Ctrl+Shift+J

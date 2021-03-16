@@ -71,6 +71,7 @@
   },
   "jupyterlab": {
     "extension": true,
+    "schemaDir": "schema",
     "outputDir": "jupyterlab-drawio/labextension"
   },
   "styleModule": "style/index.js"
