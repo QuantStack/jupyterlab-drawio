@@ -16,7 +16,7 @@ export class DrawIOFactory extends ABCWidgetFactory<
   /**
    * Create a new widget given a context.
    */
-  constructor(options: DrawioFactory.IDrawioFactoryOptions) {
+  constructor(options: DrawIOFactory.IDrawIOFactoryOptions) {
     super(options);
     this._commands = options.commands;
   }
@@ -34,8 +34,8 @@ export class DrawIOFactory extends ABCWidgetFactory<
   private _commands: CommandRegistry;
 }
 
-export namespace DrawioFactory {
-  export interface IDrawioFactoryOptions
+export namespace DrawIOFactory {
+  export interface IDrawIOFactoryOptions
     extends DocumentRegistry.IWidgetFactoryOptions {
     commands: CommandRegistry;
   }
