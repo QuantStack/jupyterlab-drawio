@@ -17,5 +17,6 @@ dependencies:
   - nodejs >=14,<15
   - pip
   - wheel
+  - jupyterlab-link-share=0.2
   # additional packages for demos
   # - ipywidgets

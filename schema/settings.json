@@ -1,0 +1,203 @@
+{
+  "title": "DrawIO",
+  "description": "DrawIO settings.",
+  "jupyter.lab.shortcuts": [
+    {
+      "command": "drawio:command/print",
+      "keys": ["Ctrl+P"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/undo",
+      "keys": ["Ctrl+Z"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/redo",
+      "keys": ["Ctrl+Shift+Z"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/cut",
+      "keys": ["Ctrl+X"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/copy",
+      "keys": ["Ctrl+C"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/paste",
+      "keys": ["Ctrl+V"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/duplicate",
+      "keys": ["Ctrl+D"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/editData",
+      "keys": ["Ctrl+M"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/editStyle",
+      "keys": ["Ctrl+E"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/edit",
+      "keys": ["F2/Enter"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/selectVertices",
+      "keys": ["Ctrl+Shift+I"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/selectEdges",
+      "keys": ["Ctrl+Shift+E"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/selectAll",
+      "keys": ["Ctrl+A"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/selectNone",
+      "keys": ["Ctrl+Shift+A"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/lockUnlock",
+      "keys": ["Ctrl+L"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/formatPanel",
+      "keys": ["Ctrl+Shift+P"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/outline",
+      "keys": ["Ctrl+Shift+O"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/layers",
+      "keys": ["Ctrl+Shift+L"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/grid",
+      "keys": ["Ctrl+Shift+G"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/connectionArrows",
+      "keys": ["Alt+Shift+A"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/connectionPoints",
+      "keys": ["Alt+Shift+P"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/resetView",
+      "keys": ["Ctrl+H"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/zoomIn",
+      "keys": ["Ctrl+(Numpad)/Alt+Mousewheel"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/zoomOut",
+      "keys": ["Ctrl-(Numpad)/Alt+Mousewheel"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/toFront",
+      "keys": ["Ctrl+Shift+F"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/toBack",
+      "keys": ["Ctrl+Shift+B"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/turn",
+      "keys": ["Ctrl+R"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/exitGroup",
+      "keys": ["Ctrl+Shift+Home"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/enterGroup",
+      "keys": ["Ctrl+Shift+End"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/expand",
+      "keys": ["Ctrl+End"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/collapse",
+      "keys": ["Ctrl+Home"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/group",
+      "keys": ["Ctrl+G"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/ungroup",
+      "keys": ["Ctrl+Shift+U"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/clearWaypoints",
+      "keys": ["Alt+Shift+C"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/autosize",
+      "keys": ["Ctrl+Shift+Y"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/fitWindow",
+      "keys": ["Ctrl+Shift+H"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/fitPage",
+      "keys": ["Ctrl+J"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/fitTwoPages",
+      "keys": ["Ctrl+Shift+J"],
+      "selector": "body"
+    },
+		{
+      "command": "drawio:command/customZoom",
+      "keys": ["Ctrl+O"],
+      "selector": "body"
+    }
+  ],
+  "type": "object",
+  "additionalProperties": false
+}

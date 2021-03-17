@@ -21,6 +21,7 @@
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "style": "style/index.css",
   "repository": {
     "type": "git",
     "url": "https://github.com/wolfv/jupyterlab-drawio.git"
@@ -29,7 +30,7 @@
     "build": "jlpm run build:lib && jlpm run build:labextension:dev",
     "build:labextension": "jupyter labextension build .",
     "build:labextension:dev": "jupyter labextension build --development True .",
-    "build:lib": "rimraf lib/mxgraph && mkdir -p lib/mxgraph && cp -R src/mxgraph lib && tsc",
+    "build:lib": "rimraf lib/drawio && mkdir -p lib/drawio && cp -R src/drawio lib && tsc",
     "build:prod": "jlpm run build:lib && jlpm run build:labextension",
     "clean": "jlpm run clean:lib",
     "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
@@ -44,18 +45,18 @@
     "watch:src": "tsc -w"
   },
   "dependencies": {
-    "@jupyterlab/application": "^3.0.2",
-    "@jupyterlab/apputils": "^3.0.2",
-    "@jupyterlab/coreutils": "^5.0.1",
-    "@jupyterlab/docregistry": "^3.0.2",
-    "@jupyterlab/filebrowser": "^3.0.2",
-    "@jupyterlab/launcher": "^3.0.2",
-    "@jupyterlab/mainmenu": "^3.0.2",
+    "@jupyterlab/application": "^3.0.6",
+    "@jupyterlab/apputils": "^3.0.5",
+    "@jupyterlab/coreutils": "^5.0.3",
+    "@jupyterlab/docregistry": "^3.0.6",
+    "@jupyterlab/filebrowser": "^3.0.6",
+    "@jupyterlab/launcher": "^3.0.5",
+    "@jupyterlab/mainmenu": "^3.0.5",
     "@lumino/coreutils": "^1.5.3",
     "@lumino/widgets": "^1.18.0"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "^3.0.0",
+    "@jupyterlab/builder": "^3.0.5",
     "@lumino/messaging": "^1.4.3",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
@@ -70,6 +71,7 @@
   },
   "jupyterlab": {
     "extension": true,
+    "schemaDir": "schema",
     "outputDir": "jupyterlab-drawio/labextension"
   },
   "styleModule": "style/index.js"

@@ -16,6 +16,7 @@
     "outDir": "lib",
     "rootDir": "src",
     "strict": true,
+    "skipLibCheck": true,
     "strictNullChecks": false,
     "target": "es2017",
     "types": []
