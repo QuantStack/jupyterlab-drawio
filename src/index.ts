@@ -30,6 +30,11 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { ILauncher } from '@jupyterlab/launcher';
 
+import {
+  undoIcon,
+  redoIcon,
+} from '@jupyterlab/ui-components';
+
 import { CommandRegistry } from '@lumino/commands';
 
 import { Token } from '@lumino/coreutils';
@@ -514,8 +519,8 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
   //  Select vertices, select edges, select all, select none
   //  lock/unlock
   const editCommands = [
-    { name: 'undo', label: 'Undo' }, //Ctrl+Z
-    { name: 'redo', label: 'Redo' }, //Ctrl+Shift+Z
+    //{ name: 'undo', label: 'Undo' }, //Ctrl+Z
+    //{ name: 'redo', label: 'Redo' }, //Ctrl+Shift+Z
     { name: 'cut', label: 'Cut' }, //Ctrl+X
     { name: 'copy', label: 'Copy' }, //Ctrl+C
     { name: 'paste', label: 'Paste' }, //Ctrl+V
@@ -558,6 +563,56 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
         }
       }
     });
+  });
+  app.commands.addCommand('drawio:command/undo', {
+    label: 'Undo',
+    caption: 'Undo (Ctrl+Z)',
+    icon: undoIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('undo').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('undo').funct();
+      }
+    }
+  });
+  app.commands.addCommand('drawio:command/redo', {
+    label: 'Redo',
+    caption: 'redo (Ctrl+Shift+Z)',
+    icon: redoIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('redo').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('redo').funct();
+      }
+    }
   });
 
   // View MENU

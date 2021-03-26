@@ -16,6 +16,8 @@ import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 
 import { MainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
 
+import { CommandToolbarButton } from '@jupyterlab/apputils';
+
 import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
 
 import { CommandRegistry } from '@lumino/commands';
@@ -41,6 +43,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     this._menubar = new MainMenu(this._commands);
 
     this._menubar.clearMenus();
+    this.toolbar.addClass('dio-toolbar');
 
     //TODO:
     // Add toolbar actions to change the default style of arrows and conections.
@@ -208,11 +211,15 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       'zoomOut',
       new DrawIOToolbarButton(actions['zoomOut'])
     );
-
-    actions['undo'].iconCls = 'geSprite geSprite-undo';
-    this.toolbar.addItem('undo', new DrawIOToolbarButton(actions['undo']));
-    actions['redo'].iconCls = 'geSprite geSprite-redo';
-    this.toolbar.addItem('redo', new DrawIOToolbarButton(actions['redo']));
+    
+    this.toolbar.addItem('undo', new CommandToolbarButton({
+      id: 'drawio:command/undo',
+      commands: this._commands
+    }));
+    this.toolbar.addItem('redo', new CommandToolbarButton({
+      id: 'drawio:command/redo',
+      commands: this._commands
+    }));
 
     actions['delete'].iconCls = 'geSprite geSprite-delete';
     this.toolbar.addItem('delete', new DrawIOToolbarButton(actions['delete']));
