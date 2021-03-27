@@ -26,7 +26,12 @@ import { Signal } from '@lumino/signaling';
 
 import { DrawIOWidget } from './widget';
 
-import { DrawIOToolbarButton } from './toolbar';
+import { 
+  formatPanelIcon,
+  plusIcon
+} from './icons';
+
+//import { DrawIOToolbarButton } from './toolbar';
 
 const DIRTY_CLASS = 'jp-mod-dirty';
 
@@ -49,7 +54,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     // Add toolbar actions to change the default style of arrows and conections.
     this._menuView = new JupyterLabMenu({ commands: this._commands });
     this._menuView.menu.title.caption = 'View (Space+Drag to Scroll)';
-    this._menuView.menu.title.iconClass = 'geSprite geSprite-formatpanel';
+    this._menuView.menu.title.icon = formatPanelIcon;
     this._menubar.addMenu(this._menuView.menu, { rank: 1 });
 
     this._menuZoom = new JupyterLabMenu({ commands: this._commands });
@@ -60,7 +65,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     this._menuInsert = new JupyterLabMenu({ commands: this._commands });
     this._menuInsert.menu.title.caption = 'Insert';
-    this._menuInsert.menu.title.iconClass = 'geSprite geSprite-plus';
+    this._menuInsert.menu.title.icon = plusIcon;
     this._menubar.addMenu(this._menuInsert.menu, { rank: 2 });
 
     this.context.ready.then(async value => {
@@ -204,13 +209,22 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     this.toolbar.addItem('ViewDropdown', this._menubar);
 
-    actions['zoomIn'].iconCls = 'geSprite geSprite-zoomin';
+    /* actions['zoomIn'].iconCls = 'geSprite geSprite-zoomin';
     this.toolbar.addItem('zoomIn', new DrawIOToolbarButton(actions['zoomIn']));
     actions['zoomOut'].iconCls = 'geSprite geSprite-zoomout';
     this.toolbar.addItem(
       'zoomOut',
       new DrawIOToolbarButton(actions['zoomOut'])
-    );
+    ); */
+    actions['delete'].addListener('stateChanged', () => this.toolbar.update());
+    this.toolbar.addItem('zoomIn', new CommandToolbarButton({
+      id: 'drawio:command/zoomIn',
+      commands: this._commands
+    }));
+    this.toolbar.addItem('zoomOut', new CommandToolbarButton({
+      id: 'drawio:command/zoomOut',
+      commands: this._commands
+    }));
     
     this.toolbar.addItem('undo', new CommandToolbarButton({
       id: 'drawio:command/undo',
@@ -221,29 +235,32 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       commands: this._commands
     }));
 
-    actions['delete'].iconCls = 'geSprite geSprite-delete';
-    this.toolbar.addItem('delete', new DrawIOToolbarButton(actions['delete']));
+    this.toolbar.addItem('delete', new CommandToolbarButton({
+      id: 'drawio:command/delete',
+      commands: this._commands
+    }));
 
-    actions['toFront'].iconCls = 'geSprite geSprite-tofront';
-    this.toolbar.addItem(
-      'toFront',
-      new DrawIOToolbarButton(actions['toFront'])
-    );
-    actions['toBack'].iconCls = 'geSprite geSprite-toback';
-    this.toolbar.addItem('toBack', new DrawIOToolbarButton(actions['toBack']));
+    this.toolbar.addItem('toFront', new CommandToolbarButton({
+      id: 'drawio:command/toFront',
+      commands: this._commands
+    }));
+    this.toolbar.addItem('toBack', new CommandToolbarButton({
+      id: 'drawio:command/toBack',
+      commands: this._commands
+    }));
 
-    actions['fillColor'].iconCls = 'geSprite geSprite-fillcolor';
-    this.toolbar.addItem(
-      'fillColor',
-      new DrawIOToolbarButton(actions['fillColor'])
-    );
-    actions['strokeColor'].iconCls = 'geSprite geSprite-strokecolor';
-    this.toolbar.addItem(
-      'strokeColor',
-      new DrawIOToolbarButton(actions['strokeColor'])
-    );
-    actions['shadow'].iconCls = 'geSprite geSprite-shadow';
-    this.toolbar.addItem('shadow', new DrawIOToolbarButton(actions['shadow']));
+    this.toolbar.addItem('fillColor', new CommandToolbarButton({
+      id: 'drawio:command/fillColor',
+      commands: this._commands
+    }));
+    this.toolbar.addItem('strokeColor', new CommandToolbarButton({
+      id: 'drawio:command/strokeColor',
+      commands: this._commands
+    }));
+    this.toolbar.addItem('shadow', new CommandToolbarButton({
+      id: 'drawio:command/shadow',
+      commands: this._commands
+    }));
   }
 
   private _commands: CommandRegistry;

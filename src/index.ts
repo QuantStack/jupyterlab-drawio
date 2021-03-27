@@ -39,6 +39,17 @@ import { CommandRegistry } from '@lumino/commands';
 
 import { Token } from '@lumino/coreutils';
 
+import { 
+  zoominIcon,
+  zoomoutIcon,
+  deleteIcon,
+  toFrontIcon,
+  toBackIcon,
+  fillColorIcon,
+  strokeColorIcon,
+  shadowIcon
+} from './icons';
+
 import { DrawIODocumentWidget } from './editor';
 
 import { DrawIOFactory } from './factory';
@@ -524,7 +535,7 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
     { name: 'cut', label: 'Cut' }, //Ctrl+X
     { name: 'copy', label: 'Copy' }, //Ctrl+C
     { name: 'paste', label: 'Paste' }, //Ctrl+V
-    { name: 'delete', label: 'Delete' },
+    //{ name: 'delete', label: 'Delete' },
     { name: 'duplicate', label: 'Duplicate' }, //Ctrl+D
     { name: 'editData', label: 'Edit Data...' }, //Ctrl+M
     { name: 'editTooltip', label: 'Edit Tooltip...' },
@@ -591,7 +602,7 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
   });
   app.commands.addCommand('drawio:command/redo', {
     label: 'Redo',
-    caption: 'redo (Ctrl+Shift+Z)',
+    caption: 'Redo (Ctrl+Shift+Z)',
     icon: redoIcon,
     isEnabled: () => {
       if (
@@ -611,6 +622,31 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
       ) {
         const wdg = app.shell.currentWidget as DrawIODocumentWidget;
         wdg.getAction('redo').funct();
+      }
+    }
+  });
+  app.commands.addCommand('drawio:command/delete', {
+    label: 'delete',
+    caption: 'Delete',
+    icon: deleteIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('delete').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('delete').funct();
       }
     }
   });
@@ -637,8 +673,8 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
     { name: 'connectionArrows', label: 'Connection Arrows' }, //Alt+Shift+A
     { name: 'connectionPoints', label: 'Connection Points' }, //Alt+Shift+P
     { name: 'resetView', label: 'Reset View' }, //Ctrl+H
-    { name: 'zoomIn', label: 'Zoom In' }, //Ctrl+(Numpad)/Alt+Mousewheel
-    { name: 'zoomOut', label: 'Zoom Out' } //Ctrl-(Numpad)/Alt+Mousewheel
+    //{ name: 'zoomIn', label: 'Zoom In' }, //Ctrl+(Numpad)/Alt+Mousewheel
+    //{ name: 'zoomOut', label: 'Zoom Out' } //Ctrl-(Numpad)/Alt+Mousewheel
   ];
   viewCommands.forEach(action => {
     app.commands.addCommand('drawio:command/' + action.name, {
@@ -679,6 +715,56 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
       }
     });
   });
+  app.commands.addCommand('drawio:command/zoomIn', {
+    label: 'Zoom In',
+    caption: 'Zoom In (Ctrl+(Numpad)/Alt+Mousewheel)',
+    icon: zoominIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('zoomIn').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('zoomIn').funct();
+      }
+    }
+  });
+  app.commands.addCommand('drawio:command/zoomOut', {
+    label: 'Zoom Out',
+    caption: 'Zoom Out (Ctrl-(Numpad)/Alt+Mousewheel)',
+    icon: zoomoutIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('zoomOut').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('zoomOut').funct();
+      }
+    }
+  });
 
   // Arrange MENU
   //Not Working:
@@ -699,8 +785,8 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
   //  group, ungroup, removeFromGroup
   //  clearWaypoints, autosize
   const arrangeCommands = [
-    { name: 'toFront', label: 'To Front' }, //Ctrl+Shift+F
-    { name: 'toBack', label: 'To Back' }, //Ctrl+Shift+B
+    //{ name: 'toFront', label: 'To Front' }, //Ctrl+Shift+F
+    //{ name: 'toBack', label: 'To Back' }, //Ctrl+Shift+B
     { name: 'rotation', label: 'Rotation' },
     { name: 'turn', label: 'Rotate 90⁰/Reverse' }, //Ctrl+R
     { name: 'home', label: 'Home' },
@@ -742,6 +828,56 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
         }
       }
     });
+  });
+  app.commands.addCommand('drawio:command/toFront', {
+    label: 'To Front',
+    caption: 'To Front (Ctrl+Shift+F)',
+    icon: toFrontIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('toFront').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('toFront').funct();
+      }
+    }
+  });
+  app.commands.addCommand('drawio:command/toBack', {
+    label: 'To Back',
+    caption: 'To Back (Ctrl+Shift+B)',
+    icon: toBackIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('toBack').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('toBack').funct();
+      }
+    }
   });
 
   //Direction
@@ -1129,6 +1265,81 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
         }
       }
     });
+  });
+  app.commands.addCommand('drawio:command/fillColor', {
+    label: 'Fill Color',
+    caption: 'Fill Color',
+    icon: fillColorIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('fillColor').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('fillColor').funct();
+      }
+    }
+  });
+  app.commands.addCommand('drawio:command/strokeColor', {
+    label: 'Fill Stroke Color',
+    caption: 'Fill Stroke Color',
+    icon: strokeColorIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('strokeColor').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('strokeColor').funct();
+      }
+    }
+  });
+  app.commands.addCommand('drawio:command/shadow', {
+    label: 'Shadow',
+    caption: 'Shadow',
+    icon: shadowIcon,
+    isEnabled: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        return wdg.getAction('shadow').enabled;
+      } else {
+        return false;
+      }
+    },
+    execute: () => {
+      if (
+        tracker.currentWidget !== null &&
+        tracker.currentWidget === app.shell.currentWidget
+      ) {
+        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        wdg.getAction('shadow').funct();
+      }
+    }
   });
 
   /**************************************************************************************
