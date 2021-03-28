@@ -30,16 +30,13 @@ import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 
 import { ILauncher } from '@jupyterlab/launcher';
 
-import {
-  undoIcon,
-  redoIcon,
-} from '@jupyterlab/ui-components';
+import { undoIcon, redoIcon } from '@jupyterlab/ui-components';
 
 import { CommandRegistry } from '@lumino/commands';
 
 import { Token } from '@lumino/coreutils';
 
-import { 
+import {
   zoominIcon,
   zoomoutIcon,
   deleteIcon,
@@ -672,7 +669,7 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
     { name: 'guides', label: 'Guides' },
     { name: 'connectionArrows', label: 'Connection Arrows' }, //Alt+Shift+A
     { name: 'connectionPoints', label: 'Connection Points' }, //Alt+Shift+P
-    { name: 'resetView', label: 'Reset View' }, //Ctrl+H
+    { name: 'resetView', label: 'Reset View' } //Ctrl+H
     //{ name: 'zoomIn', label: 'Zoom In' }, //Ctrl+(Numpad)/Alt+Mousewheel
     //{ name: 'zoomOut', label: 'Zoom Out' } //Ctrl-(Numpad)/Alt+Mousewheel
   ];
@@ -1276,6 +1273,7 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
         tracker.currentWidget === app.shell.currentWidget
       ) {
         const wdg = app.shell.currentWidget as DrawIODocumentWidget;
+        console.debug('fill Color:', wdg.getAction('fillColor').enabled);
         return wdg.getAction('fillColor').enabled;
       } else {
         return false;

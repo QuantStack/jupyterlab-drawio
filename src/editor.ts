@@ -26,10 +26,7 @@ import { Signal } from '@lumino/signaling';
 
 import { DrawIOWidget } from './widget';
 
-import { 
-  formatPanelIcon,
-  plusIcon
-} from './icons';
+import { formatPanelIcon, plusIcon } from './icons';
 
 //import { DrawIOToolbarButton } from './toolbar';
 
@@ -216,51 +213,86 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
       'zoomOut',
       new DrawIOToolbarButton(actions['zoomOut'])
     ); */
-    actions['delete'].addListener('stateChanged', () => this.toolbar.update());
-    this.toolbar.addItem('zoomIn', new CommandToolbarButton({
+
+    const button = new CommandToolbarButton({
       id: 'drawio:command/zoomIn',
       commands: this._commands
-    }));
-    this.toolbar.addItem('zoomOut', new CommandToolbarButton({
-      id: 'drawio:command/zoomOut',
-      commands: this._commands
-    }));
-    
-    this.toolbar.addItem('undo', new CommandToolbarButton({
-      id: 'drawio:command/undo',
-      commands: this._commands
-    }));
-    this.toolbar.addItem('redo', new CommandToolbarButton({
-      id: 'drawio:command/redo',
-      commands: this._commands
-    }));
+    });
+    actions['zoomIn'].addListener('stateChanged', () => button.update());
+    this.toolbar.addItem('zoomIn', button);
+    this.toolbar.addItem(
+      'zoomOut',
+      new CommandToolbarButton({
+        id: 'drawio:command/zoomOut',
+        commands: this._commands
+      })
+    );
 
-    this.toolbar.addItem('delete', new CommandToolbarButton({
-      id: 'drawio:command/delete',
-      commands: this._commands
-    }));
+    this.toolbar.addItem(
+      'undo',
+      new CommandToolbarButton({
+        id: 'drawio:command/undo',
+        commands: this._commands
+      })
+    );
+    this.toolbar.addItem(
+      'redo',
+      new CommandToolbarButton({
+        id: 'drawio:command/redo',
+        commands: this._commands
+      })
+    );
 
-    this.toolbar.addItem('toFront', new CommandToolbarButton({
-      id: 'drawio:command/toFront',
-      commands: this._commands
-    }));
-    this.toolbar.addItem('toBack', new CommandToolbarButton({
-      id: 'drawio:command/toBack',
-      commands: this._commands
-    }));
+    this.toolbar.addItem(
+      'delete',
+      new CommandToolbarButton({
+        id: 'drawio:command/delete',
+        commands: this._commands
+      })
+    );
 
-    this.toolbar.addItem('fillColor', new CommandToolbarButton({
+    this.toolbar.addItem(
+      'toFront',
+      new CommandToolbarButton({
+        id: 'drawio:command/toFront',
+        commands: this._commands
+      })
+    );
+    this.toolbar.addItem(
+      'toBack',
+      new CommandToolbarButton({
+        id: 'drawio:command/toBack',
+        commands: this._commands
+      })
+    );
+
+    const buttonFillColor = new CommandToolbarButton({
       id: 'drawio:command/fillColor',
       commands: this._commands
-    }));
-    this.toolbar.addItem('strokeColor', new CommandToolbarButton({
-      id: 'drawio:command/strokeColor',
+    });
+    console.debug(actions['fillColor']);
+    actions['fillColor'].addListener('stateChanged', () =>
+      buttonFillColor.update()
+    );
+    this.toolbar.addItem('fillColor', buttonFillColor);
+    /* this.toolbar.addItem('fillColor', new CommandToolbarButton({
+      id: 'drawio:command/fillColor',
       commands: this._commands
-    }));
-    this.toolbar.addItem('shadow', new CommandToolbarButton({
-      id: 'drawio:command/shadow',
-      commands: this._commands
-    }));
+    })); */
+    this.toolbar.addItem(
+      'strokeColor',
+      new CommandToolbarButton({
+        id: 'drawio:command/strokeColor',
+        commands: this._commands
+      })
+    );
+    this.toolbar.addItem(
+      'shadow',
+      new CommandToolbarButton({
+        id: 'drawio:command/shadow',
+        commands: this._commands
+      })
+    );
   }
 
   private _commands: CommandRegistry;
