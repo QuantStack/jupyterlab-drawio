@@ -39,7 +39,6 @@ import { Token } from '@lumino/coreutils';
 import {
   zoominIcon,
   zoomoutIcon,
-  deleteIcon,
   toFrontIcon,
   toBackIcon,
   fillColorIcon,
@@ -532,7 +531,7 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
     { name: 'cut', label: 'Cut' }, //Ctrl+X
     { name: 'copy', label: 'Copy' }, //Ctrl+C
     { name: 'paste', label: 'Paste' }, //Ctrl+V
-    //{ name: 'delete', label: 'Delete' },
+    { name: 'delete', label: 'Delete' },
     { name: 'duplicate', label: 'Duplicate' }, //Ctrl+D
     { name: 'editData', label: 'Edit Data...' }, //Ctrl+M
     { name: 'editTooltip', label: 'Edit Tooltip...' },
@@ -619,31 +618,6 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
       ) {
         const wdg = app.shell.currentWidget as DrawIODocumentWidget;
         wdg.getAction('redo').funct();
-      }
-    }
-  });
-  app.commands.addCommand('drawio:command/delete', {
-    label: 'delete',
-    caption: 'Delete',
-    icon: deleteIcon,
-    isEnabled: () => {
-      if (
-        tracker.currentWidget !== null &&
-        tracker.currentWidget === app.shell.currentWidget
-      ) {
-        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
-        return wdg.getAction('delete').enabled;
-      } else {
-        return false;
-      }
-    },
-    execute: () => {
-      if (
-        tracker.currentWidget !== null &&
-        tracker.currentWidget === app.shell.currentWidget
-      ) {
-        const wdg = app.shell.currentWidget as DrawIODocumentWidget;
-        wdg.getAction('delete').funct();
       }
     }
   });

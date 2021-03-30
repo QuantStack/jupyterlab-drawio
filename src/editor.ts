@@ -16,9 +16,9 @@ import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 
 import { MainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
 
-import { CommandToolbarButton } from '@jupyterlab/apputils';
-
 import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
+
+import { undoIcon, redoIcon } from '@jupyterlab/ui-components';
 
 import { CommandRegistry } from '@lumino/commands';
 
@@ -26,9 +26,20 @@ import { Signal } from '@lumino/signaling';
 
 import { DrawIOWidget } from './widget';
 
-import { formatPanelIcon, plusIcon } from './icons';
+import { DrawIOToolbarButton } from './toolbar';
 
-//import { DrawIOToolbarButton } from './toolbar';
+import {
+  formatPanelIcon,
+  plusIcon,
+  zoominIcon,
+  zoomoutIcon,
+  deleteIcon,
+  toFrontIcon,
+  toBackIcon,
+  fillColorIcon,
+  strokeColorIcon,
+  shadowIcon
+} from './icons';
 
 const DIRTY_CLASS = 'jp-mod-dirty';
 
@@ -206,93 +217,45 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     this.toolbar.addItem('ViewDropdown', this._menubar);
 
-    /* actions['zoomIn'].iconCls = 'geSprite geSprite-zoomin';
+    actions['zoomIn'].icon = zoominIcon;
+    actions['zoomIn'].tooltip = 'Zoom In (Ctrl+(Numpad)/Alt+Mousewheel)';
     this.toolbar.addItem('zoomIn', new DrawIOToolbarButton(actions['zoomIn']));
-    actions['zoomOut'].iconCls = 'geSprite geSprite-zoomout';
-    this.toolbar.addItem(
-      'zoomOut',
-      new DrawIOToolbarButton(actions['zoomOut'])
-    ); */
 
-    const button = new CommandToolbarButton({
-      id: 'drawio:command/zoomIn',
-      commands: this._commands
-    });
-    actions['zoomIn'].addListener('stateChanged', () => button.update());
-    this.toolbar.addItem('zoomIn', button);
-    this.toolbar.addItem(
-      'zoomOut',
-      new CommandToolbarButton({
-        id: 'drawio:command/zoomOut',
-        commands: this._commands
-      })
-    );
+    actions['zoomOut'].icon = zoomoutIcon;
+    actions['zoomOut'].tooltip = 'Zoom Out (Ctrl-(Numpad)/Alt+Mousewheel)';
+    this.toolbar.addItem('zoomOut', new DrawIOToolbarButton(actions['zoomOut']));
 
-    this.toolbar.addItem(
-      'undo',
-      new CommandToolbarButton({
-        id: 'drawio:command/undo',
-        commands: this._commands
-      })
-    );
-    this.toolbar.addItem(
-      'redo',
-      new CommandToolbarButton({
-        id: 'drawio:command/redo',
-        commands: this._commands
-      })
-    );
+    actions['undo'].icon = undoIcon;
+    actions['fillColor'].tooltip = 'Undo (Ctrl+Z)';
+    this.toolbar.addItem('undo', new DrawIOToolbarButton(actions['undo']));
+    
+    actions['redo'].icon = redoIcon;
+    actions['redo'].tooltip = 'Redo (Ctrl+Shift+Z)';
+    this.toolbar.addItem('redo', new DrawIOToolbarButton(actions['redo']));
 
-    this.toolbar.addItem(
-      'delete',
-      new CommandToolbarButton({
-        id: 'drawio:command/delete',
-        commands: this._commands
-      })
-    );
+    actions['delete'].icon = deleteIcon;
+    actions['delete'].tooltip = 'Delete';
+    this.toolbar.addItem('delete', new DrawIOToolbarButton(actions['delete']));
 
-    this.toolbar.addItem(
-      'toFront',
-      new CommandToolbarButton({
-        id: 'drawio:command/toFront',
-        commands: this._commands
-      })
-    );
-    this.toolbar.addItem(
-      'toBack',
-      new CommandToolbarButton({
-        id: 'drawio:command/toBack',
-        commands: this._commands
-      })
-    );
+    actions['toFront'].icon = toFrontIcon;
+    actions['toFront'].tooltip = 'To Front (Ctrl+Shift+F)';
+    this.toolbar.addItem('toFront', new DrawIOToolbarButton(actions['toFront']));
 
-    const buttonFillColor = new CommandToolbarButton({
-      id: 'drawio:command/fillColor',
-      commands: this._commands
-    });
-    console.debug(actions['fillColor']);
-    actions['fillColor'].addListener('stateChanged', () =>
-      buttonFillColor.update()
-    );
-    this.toolbar.addItem('fillColor', buttonFillColor);
-    /* this.toolbar.addItem('fillColor', new CommandToolbarButton({
-      id: 'drawio:command/fillColor',
-      commands: this._commands
-    })); */
-    this.toolbar.addItem(
-      'strokeColor',
-      new CommandToolbarButton({
-        id: 'drawio:command/strokeColor',
-        commands: this._commands
-      })
-    );
-    this.toolbar.addItem(
-      'shadow',
-      new CommandToolbarButton({
-        id: 'drawio:command/shadow',
-        commands: this._commands
-      })
-    );
+    actions['toBack'].icon = toBackIcon;
+    actions['toBack'].tooltip = 'To Back (Ctrl+Shift+B)';
+    this.toolbar.addItem('toBack', new DrawIOToolbarButton(actions['toBack']));
+
+    actions['fillColor'].icon = fillColorIcon;
+    actions['fillColor'].tooltip = 'Fill Color';
+    this.toolbar.addItem('fillColor', new DrawIOToolbarButton(actions['fillColor']));
+    
+    actions['strokeColor'].icon = strokeColorIcon;
+    actions['strokeColor'].tooltip = 'Fill Stroke Color';
+    this.toolbar.addItem('strokeColor', new DrawIOToolbarButton(actions['strokeColor']));
+    
+    actions['shadow'].icon = shadowIcon;
+    actions['shadow'].tooltip = 'Shadow';
+    this.toolbar.addItem('shadow', new DrawIOToolbarButton(actions['shadow']));
   }
 
   private _commands: CommandRegistry;
