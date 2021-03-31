@@ -223,12 +223,15 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     actions['zoomOut'].icon = zoomoutIcon;
     actions['zoomOut'].tooltip = 'Zoom Out (Ctrl-(Numpad)/Alt+Mousewheel)';
-    this.toolbar.addItem('zoomOut', new DrawIOToolbarButton(actions['zoomOut']));
+    this.toolbar.addItem(
+      'zoomOut',
+      new DrawIOToolbarButton(actions['zoomOut'])
+    );
 
     actions['undo'].icon = undoIcon;
     actions['fillColor'].tooltip = 'Undo (Ctrl+Z)';
     this.toolbar.addItem('undo', new DrawIOToolbarButton(actions['undo']));
-    
+
     actions['redo'].icon = redoIcon;
     actions['redo'].tooltip = 'Redo (Ctrl+Shift+Z)';
     this.toolbar.addItem('redo', new DrawIOToolbarButton(actions['redo']));
@@ -239,7 +242,10 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     actions['toFront'].icon = toFrontIcon;
     actions['toFront'].tooltip = 'To Front (Ctrl+Shift+F)';
-    this.toolbar.addItem('toFront', new DrawIOToolbarButton(actions['toFront']));
+    this.toolbar.addItem(
+      'toFront',
+      new DrawIOToolbarButton(actions['toFront'])
+    );
 
     actions['toBack'].icon = toBackIcon;
     actions['toBack'].tooltip = 'To Back (Ctrl+Shift+B)';
@@ -247,12 +253,18 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     actions['fillColor'].icon = fillColorIcon;
     actions['fillColor'].tooltip = 'Fill Color';
-    this.toolbar.addItem('fillColor', new DrawIOToolbarButton(actions['fillColor']));
-    
+    this.toolbar.addItem(
+      'fillColor',
+      new DrawIOToolbarButton(actions['fillColor'])
+    );
+
     actions['strokeColor'].icon = strokeColorIcon;
     actions['strokeColor'].tooltip = 'Fill Stroke Color';
-    this.toolbar.addItem('strokeColor', new DrawIOToolbarButton(actions['strokeColor']));
-    
+    this.toolbar.addItem(
+      'strokeColor',
+      new DrawIOToolbarButton(actions['strokeColor'])
+    );
+
     actions['shadow'].icon = shadowIcon;
     actions['shadow'].tooltip = 'Shadow';
     this.toolbar.addItem('shadow', new DrawIOToolbarButton(actions['shadow']));
