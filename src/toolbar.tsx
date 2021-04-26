@@ -16,24 +16,14 @@ export class DrawIOToolbarButton extends ReactWidget {
   }
 
   render(): JSX.Element {
-    const onClick = (): void => {
-      this._action.funct();
-    };
-
-    const icon = this._action.iconCls || '';
-    const label = this._action.iconCls ? '' : this._action.label || '';
-    const shortcut = this._action.shortcut || '';
-    const tooltip = label + ' (' + shortcut + ')';
-    const enabled = this._action.enabled;
-
     return (
       <ToolbarButtonComponent
-        onClick={onClick}
+        label={this._action.label}
+        tooltip={this._action.tooltip}
+        icon={this._action.icon}
+        enabled={this._action.enabled}
         actualOnClick={true}
-        tooltip={tooltip}
-        label={label}
-        iconClass={icon}
-        enabled={enabled}
+        onClick={this._action.funct}
       />
     );
   }

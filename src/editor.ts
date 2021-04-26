@@ -18,6 +18,8 @@ import { MainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
 
 import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
 
+import { undoIcon, redoIcon } from '@jupyterlab/ui-components';
+
 import { CommandRegistry } from '@lumino/commands';
 
 import { Signal } from '@lumino/signaling';
@@ -25,6 +27,19 @@ import { Signal } from '@lumino/signaling';
 import { DrawIOWidget } from './widget';
 
 import { DrawIOToolbarButton } from './toolbar';
+
+import {
+  formatPanelIcon,
+  plusIcon,
+  zoominIcon,
+  zoomoutIcon,
+  deleteIcon,
+  toFrontIcon,
+  toBackIcon,
+  fillColorIcon,
+  strokeColorIcon,
+  shadowIcon
+} from './icons';
 
 const DIRTY_CLASS = 'jp-mod-dirty';
 
@@ -41,12 +56,13 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
     this._menubar = new MainMenu(this._commands);
 
     this._menubar.clearMenus();
+    this.toolbar.addClass('dio-toolbar');
 
     //TODO:
     // Add toolbar actions to change the default style of arrows and conections.
     this._menuView = new JupyterLabMenu({ commands: this._commands });
     this._menuView.menu.title.caption = 'View (Space+Drag to Scroll)';
-    this._menuView.menu.title.iconClass = 'geSprite geSprite-formatpanel';
+    this._menuView.menu.title.icon = formatPanelIcon;
     this._menubar.addMenu(this._menuView.menu, { rank: 1 });
 
     this._menuZoom = new JupyterLabMenu({ commands: this._commands });
@@ -57,7 +73,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     this._menuInsert = new JupyterLabMenu({ commands: this._commands });
     this._menuInsert.menu.title.caption = 'Insert';
-    this._menuInsert.menu.title.iconClass = 'geSprite geSprite-plus';
+    this._menuInsert.menu.title.icon = plusIcon;
     this._menubar.addMenu(this._menuInsert.menu, { rank: 2 });
 
     this.context.ready.then(async value => {
@@ -201,41 +217,56 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     this.toolbar.addItem('ViewDropdown', this._menubar);
 
-    actions['zoomIn'].iconCls = 'geSprite geSprite-zoomin';
+    actions['zoomIn'].icon = zoominIcon;
+    actions['zoomIn'].tooltip = 'Zoom In (Ctrl+(Numpad)/Alt+Mousewheel)';
     this.toolbar.addItem('zoomIn', new DrawIOToolbarButton(actions['zoomIn']));
-    actions['zoomOut'].iconCls = 'geSprite geSprite-zoomout';
+
+    actions['zoomOut'].icon = zoomoutIcon;
+    actions['zoomOut'].tooltip = 'Zoom Out (Ctrl-(Numpad)/Alt+Mousewheel)';
     this.toolbar.addItem(
       'zoomOut',
       new DrawIOToolbarButton(actions['zoomOut'])
     );
 
-    actions['undo'].iconCls = 'geSprite geSprite-undo';
+    actions['undo'].icon = undoIcon;
+    actions['fillColor'].tooltip = 'Undo (Ctrl+Z)';
     this.toolbar.addItem('undo', new DrawIOToolbarButton(actions['undo']));
-    actions['redo'].iconCls = 'geSprite geSprite-redo';
+
+    actions['redo'].icon = redoIcon;
+    actions['redo'].tooltip = 'Redo (Ctrl+Shift+Z)';
     this.toolbar.addItem('redo', new DrawIOToolbarButton(actions['redo']));
 
-    actions['delete'].iconCls = 'geSprite geSprite-delete';
+    actions['delete'].icon = deleteIcon;
+    actions['delete'].tooltip = 'Delete';
     this.toolbar.addItem('delete', new DrawIOToolbarButton(actions['delete']));
 
-    actions['toFront'].iconCls = 'geSprite geSprite-tofront';
+    actions['toFront'].icon = toFrontIcon;
+    actions['toFront'].tooltip = 'To Front (Ctrl+Shift+F)';
     this.toolbar.addItem(
       'toFront',
       new DrawIOToolbarButton(actions['toFront'])
     );
-    actions['toBack'].iconCls = 'geSprite geSprite-toback';
+
+    actions['toBack'].icon = toBackIcon;
+    actions['toBack'].tooltip = 'To Back (Ctrl+Shift+B)';
     this.toolbar.addItem('toBack', new DrawIOToolbarButton(actions['toBack']));
 
-    actions['fillColor'].iconCls = 'geSprite geSprite-fillcolor';
+    actions['fillColor'].icon = fillColorIcon;
+    actions['fillColor'].tooltip = 'Fill Color';
     this.toolbar.addItem(
       'fillColor',
       new DrawIOToolbarButton(actions['fillColor'])
     );
-    actions['strokeColor'].iconCls = 'geSprite geSprite-strokecolor';
+
+    actions['strokeColor'].icon = strokeColorIcon;
+    actions['strokeColor'].tooltip = 'Fill Stroke Color';
     this.toolbar.addItem(
       'strokeColor',
       new DrawIOToolbarButton(actions['strokeColor'])
     );
-    actions['shadow'].iconCls = 'geSprite geSprite-shadow';
+
+    actions['shadow'].icon = shadowIcon;
+    actions['shadow'].tooltip = 'Shadow';
     this.toolbar.addItem('shadow', new DrawIOToolbarButton(actions['shadow']));
   }
 
