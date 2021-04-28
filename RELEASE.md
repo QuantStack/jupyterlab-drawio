@@ -19,14 +19,13 @@ git clean -fdx
 
 Make sure the `dist/` folder is empty.
 
-1. If the JupyterLab extension has changed, make sure to bump the version number in `./packages/jupyterlab-gridstack/package.json`
-2. Update [package.json](./package.json) and [binder/environment.yml](./binder/environment.yml) with the new version number
-3. `python setup.py sdist bdist_wheel`
-4. Double check the size of the bundles in the `dist/` folder
-5. Run the tests
-6. Make sure the JupyterLab extension is correctly bundled in source distribution
-7. `export TWINE_USERNAME=mypypi_username`
-8. `twine upload dist/*`
+1. Update [package.json](./package.json) and [binder/environment.yml](./binder/environment.yml) with the new version number
+2. `python setup.py sdist bdist_wheel`
+3. Double check the size of the bundles in the `dist/` folder
+4. Run the tests
+5. Make sure the JupyterLab extension is correctly bundled in source distribution
+6. `export TWINE_USERNAME=mypypi_username`
+7. `twine upload dist/*`
 
 # Making a new release of jupyterlab-drawio
 
@@ -36,6 +35,7 @@ However we also publish it to `npm` to:
 
 - let other third-party extensions depend on `jupyterlab-drawio`
 - let users install from source if they would like to
+- bundled the extension into the JupyterLab app
 
 ## Releasing on npm
 
