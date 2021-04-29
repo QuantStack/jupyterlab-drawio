@@ -35,7 +35,7 @@ However we also publish it to `npm` to:
 
 - let other third-party extensions depend on `jupyterlab-drawio`
 - let users install from source if they would like to
-- bundled the extension into the JupyterLab app
+- bundle the extension into the JupyterLab app
 
 ## Releasing on npm
 
