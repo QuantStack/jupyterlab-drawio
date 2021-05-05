@@ -4,18 +4,29 @@
 
 A JupyterLab extension for embedding drawio / mxgraph.
 
-
-
 ## Requirements
 
 * JupyterLab >= 3.0
 
 ## Install
 
+`jupyterlab-drawio` can be installed with [`mamba`](https://github.com/mamba-org/mamba):
+
+```bash
+mamba install -c conda-forge jupyterlab-drawio
+```
+
+With `conda`:
+
+```bash
+conda install -c conda-forge jupyterlab-drawio
+```
+
+With `pip`:
+
 ```bash
 pip install jupyterlab-drawio
 ```
-
 
 ## Contributing
 
