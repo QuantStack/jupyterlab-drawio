@@ -46,9 +46,9 @@ import {
   shadowIcon
 } from './icons';
 
-import { DrawIODocumentWidget } from './editor';
+import { DrawIODocumentWidget } from './widget';
 
-import { DrawIOFactory } from './factory';
+import { DrawIOWidgetFactory, DrawIODocumentModelFactory } from './factory';
 
 /**
  * The name of the factory that creates editor widgets.
@@ -93,14 +93,15 @@ function activate(
     name: widget => widget.context.path
   });
 
-  const factory = new DrawIOFactory({
+  const widgetFactory = new DrawIOWidgetFactory({
     name: FACTORY,
+    modelName: 'dio',
     fileTypes: ['dio', 'drawio'],
     defaultFor: ['dio', 'drawio'],
     commands: app.commands
   });
 
-  factory.widgetCreated.connect((sender, widget) => {
+  widgetFactory.widgetCreated.connect((sender, widget) => {
     widget.title.icon = 'jp-MaterialIcon jp-ImageIcon'; // TODO change
 
     // Notify the instance tracker if restore data needs to update.
@@ -109,7 +110,10 @@ function activate(
     });
     tracker.add(widget);
   });
-  app.docRegistry.addWidgetFactory(factory);
+  app.docRegistry.addWidgetFactory(widgetFactory);
+  
+  const modelFactory = new DrawIODocumentModelFactory();
+  app.docRegistry.addModelFactory(modelFactory);
 
   // register the filetype
   app.docRegistry.addFileType({
