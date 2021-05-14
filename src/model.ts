@@ -14,7 +14,7 @@
 
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 
-import { ISharedDocument, YFile } from '@jupyterlab/shared-models';
+import { ISharedFile, YDocument, YFile, Delta } from '@jupyterlab/shared-models';
 
 import { IChangedArgs } from '@jupyterlab/coreutils';
 
@@ -24,6 +24,14 @@ import { PartialJSONValue, ReadonlyPartialJSONValue } from '@lumino/coreutils';
 
 import { ISignal, Signal } from '@lumino/signaling';
 
+import {
+	XmlFragment,
+	XmlElement,
+	XmlText,
+	YEvent,
+	YXmlEvent
+} from 'yjs';
+
 
 export class DrawIODocumentModel implements DocumentRegistry.IModel {
 	
@@ -32,7 +40,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
    */
 	constructor(languagePreference?: string, modelDB?: IModelDB) {
 		this.modelDB = modelDB || new ModelDB();
-		console.debug(this.modelDB);
   }
 
 	get dirty(): boolean {
@@ -67,7 +74,7 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
 	
 	readonly modelDB: IModelDB;
 
-	readonly sharedModel: ISharedDocument = YFile.create();
+	readonly sharedModel: ISharedFile = YFile.create();
 	
 	dispose(): void {
 		this._isDisposed = true;
@@ -75,13 +82,14 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
 
 	toString(): string {
 		// TODO: Return content from shared model
-		console.warn("toString(): Not implemented");
-		return '';
+		//console.info("DrawIODocumentModel.toString():", this.sharedModel.getSource());
+		return this.sharedModel.getSource();
 	}
 	
 	fromString(value: string): void {
 		// TODO: Add content to shared model
-		console.warn("fromString(): Not implemented");
+		//console.info("DrawIODocumentModel.fromString():", value);
+		this.sharedModel.setSource(value);
 	}
 	
 	toJSON(): PartialJSONValue {
@@ -102,4 +110,76 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
 	private _isDisposed = false;
 	private _contentChanged = new Signal<this, void>(this);
 	private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
+}
+
+export type XMLChange = {
+  graphChanged?: Delta<YXmlEvent>;
+  rootChanged?: Delta<YXmlEvent>;
+};
+
+export class XMLModel extends YDocument<XMLChange> {
+	constructor() {
+    super();
+		this._mxGraphModel = this.ydoc.getXmlFragment('mxGraphModel');
+		this._root = new XmlElement();
+		this._mxGraphModel.observeDeep(this._modelObserver);
+		this.transact(() => {
+			this._mxGraphModel.insert(0, [this._root]);
+		});
+  }
+
+  /**
+   * Handle a change to the _mxGraphModel.
+   */
+  private _modelObserver = (events: YEvent[]) => {
+    const changes: XMLChange = {};
+    //changes.graphChanged = events.find();.delta as any;
+    this._changed.emit(changes);
+  };
+
+  public static create(): XMLModel {
+    return new XMLModel();
+  }
+
+  /**
+   * Gets cell's source.
+   *
+   * @returns Cell's source.
+   */
+  public getGraphModel(): string {
+    return this._mxGraphModel.toString();
+  }
+
+  /**
+   * Sets cell's source.
+   *
+   * @param value: New source.
+   */
+  public setSource(value: string): void {
+    this.transact(() => {
+      const text = this._root;
+      text.delete(0, text.length);
+      text.insert(0, [new XmlText(value)]);
+    });
+  }
+
+  /**
+   * Replace content from `start' to `end` with `value`.
+   *
+   * @param start: The start index of the range to replace (inclusive).
+   *
+   * @param end: The end index of the range to replace (exclusive).
+   *
+   * @param value: New source (optional).
+   */
+  public updateSource(start: number, end: number, value = ''): void {
+    this.transact(() => {
+      const source = this._root;
+      source.delete(start, end - start);
+      source.insert(start, [new XmlText(value)]);
+    });
+  }
+
+  private _mxGraphModel: XmlFragment;
+	private _root: XmlElement;
 }

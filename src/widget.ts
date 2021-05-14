@@ -83,16 +83,14 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget, DrawIODoc
 
       this._onTitleChanged();
       this._addToolbarItems();
-      this.content.setContent(this.context.model.toString());
       this._handleDirtyStateNew();
 
-      this.context.pathChanged.connect(this._onTitleChanged, this);
-      this.context.model.contentChanged.connect(this._onContentChanged, this);
       this.context.model.stateChanged.connect(
         this._onModelStateChangedNew,
         this
       );
-      this.content.graphChanged.connect(this._saveToContext, this);
+
+      this.context.pathChanged.connect(this._onTitleChanged, this);
     });
   }
 
@@ -164,14 +162,6 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget, DrawIODoc
    */
   private _onTitleChanged(): void {
     this.title.label = PathExt.basename(this.context.localPath);
-  }
-
-  private _onContentChanged(): void {
-    this.content.setContent(this.context.model.toString());
-  }
-
-  private _saveToContext(emiter: DrawIOWidget, content: string): void {
-    this.context.model.fromString(content);
   }
 
   private _onModelStateChangedNew(

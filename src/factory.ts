@@ -33,7 +33,7 @@ export class DrawIOWidgetFactory extends ABCWidgetFactory<
     return new DrawIODocumentWidget({
       context,
       commands: this._commands,
-      content: new DrawIOWidget()
+      content: new DrawIOWidget(context.model)
     });
   }
 

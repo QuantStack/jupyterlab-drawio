@@ -1,7 +1,5 @@
 import { Widget } from '@lumino/widgets';
 
-import { Signal, ISignal } from '@lumino/signaling';
-
 import { PromiseDelegate } from '@lumino/coreutils';
 
 /*
@@ -14,6 +12,8 @@ import * as MX from './drawio/modulated.js';
 import './drawio/css/common.css';
 
 import './drawio/styles/grapheditor.css';
+
+import { DrawIODocumentModel } from './model';
 
 import { grapheditorTxt, defaultXml } from './pack';
 
@@ -42,17 +42,19 @@ export class DrawIOWidget extends Widget {
    *
    * @param info - The `DashboardView` metadata.
    */
-  constructor() {
+  constructor(model: DrawIODocumentModel) {
     super();
-    void Private.ensureMx().then(mx => this._loadDrawIO(mx));
-    //this._loadDrawIO(MX);
+    this._model = model;
+    Private.ensureMx().then(mx => {
+      this._loadDrawIO(mx);
+      this._model.sharedModel.changed.connect(this._onContentChanged, this);
+    });
   }
 
   /**
    * Dispose of the resources held by the widget.
    */
   dispose(): void {
-    Signal.clearData(this);
     this._editor.destroy();
     super.dispose();
   }
@@ -62,10 +64,6 @@ export class DrawIOWidget extends Widget {
    */
   get ready(): PromiseDelegate<void> {
     return this._ready;
-  }
-
-  get graphChanged(): ISignal<this, string> {
-    return this._graphChanged;
   }
 
   get mx(): any {
@@ -86,21 +84,6 @@ export class DrawIOWidget extends Widget {
 
   getActions(): any {
     return this._editor.actions.actions;
-  }
-
-  setContent(newValue: string): void {
-    if (this._editor === undefined) {
-      return;
-    }
-
-    const oldValue = this._mx.mxUtils.getXml(this._editor.editor.getGraphXml());
-
-    if (oldValue !== newValue && !this._editor.editor.graph.isEditing()) {
-      if (newValue.length) {
-        const xml = this._mx.mxUtils.parseXml(newValue);
-        this._editor.editor.setGraphXml(xml.documentElement);
-      }
-    }
   }
 
   //Direction
@@ -369,6 +352,22 @@ export class DrawIOWidget extends Widget {
     }, true);
   }
 
+  private _onContentChanged(): void {
+    const newValue = this._model.sharedModel.getSource();
+    if (this._editor === undefined) {
+      return;
+    }
+
+    const oldValue = this._mx.mxUtils.getXml(this._editor.editor.getGraphXml());
+
+    if (oldValue !== newValue && !this._editor.editor.graph.isEditing()) {
+      if (newValue.length) {
+        const xml = this._mx.mxUtils.parseXml(newValue);
+        this._editor.editor.setGraphXml(xml.documentElement);
+      }
+    }
+  }
+
   private _loadDrawIO(mx: Private.MX): void {
     this._mx = mx;
 
@@ -389,9 +388,12 @@ export class DrawIOWidget extends Widget {
     this._editor = new this._mx.EditorUi(new Editor(false, themes), this.node);
     this._editor.refresh();
 
+    //console.debug(this._mx.Editor);
+    //console.debug(this._editor.editor.graph.model);
     this._editor.editor.graph.model.addListener(
       this._mx.mxEvent.NOTIFY,
       (sender: any, evt: any) => {
+        //console.debug("Event:", evt);
         const changes: any[] = evt.properties.changes;
         for (let i = 0; i < changes.length; i++) {
           if (changes[i].root) {
@@ -405,9 +407,28 @@ export class DrawIOWidget extends Widget {
 
         const graph = this._editor.editor.getGraphXml();
         const xml = this._mx.mxUtils.getXml(graph);
-        this._graphChanged.emit(xml);
+        this._model.sharedModel.setSource(xml);
       }
     );
+
+    /* this._editor.editor.graph.model.addListener(
+      this._mx.mxEvent.NOTIFY,
+      (sender: any, evt: any) => {
+        var changes = evt.getProperty('edit').changes;
+
+        for (var i = 0; i < changes.length; i++)
+        {
+          var change = changes[i];
+
+          if (
+            change instanceof this._mx.mxChildChange &&
+            change.change.previous == null
+          ) {
+            this._editor.editor.graph.startEditingAtCell(change.child);
+            break;
+          }
+        }
+    }); */
 
     this._promptSpacing = this._mx.mxUtils.bind(
       this,
@@ -426,15 +447,18 @@ export class DrawIOWidget extends Widget {
         dlg.init();
       }
     );
-
+    
+    const data = this._model.sharedModel.getSource();
+    const xml = this._mx.mxUtils.parseXml(data);
+    this._editor.editor.setGraphXml(xml.documentElement);
     this._ready.resolve(void 0);
   }
 
   private _editor: any;
   private _mx: Private.MX;
   private _promptSpacing: any;
+  private _model: DrawIODocumentModel;
   private _ready = new PromiseDelegate<void>();
-  private _graphChanged = new Signal<this, string>(this);
 }
 
 /**
