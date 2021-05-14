@@ -111,7 +111,7 @@ function activate(
     tracker.add(widget);
   });
   app.docRegistry.addWidgetFactory(widgetFactory);
-  
+
   const modelFactory = new DrawIODocumentModelFactory();
   app.docRegistry.addModelFactory(modelFactory);
 

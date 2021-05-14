@@ -14,7 +14,12 @@
 
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 
-import { ISharedDocument, YFile } from '@jupyterlab/shared-models';
+import {
+  ISharedDocument,
+  YDocument,
+  Delta,
+  MapChange
+} from '@jupyterlab/shared-models';
 
 import { IChangedArgs } from '@jupyterlab/coreutils';
 
@@ -24,82 +29,225 @@ import { PartialJSONValue, ReadonlyPartialJSONValue } from '@lumino/coreutils';
 
 import { ISignal, Signal } from '@lumino/signaling';
 
+import * as Y from 'yjs';
+
+import { parse } from 'fast-xml-parser';
 
 export class DrawIODocumentModel implements DocumentRegistry.IModel {
-	
-	/**
+  /**
    * Construct a new DrawIODocumentModel.
    */
-	constructor(languagePreference?: string, modelDB?: IModelDB) {
-		this.modelDB = modelDB || new ModelDB();
-		console.debug(this.modelDB);
+  constructor(languagePreference?: string, modelDB?: IModelDB) {
+    this.modelDB = modelDB || new ModelDB();
   }
 
-	get dirty(): boolean {
-		return this._dirty;
-	}
-	set dirty(value: boolean) {
-		this._dirty = value;
-	}
+  get dirty(): boolean {
+    return this._dirty;
+  }
+  set dirty(value: boolean) {
+    this._dirty = value;
+  }
 
-	get readOnly(): boolean {
-		return this._readOnly;
-	}
-	set readOnly(value: boolean) {
-		this._readOnly = value;
-	}
+  get readOnly(): boolean {
+    return this._readOnly;
+  }
+  set readOnly(value: boolean) {
+    this._readOnly = value;
+  }
 
-	get isDisposed(): boolean {
-		return this._isDisposed;
-	}
-	
-	get contentChanged(): ISignal<this, void> {
-		return this._contentChanged;
-	}
-	
-	get stateChanged(): ISignal<this, IChangedArgs<any, any, string>> {
-		return this._stateChanged;
-	}
+  get isDisposed(): boolean {
+    return this._isDisposed;
+  }
 
-	readonly defaultKernelName: string;
-	
-	readonly defaultKernelLanguage: string;
-	
-	readonly modelDB: IModelDB;
+  get contentChanged(): ISignal<this, void> {
+    return this._contentChanged;
+  }
 
-	readonly sharedModel: ISharedDocument = YFile.create();
-	
-	dispose(): void {
-		this._isDisposed = true;
-	}
+  get stateChanged(): ISignal<this, IChangedArgs<any, any, string>> {
+    return this._stateChanged;
+  }
 
-	toString(): string {
-		// TODO: Return content from shared model
-		console.warn("toString(): Not implemented");
-		return '';
-	}
-	
-	fromString(value: string): void {
-		// TODO: Add content to shared model
-		console.warn("fromString(): Not implemented");
-	}
-	
-	toJSON(): PartialJSONValue {
-		// TODO: Return content from shared model
-		console.warn("toJSON(): Not implemented");
-		return {};
-	}
-	
-	fromJSON(value: ReadonlyPartialJSONValue): void {
-		// TODO: Add content to shared model
-		console.warn("fromJSON(): Not implemented");
-	}
-	
-	initialize(): void {}
-	
-	private _dirty = false;
-	private _readOnly = false;
-	private _isDisposed = false;
-	private _contentChanged = new Signal<this, void>(this);
-	private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
+  readonly defaultKernelName: string;
+
+  readonly defaultKernelLanguage: string;
+
+  readonly modelDB: IModelDB;
+
+  readonly sharedModel: ISharedXMLFile = XMLFile.create();
+
+  dispose(): void {
+    this._isDisposed = true;
+  }
+
+  toString(): string {
+    // TODO: Return content from shared model
+    console.info(
+      'DrawIODocumentModel.toString():',
+      this.sharedModel.getSource()
+    );
+    throw new Error('not implemented');
+    return this.sharedModel.getSource();
+  }
+
+  fromString(value: string): void {
+    // TODO: Add content to shared model
+    //console.info("DrawIODocumentModel.fromString():", value);
+    this.sharedModel.setSource(value);
+  }
+
+  toJSON(): PartialJSONValue {
+    // TODO: Return content from shared model
+    console.warn('toJSON(): Not implemented');
+    return {};
+  }
+
+  fromJSON(value: ReadonlyPartialJSONValue): void {
+    // TODO: Add content to shared model
+    console.warn('fromJSON(): Not implemented');
+  }
+
+  initialize(): void {
+    console.warn('fromJSON(): Not implemented');
+  }
+
+  private _dirty = false;
+  private _readOnly = false;
+  private _isDisposed = false;
+  private _contentChanged = new Signal<this, void>(this);
+  private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
+}
+
+export type XMLChange = {
+  graphChanged?: Delta<Y.YXmlEvent>;
+  rootChanged?: Delta<Y.YXmlEvent>;
+  contextChange?: MapChange;
+};
+
+/**
+ * Text/Markdown/Code files are represented as ISharedFile
+ */
+export interface ISharedXMLFile extends ISharedDocument {
+  /**
+   * The changed signal.
+   */
+  readonly changed: ISignal<this, XMLChange>;
+  /**
+   * Gets cell's source.
+   *
+   * @returns Cell's source.
+   */
+  getSource(): string;
+
+  /**
+   * Sets cell's source.
+   *
+   * @param value: New source.
+   */
+  setSource(value: string): void;
+
+  /**
+   * Replace content from `start' to `end` with `value`.
+   *
+   * @param start: The start index of the range to replace (inclusive).
+   *
+   * @param end: The end index of the range to replace (exclusive).
+   *
+   * @param value: New source (optional).
+   */
+  updateSource(start: number, end: number, value?: string): void;
+}
+
+export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
+  constructor() {
+    super();
+    console.debug('XMLFile:', this.ydoc);
+    this._mxGraphAttributes = this.ydoc.getMap('attributes');
+    this._root = this.ydoc.getXmlFragment('root');
+    console.debug(this._root instanceof Y.XmlFragment);
+    this._root.insert(0, [new Y.XmlElement('cell')]);
+
+    this._mxGraphAttributes.observeDeep(this._modelObserver);
+    this._root.observeDeep(this._cellsObserver);
+  }
+
+  /**
+   * Handle a change to the _mxGraphModel.
+   */
+  private _modelObserver = (events: Y.YEvent[]): void => {
+    const changes: XMLChange = {};
+    //changes.graphChanged = events.find();.delta as any;
+    this._changed.emit(changes);
+  };
+
+  /**
+   * Handle a change to the _mxGraphModel.
+   */
+  private _cellsObserver = (events: Y.YEvent[]): void => {
+    const changes: XMLChange = {};
+    //changes.graphChanged = events.find();.delta as any;
+    this._changed.emit(changes);
+  };
+
+  public static create(): XMLFile {
+    return new XMLFile();
+  }
+
+  /**
+   * Gets cell's source.
+   *
+   * @returns Cell's source.
+   */
+  public getSource(): string {
+    const serializer = new XMLSerializer();
+
+    const doc = new Y.XmlElement('mxGraphModel');
+
+    this._mxGraphAttributes.forEach((key, value) => {
+      console.debug('key:', key, 'value:', value);
+      doc.setAttribute(key, value);
+    });
+
+    const root = this._root.get(0).clone() as Y.XmlElement;
+    root.nodeName = 'root';
+    doc.insert(0, [root]);
+
+    return serializer.serializeToString(doc.toDOM());
+  }
+
+  /**
+   * Sets cell's source.
+   *
+   * @param value: New source.
+   */
+  public setSource(value: string): void {
+    const doc = parse(value);
+    console.debug('setSource:', doc);
+    this.transact(() => {
+      console.debug(doc['mxGraphModel']);
+      doc['mxGraphModel'].attributes.map((key: string, value: any) => {
+        console.debug(key, value);
+      });
+      //this._source.delete(0, this._source.length);
+      //this._source.insert(0, [new XmlElement(value)]);
+    });
+  }
+
+  /**
+   * Replace content from `start' to `end` with `value`.
+   *
+   * @param start: The start index of the range to replace (inclusive).
+   *
+   * @param end: The end index of the range to replace (exclusive).
+   *
+   * @param value: New source (optional).
+   */
+  public updateSource(start: number, end: number, value = ''): void {
+    this.transact(() => {
+      //this._source.delete(start, end - start);
+      //this._source.insert(0, [new XmlElement(value)]);
+    });
+  }
+
+  private _mxGraphAttributes: Y.Map<any>;
+  private _root: Y.XmlFragment;
 }
