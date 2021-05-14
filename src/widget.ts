@@ -45,8 +45,13 @@ import {
 
 const DIRTY_CLASS = 'jp-mod-dirty';
 
-export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget, DrawIODocumentModel> {
-  constructor(options: DrawIODocumentWidget.IOptions<DrawIOWidget, DrawIODocumentModel>) {
+export class DrawIODocumentWidget extends DocumentWidget<
+  DrawIOWidget,
+  DrawIODocumentModel
+> {
+  constructor(
+    options: DrawIODocumentWidget.IOptions<DrawIOWidget, DrawIODocumentModel>
+  ) {
     super(options);
     // Adding the buttons to the widget toolbar
     // Modify containers style: line ~92700
@@ -79,20 +84,19 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget, DrawIODoc
     this._menubar.addMenu(this._menuInsert.menu, { rank: 2 });
 
     this.context.ready.then(async value => {
+      console.debug('Context ready');
       await this.content.ready.promise;
 
       this._onTitleChanged();
       this._addToolbarItems();
-      this.content.setContent(this.context.model.toString());
       this._handleDirtyStateNew();
 
-      this.context.pathChanged.connect(this._onTitleChanged, this);
-      this.context.model.contentChanged.connect(this._onContentChanged, this);
       this.context.model.stateChanged.connect(
         this._onModelStateChangedNew,
         this
       );
-      this.content.graphChanged.connect(this._saveToContext, this);
+
+      this.context.pathChanged.connect(this._onTitleChanged, this);
     });
   }
 
@@ -164,14 +168,6 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget, DrawIODoc
    */
   private _onTitleChanged(): void {
     this.title.label = PathExt.basename(this.context.localPath);
-  }
-
-  private _onContentChanged(): void {
-    this.content.setContent(this.context.model.toString());
-  }
-
-  private _saveToContext(emiter: DrawIOWidget, content: string): void {
-    this.context.model.fromString(content);
   }
 
   private _onModelStateChangedNew(

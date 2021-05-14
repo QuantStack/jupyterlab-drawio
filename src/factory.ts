@@ -33,7 +33,7 @@ export class DrawIOWidgetFactory extends ABCWidgetFactory<
     return new DrawIODocumentWidget({
       context,
       commands: this._commands,
-      content: new DrawIOWidget()
+      content: new DrawIOWidget(context)
     });
   }
 
@@ -48,14 +48,11 @@ export namespace DrawIOWidgetFactory {
 }
 
 export class DrawIODocumentModelFactory
-	implements DocumentRegistry.IModelFactory<DrawIODocumentModel> {
-
-	constructor() {}
-
-	/**
+  implements DocumentRegistry.IModelFactory<DrawIODocumentModel> {
+  /**
    * The name of the model.
    */
-	get name(): string {
+  get name(): string {
     return 'dio';
   }
 
@@ -73,24 +70,27 @@ export class DrawIODocumentModelFactory
     return 'text';
   }
 
-	/**
+  /**
    * Get whether the model factory has been disposed.
    */
-	get isDisposed(): boolean {
+  get isDisposed(): boolean {
     return this._disposed;
   }
 
-	dispose(): void {
-		this._disposed = true;
-	}
+  dispose(): void {
+    this._disposed = true;
+  }
 
-	preferredLanguage(path: string): string {
-		return '';
-	}
+  preferredLanguage(path: string): string {
+    return '';
+  }
 
-	createNew(languagePreference?: string, modelDB?: IModelDB): DrawIODocumentModel {
-		return new DrawIODocumentModel(languagePreference, modelDB);
-	}
+  createNew(
+    languagePreference?: string,
+    modelDB?: IModelDB
+  ): DrawIODocumentModel {
+    return new DrawIODocumentModel(languagePreference, modelDB);
+  }
 
-	private _disposed = false;
+  private _disposed = false;
 }
