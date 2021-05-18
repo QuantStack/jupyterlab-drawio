@@ -1,6 +1,8 @@
-import { Widget } from '@lumino/widgets';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
 
 import { PromiseDelegate } from '@lumino/coreutils';
+
+import { Widget } from '@lumino/widgets';
 
 /*
 	This is a typing-only import. If you use it directly, the mxgraph content
@@ -42,12 +44,18 @@ export class DrawIOWidget extends Widget {
    *
    * @param info - The `DashboardView` metadata.
    */
-  constructor(model: DrawIODocumentModel) {
+  constructor(context: DocumentRegistry.IContext<DrawIODocumentModel>) {
     super();
-    this._model = model;
-    Private.ensureMx().then(mx => {
-      this._loadDrawIO(mx);
-      this._model.sharedModel.changed.connect(this._onContentChanged, this);
+    this._context = context;
+    this._context.ready.then(value => {
+      console.debug('DrawIOWidget context ready');
+      Private.ensureMx().then(mx => {
+        this._loadDrawIO(mx);
+        this._context.model.sharedModel.changed.connect(
+          this._onContentChanged,
+          this
+        );
+      });
     });
   }
 
@@ -353,7 +361,8 @@ export class DrawIOWidget extends Widget {
   }
 
   private _onContentChanged(): void {
-    const newValue = this._model.sharedModel.getSource();
+    console.debug('_onContentChanged');
+    const newValue = this._context.model.sharedModel.getSource();
     if (this._editor === undefined) {
       return;
     }
@@ -393,7 +402,7 @@ export class DrawIOWidget extends Widget {
     this._editor.editor.graph.model.addListener(
       this._mx.mxEvent.NOTIFY,
       (sender: any, evt: any) => {
-        //console.debug("Event:", evt);
+        console.debug('Event:', evt);
         const changes: any[] = evt.properties.changes;
         for (let i = 0; i < changes.length; i++) {
           if (changes[i].root) {
@@ -407,7 +416,7 @@ export class DrawIOWidget extends Widget {
 
         const graph = this._editor.editor.getGraphXml();
         const xml = this._mx.mxUtils.getXml(graph);
-        this._model.sharedModel.setSource(xml);
+        this._context.model.sharedModel.setSource(xml);
       }
     );
 
@@ -447,8 +456,8 @@ export class DrawIOWidget extends Widget {
         dlg.init();
       }
     );
-    
-    const data = this._model.sharedModel.getSource();
+
+    const data = this._context.model.sharedModel.getSource();
     const xml = this._mx.mxUtils.parseXml(data);
     this._editor.editor.setGraphXml(xml.documentElement);
     this._ready.resolve(void 0);
@@ -457,7 +466,7 @@ export class DrawIOWidget extends Widget {
   private _editor: any;
   private _mx: Private.MX;
   private _promptSpacing: any;
-  private _model: DrawIODocumentModel;
+  private _context: DocumentRegistry.IContext<DrawIODocumentModel>;
   private _ready = new PromiseDelegate<void>();
 }
 

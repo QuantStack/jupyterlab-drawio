@@ -45,8 +45,13 @@ import {
 
 const DIRTY_CLASS = 'jp-mod-dirty';
 
-export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget, DrawIODocumentModel> {
-  constructor(options: DrawIODocumentWidget.IOptions<DrawIOWidget, DrawIODocumentModel>) {
+export class DrawIODocumentWidget extends DocumentWidget<
+  DrawIOWidget,
+  DrawIODocumentModel
+> {
+  constructor(
+    options: DrawIODocumentWidget.IOptions<DrawIOWidget, DrawIODocumentModel>
+  ) {
     super(options);
     // Adding the buttons to the widget toolbar
     // Modify containers style: line ~92700
@@ -79,6 +84,7 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget, DrawIODoc
     this._menubar.addMenu(this._menuInsert.menu, { rank: 2 });
 
     this.context.ready.then(async value => {
+      console.debug('Context ready');
       await this.content.ready.promise;
 
       this._onTitleChanged();
