@@ -104,10 +104,7 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
 
   fromJSON(value: ReadonlyPartialJSONValue): void {
     // TODO: Add content to shared model
-    console.info(
-      'DrawIODocumentModel.fromJSON():',
-      value
-    );
+    console.info('DrawIODocumentModel.fromJSON():', value);
     throw new Error('not implemented');
     this.sharedModel.setSource(value.toString());
   }
@@ -201,14 +198,14 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
    * @returns Cell's source.
    */
   public getSource(): string {
-    let source = "<mxGraphModel";
+    let source = '<mxGraphModel';
     this._mxGraphAttributes.forEach((value, key) => {
       source += ` ${key}="${value}"`;
     });
-    source += "><root>";
+    source += '><root>';
 
-    for (let i=this._root.length-1; i>=0; i--) {
-      let mxCell = "<mxCell";
+    for (let i = this._root.length - 1; i >= 0; i--) {
+      let mxCell = '<mxCell';
       const cell = this._root.get(i) as Y.XmlElement;
       const cellAttrs = cell.getAttributes();
       const cellGeometry = cell.firstChild;
@@ -218,19 +215,21 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
       }
 
       if (cellGeometry) {
-        let mxGeometry = "<mxGeometry";
-        for (const [key, value] of Object.entries(cellGeometry.getAttributes())) {
+        let mxGeometry = '<mxGeometry';
+        for (const [key, value] of Object.entries(
+          cellGeometry.getAttributes()
+        )) {
           mxGeometry += ` ${key}="${value}"`;
         }
         mxCell += `>${mxGeometry} /></mxCell>`;
       } else {
-        mxCell += " />";
+        mxCell += ' />';
       }
 
       source += mxCell;
     }
-    
-    source += "</root></mxGraphModel>";
+
+    source += '</root></mxGraphModel>';
     return source;
   }
 
@@ -243,16 +242,16 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
     const doc = parse(
       value,
       {
-        attrNodeName: "attr",
-        textNodeName: "text",
-        attributeNamePrefix: "",
+        attrNodeName: 'attr',
+        textNodeName: 'text',
+        attributeNamePrefix: '',
         arrayMode: false,
         ignoreAttributes: false,
-        parseAttributeValue: false,
+        parseAttributeValue: false
       },
       true
     );
-    
+
     const attrs = doc['mxGraphModel']['attr'];
     const cells = doc['mxGraphModel']['root']['mxCell'];
 
@@ -266,7 +265,7 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
       }
 
       // Inserting mxCells
-      cells.forEach( (value: any) => {
+      cells.forEach((value: any) => {
         const cellAttrs = value['attr'];
         const cellGeometry = value['mxGeometry'];
 
@@ -285,7 +284,7 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
           }
           mxCell.push([mxGeometry]);
         }
-        
+
         this._root.insert(0, [mxCell]);
       });
     });
