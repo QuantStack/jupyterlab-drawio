@@ -81,11 +81,8 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
 
   toString(): string {
     // TODO: Return content from shared model
-    console.info(
-      'DrawIODocumentModel.toString():',
-      this.sharedModel.getSource()
-    );
-    throw new Error('not implemented');
+    //console.info('DrawIODocumentModel.toString():', this.sharedModel.getSource());
+    //throw new Error('not implemented');
     return this.sharedModel.getSource();
   }
 
@@ -97,17 +94,23 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
 
   toJSON(): PartialJSONValue {
     // TODO: Return content from shared model
-    console.warn('toJSON(): Not implemented');
-    return {};
+    console.info(
+      'DrawIODocumentModel.toJSON():',
+      JSON.parse(this.sharedModel.getSource())
+    );
+    throw new Error('not implemented');
+    return JSON.parse(this.sharedModel.getSource());
   }
 
   fromJSON(value: ReadonlyPartialJSONValue): void {
     // TODO: Add content to shared model
-    console.warn('fromJSON(): Not implemented');
+    console.info('DrawIODocumentModel.fromJSON():', value);
+    throw new Error('not implemented');
+    this.sharedModel.setSource(value.toString());
   }
 
   initialize(): void {
-    console.warn('fromJSON(): Not implemented');
+    //console.warn('initialize(): Not implemented');
   }
 
   private _dirty = false;
@@ -160,11 +163,8 @@ export interface ISharedXMLFile extends ISharedDocument {
 export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
   constructor() {
     super();
-    console.debug('XMLFile:', this.ydoc);
     this._mxGraphAttributes = this.ydoc.getMap('attributes');
     this._root = this.ydoc.getXmlFragment('root');
-    console.debug(this._root instanceof Y.XmlFragment);
-    this._root.insert(0, [new Y.XmlElement('cell')]);
 
     this._mxGraphAttributes.observeDeep(this._modelObserver);
     this._root.observeDeep(this._cellsObserver);
@@ -198,20 +198,39 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
    * @returns Cell's source.
    */
   public getSource(): string {
-    const serializer = new XMLSerializer();
-
-    const doc = new Y.XmlElement('mxGraphModel');
-
-    this._mxGraphAttributes.forEach((key, value) => {
-      console.debug('key:', key, 'value:', value);
-      doc.setAttribute(key, value);
+    let source = '<mxGraphModel';
+    this._mxGraphAttributes.forEach((value, key) => {
+      source += ` ${key}="${value}"`;
     });
+    source += '><root>';
 
-    const root = this._root.get(0).clone() as Y.XmlElement;
-    root.nodeName = 'root';
-    doc.insert(0, [root]);
+    for (let i = this._root.length - 1; i >= 0; i--) {
+      let mxCell = '<mxCell';
+      const cell = this._root.get(i) as Y.XmlElement;
+      const cellAttrs = cell.getAttributes();
+      const cellGeometry = cell.firstChild;
 
-    return serializer.serializeToString(doc.toDOM());
+      for (const [key, value] of Object.entries(cellAttrs)) {
+        mxCell += ` ${key}="${value}"`;
+      }
+
+      if (cellGeometry) {
+        let mxGeometry = '<mxGeometry';
+        for (const [key, value] of Object.entries(
+          cellGeometry.getAttributes()
+        )) {
+          mxGeometry += ` ${key}="${value}"`;
+        }
+        mxCell += `>${mxGeometry} /></mxCell>`;
+      } else {
+        mxCell += ' />';
+      }
+
+      source += mxCell;
+    }
+
+    source += '</root></mxGraphModel>';
+    return source;
   }
 
   /**
@@ -220,15 +239,54 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
    * @param value: New source.
    */
   public setSource(value: string): void {
-    const doc = parse(value);
-    console.debug('setSource:', doc);
+    const doc = parse(
+      value,
+      {
+        attrNodeName: 'attr',
+        textNodeName: 'text',
+        attributeNamePrefix: '',
+        arrayMode: false,
+        ignoreAttributes: false,
+        parseAttributeValue: false
+      },
+      true
+    );
+
+    const attrs = doc['mxGraphModel']['attr'];
+    const cells = doc['mxGraphModel']['root']['mxCell'];
+
     this.transact(() => {
-      console.debug(doc['mxGraphModel']);
-      doc['mxGraphModel'].attributes.map((key: string, value: any) => {
-        console.debug(key, value);
+      // Delete previus attribute entries
+      // this._mxGraphAttributes.entries.forEach( key => this._mxGraphAttributes.delete(key) );
+
+      // Inserting attributes
+      for (const [key, value] of Object.entries(attrs)) {
+        this._mxGraphAttributes.set(key, value);
+      }
+
+      // Inserting mxCells
+      cells.forEach((value: any) => {
+        const cellAttrs = value['attr'];
+        const cellGeometry = value['mxGeometry'];
+
+        const mxCell = new Y.XmlElement('mxCell');
+        // Inserting attributes
+        for (const [key, value] of Object.entries(cellAttrs)) {
+          //console.debug(key, value);
+          mxCell.setAttribute(key, value as string);
+        }
+
+        if (cellGeometry) {
+          const geometryAttrs = cellGeometry['attr'];
+          const mxGeometry = new Y.XmlElement('mxGeometry');
+          for (const [key, value] of Object.entries(geometryAttrs)) {
+            mxGeometry.setAttribute(key, value as string);
+          }
+          mxCell.push([mxGeometry]);
+        }
+
+        this._root.insert(0, [mxCell]);
       });
-      //this._source.delete(0, this._source.length);
-      //this._source.insert(0, [new XmlElement(value)]);
     });
   }
 
