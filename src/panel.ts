@@ -416,7 +416,8 @@ export class DrawIOWidget extends Widget {
 
         const graph = this._editor.editor.getGraphXml();
         const xml = this._mx.mxUtils.getXml(graph);
-        this._context.model.sharedModel.setSource(xml);
+        console.debug("Save model: ", xml);
+        //this._context.model.sharedModel.setSource(xml);
       }
     );
 
@@ -458,6 +459,7 @@ export class DrawIOWidget extends Widget {
     );
 
     const data = this._context.model.sharedModel.getSource();
+    console.debug("Get Model:", data);
     const xml = this._mx.mxUtils.parseXml(data);
     this._editor.editor.setGraphXml(xml.documentElement);
     this._ready.resolve(void 0);
