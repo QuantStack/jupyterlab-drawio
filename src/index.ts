@@ -76,7 +76,7 @@ export default extension;
 function activate(
   app: JupyterFrontEnd,
   browserFactory: IFileBrowserFactory,
-  restorer: ILayoutRestorer,
+  restorer: ILayoutRestorer | null,
   menu: IMainMenu,
   palette: ICommandPalette,
   launcher: ILauncher | null
@@ -87,12 +87,14 @@ function activate(
   const tracker = new WidgetTracker<DrawIODocumentWidget>({ namespace });
 
   // Handle state restoration.
-  restorer.restore(tracker, {
-    command: 'docmanager:open',
-    args: widget => ({ path: widget.context.path, factory: FACTORY }),
-    name: widget => widget.context.path
-  });
-
+  if (restorer) {
+    restorer.restore(tracker, {
+      command: 'docmanager:open',
+      args: widget => ({ path: widget.context.path, factory: FACTORY }),
+      name: widget => widget.context.path
+    });
+  }
+  
   const widgetFactory = new DrawIOWidgetFactory({
     name: FACTORY,
     modelName: 'dio',
@@ -119,7 +121,7 @@ function activate(
   app.docRegistry.addFileType({
     name: 'drawio',
     displayName: 'Diagram',
-    mimeTypes: ['application/dio', 'application/drawio'],
+    mimeTypes: ['text/xml', 'application/drawio', 'application/dio'],
     extensions: ['.dio', '.drawio'],
     iconClass: 'jp-MaterialIcon jp-ImageIcon',
     fileFormat: 'text',

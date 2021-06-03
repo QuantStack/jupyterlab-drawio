@@ -22,8 +22,6 @@ import { undoIcon, redoIcon } from '@jupyterlab/ui-components';
 
 import { CommandRegistry } from '@lumino/commands';
 
-import { Signal } from '@lumino/signaling';
-
 import { DrawIODocumentModel } from './model';
 
 import { DrawIOWidget } from './panel';
@@ -104,7 +102,7 @@ export class DrawIODocumentWidget extends DocumentWidget<
    * Dispose of the resources held by the widget.
    */
   dispose(): void {
-    Signal.clearData(this);
+    this.content.dispose();
     super.dispose();
   }
 
