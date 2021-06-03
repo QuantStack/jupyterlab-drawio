@@ -76,19 +76,22 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   readonly sharedModel: ISharedXMLFile = XMLFile.create();
 
   dispose(): void {
+    if (this._isDisposed) {
+      return;
+    }
     this._isDisposed = true;
+    Signal.clearData(this);
   }
 
   toString(): string {
     // TODO: Return content from shared model
-    //console.info('DrawIODocumentModel.toString():', this.sharedModel.getSource());
-    //throw new Error('not implemented');
+    console.info('DrawIODocumentModel.toString():', this.sharedModel.getSource());
     return this.sharedModel.getSource();
   }
 
   fromString(value: string): void {
     // TODO: Add content to shared model
-    //console.info("DrawIODocumentModel.fromString():", value);
+    console.info("DrawIODocumentModel.fromString():", value);
     this.sharedModel.setSource(value);
   }
 
@@ -174,18 +177,18 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
    * Handle a change to the _mxGraphModel.
    */
   private _modelObserver = (events: Y.YEvent[]): void => {
-    const changes: XMLChange = {};
+    //const changes: XMLChange = {};
     //changes.graphChanged = events.find();.delta as any;
-    this._changed.emit(changes);
+    //this._changed.emit(changes);
   };
 
   /**
    * Handle a change to the _mxGraphModel.
    */
   private _cellsObserver = (events: Y.YEvent[]): void => {
-    const changes: XMLChange = {};
+    //const changes: XMLChange = {};
     //changes.graphChanged = events.find();.delta as any;
-    this._changed.emit(changes);
+    //this._changed.emit(changes);
   };
 
   public static create(): XMLFile {
@@ -198,6 +201,7 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
    * @returns Cell's source.
    */
   public getSource(): string {
+    console.debug("Model.getSource");
     let source = '<mxGraphModel';
     this._mxGraphAttributes.forEach((value, key) => {
       source += ` ${key}="${value}"`;
@@ -239,6 +243,7 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
    * @param value: New source.
    */
   public setSource(value: string): void {
+    console.debug("Model.setSource");
     const doc = parse(
       value,
       {
@@ -251,7 +256,7 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedDocument {
       },
       true
     );
-
+    console.debug(doc);
     const attrs = doc['mxGraphModel']['attr'];
     const cells = doc['mxGraphModel']['root']['mxCell'];
 

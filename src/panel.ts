@@ -63,7 +63,12 @@ export class DrawIOWidget extends Widget {
    * Dispose of the resources held by the widget.
    */
   dispose(): void {
+    // Do nothing if already disposed.
+    if (this.isDisposed) {
+      return;
+    }
     this._editor.destroy();
+    this._context = null;
     super.dispose();
   }
 
@@ -361,6 +366,7 @@ export class DrawIOWidget extends Widget {
   }
 
   private _onContentChanged(): void {
+    //debugger;
     console.debug('_onContentChanged');
     const newValue = this._context.model.sharedModel.getSource();
     if (this._editor === undefined) {
@@ -371,6 +377,7 @@ export class DrawIOWidget extends Widget {
 
     if (oldValue !== newValue && !this._editor.editor.graph.isEditing()) {
       if (newValue.length) {
+        console.debug('Get Model:');
         const xml = this._mx.mxUtils.parseXml(newValue);
         this._editor.editor.setGraphXml(xml.documentElement);
       }
@@ -414,10 +421,10 @@ export class DrawIOWidget extends Widget {
           this._editor.editor.graph.stopEditing();
         }
 
+        console.debug('Save model: ');
         const graph = this._editor.editor.getGraphXml();
         const xml = this._mx.mxUtils.getXml(graph);
-        console.debug('Save model: ', xml);
-        //this._context.model.sharedModel.setSource(xml);
+        this._context.model.sharedModel.setSource(xml);
       }
     );
 
@@ -459,7 +466,6 @@ export class DrawIOWidget extends Widget {
     );
 
     const data = this._context.model.sharedModel.getSource();
-    console.debug('Get Model:', data);
     const xml = this._mx.mxUtils.parseXml(data);
     this._editor.editor.setGraphXml(xml.documentElement);
     this._ready.resolve(void 0);
