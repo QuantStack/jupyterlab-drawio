@@ -121,7 +121,7 @@ function activate(
   app.docRegistry.addFileType({
     name: 'drawio',
     displayName: 'Diagram',
-    mimeTypes: ['application/dio', 'application/drawio'],
+    mimeTypes: ['text/xml', 'application/drawio', 'application/dio'],
     extensions: ['.dio', '.drawio'],
     iconClass: 'jp-MaterialIcon jp-ImageIcon',
     fileFormat: 'text',

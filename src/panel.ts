@@ -68,7 +68,7 @@ export class DrawIOWidget extends Widget {
       return;
     }
     this._editor.destroy();
-    this._context = null;
+    //this._context = null;
     super.dispose();
   }
 
@@ -366,9 +366,8 @@ export class DrawIOWidget extends Widget {
   }
 
   private _onContentChanged(): void {
-    //debugger;
     console.debug('_onContentChanged');
-    const newValue = this._context.model.sharedModel.getSource();
+    const newValue = this._context.model.toString();
     if (this._editor === undefined) {
       return;
     }
@@ -382,6 +381,56 @@ export class DrawIOWidget extends Widget {
         this._editor.editor.setGraphXml(xml.documentElement);
       }
     }
+
+    // mxRootChange
+    // cell	Optional mxCell that specifies the child.
+    //this._editor.editor.graph.model.getRoot(cell);
+    // root	mxCell that specifies the new root.
+    // Example
+    // var root = new mxCell();
+    // root.insert(new mxCell());
+    // model.setRoot(root);
+    // root	mxCell that specifies the new root.
+    //this._editor.editor.graph.model.setRoot(root);
+
+    // mxChildChanged
+    // cell	mxCell that should be removed.
+    //this._editor.editor.graph.model.remove(cell);
+    // parent	mxCell that specifies the parent to contain the child.
+    // child	mxCell that specifies the child to be inserted.
+    // index	Optional integer that specifies the index of the child.
+    //this._editor.editor.graph.model.add(parent, child, index);
+
+    // mxGeometryChange
+    // cell	mxCell whose geometry should be returned.
+    //this._editor.editor.graph.model.getGeometry(cell);
+    // cell	mxCell whose geometry should be changed.
+    // geometry	mxGeometry that defines the new geometry.
+    //this._editor.editor.graph.model.setGeometry(cell, geometry);
+
+    // mxTerminalChange
+    // edge	mxCell that specifies the edge.
+    // isSource	Boolean indicating which end of the edge should be returned.
+    //this._editor.editor.graph.model.getTerminal(edge, isSource);
+    // edge	mxCell that specifies the edge.
+    // terminal	mxCell that specifies the new terminal.
+    // isSource	Boolean indicating if the terminal is the new source or target terminal of the edge.
+    //this._editor.editor.graph.model.setTerminal(edge, terminal, isSource);
+
+    // mxValueChange
+    // cell	mxCell whose user object should be returned.
+    //this._editor.editor.graph.model.getValue(cell);
+    // cell	mxCell whose user object should be changed.
+    // value	Object that defines the new user object.
+    //this._editor.editor.graph.model.setValue(cell, value);
+
+    // mxStyleChange
+    // cell	mxCell whose style should be returned.
+    //this._editor.editor.graph.model.getStyle(cell);
+    // cell	mxCell whose style should be changed.
+    // style	String of the form [stylename;|key=value;] to specify the new cell style.
+    //this._editor.editor.graph.model.setStyle(cell, style);
+
   }
 
   private _loadDrawIO(mx: Private.MX): void {
@@ -404,46 +453,93 @@ export class DrawIOWidget extends Widget {
     this._editor = new this._mx.EditorUi(new Editor(false, themes), this.node);
     this._editor.refresh();
 
-    //console.debug(this._mx.Editor);
+    //console.debug(this._mx);
     //console.debug(this._editor.editor.graph.model);
     this._editor.editor.graph.model.addListener(
       this._mx.mxEvent.NOTIFY,
       (sender: any, evt: any) => {
-        console.debug('Event:', evt);
-        const changes: any[] = evt.properties.changes;
+        console.debug("DIO changed:", evt);
+        const changes = evt.getProperty('edit').changes;
+        
         for (let i = 0; i < changes.length; i++) {
-          if (changes[i].root) {
+          if (changes[i] instanceof this._mx.mxRootChange) {
             return;
           }
         }
 
-        if (this._editor.editor.graph.isEditing()) {
-          this._editor.editor.graph.stopEditing();
-        }
+        //if (this._editor.editor.graph.isEditing()) {
+        //  this._editor.editor.graph.stopEditing();
+        //}
 
-        console.debug('Save model: ');
         const graph = this._editor.editor.getGraphXml();
+        console.debug("Save graph", data);
         const xml = this._mx.mxUtils.getXml(graph);
-        this._context.model.sharedModel.setSource(xml);
+        this._context.model.fromString(xml);
       }
     );
 
     /* this._editor.editor.graph.model.addListener(
       this._mx.mxEvent.NOTIFY,
       (sender: any, evt: any) => {
-        var changes = evt.getProperty('edit').changes;
+        const changes = evt.getProperty('edit').changes;
+        console.debug("Graph changed:");
+        console.debug(evt);
 
-        for (var i = 0; i < changes.length; i++)
-        {
-          var change = changes[i];
+        for (let i = 0; i < changes.length; i++) {
+          const change = changes[i];
+          console.debug(change);
 
-          if (
-            change instanceof this._mx.mxChildChange &&
-            change.change.previous == null
-          ) {
-            this._editor.editor.graph.startEditingAtCell(change.child);
-            break;
+          if (change instanceof this._mx.mxRootChange) {
+            console.log("Root changed:", change.root.id);
+            const children = change.root.children;
+            for (let j = 0; j < children.length; j++) {
+              console.log(children[j]);
+            }
           }
+
+          if (change instanceof this._mx.mxChildChange) {
+            console.log("Child changed:", change.child.id);
+            console.log(change.child);
+            // id = change.child.id
+            // value = change.cell.value
+            // style = change.cell.style
+            // parent = change.cell.parent
+            // vertex = change.cell.vertex
+          }
+
+          if (change instanceof this._mx.mxGeometryChange) {
+            console.log("Geometry changed:", change.cell.id);
+            console.log(change.geometry);
+            // x = change.geometry.x
+            // y = change.geometry.y
+            // width = change.geometry.width
+            // height = change.geometry.height
+            // as = ""
+          }
+
+          if (change instanceof this._mx.mxTerminalChange) {
+            console.log("Terminal changed:", change.cell.id);
+            console.log(change.terminal);
+          }
+
+          if (change instanceof this._mx.mxValueChange) {
+            console.log("Value changed:", change.cell.id);
+            console.log(change.geometry);
+            // value = change.cell.value
+          }
+
+          if (change instanceof this._mx.mxStyleChange) {
+            console.log("Style changed:", change.cell.id);
+            console.log(change.geometry);
+            // style = change.cell.style
+          }
+
+          //mxCellAttributeChange
+          //mxCollapseChange
+          //mxCurrentRootChange
+          //mxGenericChangeCodec
+          //mxSelectionChange
+          //mxVisibleChange
         }
     }); */
 
@@ -465,9 +561,11 @@ export class DrawIOWidget extends Widget {
       }
     );
 
-    const data = this._context.model.sharedModel.getSource();
+    const data = this._context.model.toString();
+    console.debug("Load graph", data);
     const xml = this._mx.mxUtils.parseXml(data);
     this._editor.editor.setGraphXml(xml.documentElement);
+    //this._editor.editor.graph.model.setRoot(root);
     this._ready.resolve(void 0);
   }
 
