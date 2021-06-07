@@ -15,7 +15,7 @@ import './drawio/css/common.css';
 
 import './drawio/styles/grapheditor.css';
 
-import { DrawIODocumentModel } from './model';
+import { DrawIODocumentModel, XMLChange } from './model';
 
 import { grapheditorTxt, defaultXml } from './pack';
 
@@ -51,10 +51,7 @@ export class DrawIOWidget extends Widget {
       console.debug('DrawIOWidget context ready');
       Private.ensureMx().then(mx => {
         this._loadDrawIO(mx);
-        this._context.model.sharedModel.changed.connect(
-          this._onContentChanged,
-          this
-        );
+        this._context.model.sharedModelChanged.connect(this._onContentChanged);
       });
     });
   }
@@ -67,6 +64,7 @@ export class DrawIOWidget extends Widget {
     if (this.isDisposed) {
       return;
     }
+    this._context.model.sharedModelChanged.disconnect(this._onContentChanged);
     this._editor.destroy();
     //this._context = null;
     super.dispose();
@@ -365,21 +363,41 @@ export class DrawIOWidget extends Widget {
     }, true);
   }
 
-  private _onContentChanged(): void {
-    console.debug('_onContentChanged');
-    const newValue = this._context.model.toString();
+  private _onContentChanged = (
+    sender: DrawIODocumentModel,
+    changes: XMLChange
+  ): void => {
+    console.debug('_onContentChanged', changes);
     if (this._editor === undefined) {
       return;
     }
 
-    const oldValue = this._mx.mxUtils.getXml(this._editor.editor.getGraphXml());
+    const newValue = this._context.model.toString();
+    const newXml = this._mx.mxUtils.parseXml(newValue);
+    const oldXml = this._editor.editor.getGraphXml();
+    const oldValue = this._mx.mxUtils.getXml(oldXml);
 
-    if (oldValue !== newValue && !this._editor.editor.graph.isEditing()) {
-      if (newValue.length) {
-        console.debug('Get Model:');
-        const xml = this._mx.mxUtils.parseXml(newValue);
-        this._editor.editor.setGraphXml(xml.documentElement);
-      }
+    if (
+      oldValue !== newValue &&
+      !this._editor.editor.graph.isEditing() &&
+      newValue.length
+    ) {
+      this._context.model.mutex(() => {
+        this._editor.editor.setGraphXml(newXml.documentElement);
+        this._editor.editor.graph.startEditing();
+        console.debug('Set Graph Model:', oldXml, newXml);
+      });
+      /* const model = this._editor.editor.graph.getModel();
+
+      const newRoot = this._context.model.getRoot();
+      const root = this._editor.editor.graph.model.getRoot();
+
+      const codec = new this._mx.mxCodec();
+      const newModel = codec.decodeCell(newRoot);
+
+      console.debug("ELements:");
+      console.debug(root, newRoot, model, newModel);
+      this._editor.editor.graph.model.setRoot(newModel); */
     }
 
     // mxRootChange
@@ -400,38 +418,7 @@ export class DrawIOWidget extends Widget {
     // child	mxCell that specifies the child to be inserted.
     // index	Optional integer that specifies the index of the child.
     //this._editor.editor.graph.model.add(parent, child, index);
-
-    // mxGeometryChange
-    // cell	mxCell whose geometry should be returned.
-    //this._editor.editor.graph.model.getGeometry(cell);
-    // cell	mxCell whose geometry should be changed.
-    // geometry	mxGeometry that defines the new geometry.
-    //this._editor.editor.graph.model.setGeometry(cell, geometry);
-
-    // mxTerminalChange
-    // edge	mxCell that specifies the edge.
-    // isSource	Boolean indicating which end of the edge should be returned.
-    //this._editor.editor.graph.model.getTerminal(edge, isSource);
-    // edge	mxCell that specifies the edge.
-    // terminal	mxCell that specifies the new terminal.
-    // isSource	Boolean indicating if the terminal is the new source or target terminal of the edge.
-    //this._editor.editor.graph.model.setTerminal(edge, terminal, isSource);
-
-    // mxValueChange
-    // cell	mxCell whose user object should be returned.
-    //this._editor.editor.graph.model.getValue(cell);
-    // cell	mxCell whose user object should be changed.
-    // value	Object that defines the new user object.
-    //this._editor.editor.graph.model.setValue(cell, value);
-
-    // mxStyleChange
-    // cell	mxCell whose style should be returned.
-    //this._editor.editor.graph.model.getStyle(cell);
-    // cell	mxCell whose style should be changed.
-    // style	String of the form [stylename;|key=value;] to specify the new cell style.
-    //this._editor.editor.graph.model.setStyle(cell, style);
-
-  }
+  };
 
   private _loadDrawIO(mx: Private.MX): void {
     this._mx = mx;
@@ -454,86 +441,59 @@ export class DrawIOWidget extends Widget {
     this._editor.refresh();
 
     //console.debug(this._mx);
+    //console.debug(this._editor);
+    //console.debug(this._editor.editor);
+    //console.debug(this._editor.editor.graph);
     //console.debug(this._editor.editor.graph.model);
+
     this._editor.editor.graph.model.addListener(
       this._mx.mxEvent.NOTIFY,
       (sender: any, evt: any) => {
-        console.debug("DIO changed:", evt);
+        const oldXml = this._editor.editor.getGraphXml();
+        console.debug('oldxml', oldXml);
+        console.debug('Graph changed:');
         const changes = evt.getProperty('edit').changes;
-        
-        for (let i = 0; i < changes.length; i++) {
-          if (changes[i] instanceof this._mx.mxRootChange) {
-            return;
-          }
-        }
-
-        //if (this._editor.editor.graph.isEditing()) {
-        //  this._editor.editor.graph.stopEditing();
-        //}
-
-        const graph = this._editor.editor.getGraphXml();
-        console.debug("Save graph", data);
-        const xml = this._mx.mxUtils.getXml(graph);
-        this._context.model.fromString(xml);
-      }
-    );
-
-    /* this._editor.editor.graph.model.addListener(
-      this._mx.mxEvent.NOTIFY,
-      (sender: any, evt: any) => {
-        const changes = evt.getProperty('edit').changes;
-        console.debug("Graph changed:");
-        console.debug(evt);
+        const encoder = new this._mx.mxCodec();
 
         for (let i = 0; i < changes.length; i++) {
           const change = changes[i];
-          console.debug(change);
 
-          if (change instanceof this._mx.mxRootChange) {
-            console.log("Root changed:", change.root.id);
-            const children = change.root.children;
-            for (let j = 0; j < children.length; j++) {
-              console.log(children[j]);
+          if (change instanceof this._mx.mxChildChange) {
+            console.debug('mxChildChange:', change);
+            const el = encoder.encode(change.child);
+            const xml = this._mx.mxUtils.getXml(el);
+            if (change.index === undefined) {
+              this._context.model.removeCell(change.child.id);
+            } else {
+              this._context.model.setCell(change.child.id, xml);
             }
           }
 
-          if (change instanceof this._mx.mxChildChange) {
-            console.log("Child changed:", change.child.id);
-            console.log(change.child);
-            // id = change.child.id
-            // value = change.cell.value
-            // style = change.cell.style
-            // parent = change.cell.parent
-            // vertex = change.cell.vertex
+          if (
+            !(change instanceof this._mx.mxRootChange) &&
+            !(change instanceof this._mx.mxChildChange)
+          ) {
+            console.debug('Other change:', change);
+            const el = encoder.encode(change.cell);
+            const xml = this._mx.mxUtils.getXml(el);
+            this._context.model.setCell(change.cell.id, xml);
           }
 
-          if (change instanceof this._mx.mxGeometryChange) {
-            console.log("Geometry changed:", change.cell.id);
-            console.log(change.geometry);
-            // x = change.geometry.x
-            // y = change.geometry.y
-            // width = change.geometry.width
-            // height = change.geometry.height
-            // as = ""
-          }
+          /* if (change instanceof this._mx.mxRootChange) {
+            console.log("Root changed:", change.root.id, change);
+            const children = change.root.children;
+            for (let j = 0; j < children.length; j++) {
+              console.log("Child", children[j].id, children[j]);
+              const el = encoder.encode(children[j]);
+              const xml = this._mx.mxUtils.getXml(el);
+              this._context.model.setRoot(xml);
+            }
+          } */
 
-          if (change instanceof this._mx.mxTerminalChange) {
-            console.log("Terminal changed:", change.cell.id);
-            console.log(change.terminal);
-          }
-
-          if (change instanceof this._mx.mxValueChange) {
-            console.log("Value changed:", change.cell.id);
-            console.log(change.geometry);
-            // value = change.cell.value
-          }
-
-          if (change instanceof this._mx.mxStyleChange) {
-            console.log("Style changed:", change.cell.id);
-            console.log(change.geometry);
-            // style = change.cell.style
-          }
-
+          //mxGeometryChange
+          //mxTerminalChange
+          //mxValueChange
+          //mxStyleChange
           //mxCellAttributeChange
           //mxCollapseChange
           //mxCurrentRootChange
@@ -541,7 +501,8 @@ export class DrawIOWidget extends Widget {
           //mxSelectionChange
           //mxVisibleChange
         }
-    }); */
+      }
+    );
 
     this._promptSpacing = this._mx.mxUtils.bind(
       this,
@@ -562,10 +523,8 @@ export class DrawIOWidget extends Widget {
     );
 
     const data = this._context.model.toString();
-    console.debug("Load graph", data);
     const xml = this._mx.mxUtils.parseXml(data);
     this._editor.editor.setGraphXml(xml.documentElement);
-    //this._editor.editor.graph.model.setRoot(root);
     this._ready.resolve(void 0);
   }
 
