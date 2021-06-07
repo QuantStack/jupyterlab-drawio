@@ -16,7 +16,7 @@ import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 
 import { MainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
 
-import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
+import { PathExt } from '@jupyterlab/coreutils';
 
 import { undoIcon, redoIcon } from '@jupyterlab/ui-components';
 
@@ -40,8 +40,6 @@ import {
   strokeColorIcon,
   shadowIcon
 } from './icons';
-
-const DIRTY_CLASS = 'jp-mod-dirty';
 
 export class DrawIODocumentWidget extends DocumentWidget<
   DrawIOWidget,
@@ -85,15 +83,11 @@ export class DrawIODocumentWidget extends DocumentWidget<
       console.debug('Context ready');
       await this.content.ready.promise;
 
-      this._onTitleChanged();
+      //this._onTitleChanged();
       this._addToolbarItems();
-      this._handleDirtyStateNew();
+      this.context.model.dirty = false;
 
-      this.context.model.stateChanged.connect(
-        this._onModelStateChangedNew,
-        this
-      );
-
+      this.context.saveState.connect(this._onSave, this);
       this.context.pathChanged.connect(this._onTitleChanged, this);
     });
   }
@@ -102,6 +96,8 @@ export class DrawIODocumentWidget extends DocumentWidget<
    * Dispose of the resources held by the widget.
    */
   dispose(): void {
+    this.context.pathChanged.disconnect(this._onTitleChanged, this);
+    this.context.saveState.disconnect(this._onSave, this);
     this.content.dispose();
     super.dispose();
   }
@@ -114,7 +110,7 @@ export class DrawIODocumentWidget extends DocumentWidget<
   }
 
   public getSVG(): string {
-    return ''; //this.mx.mxUtils.getXml(this._editor.editor.graph.getSvg());
+    return this.content.getSVG();
   }
 
   public getAction(action: string): any {
@@ -168,20 +164,17 @@ export class DrawIODocumentWidget extends DocumentWidget<
     this.title.label = PathExt.basename(this.context.localPath);
   }
 
-  private _onModelStateChangedNew(
-    sender: DocumentRegistry.IModel,
-    args: IChangedArgs<any>
-  ): void {
-    if (args.name === 'dirty') {
-      this._handleDirtyStateNew();
-    }
-  }
-
-  private _handleDirtyStateNew(): void {
-    if (this.context.model.dirty) {
-      this.title.className += ` ${DIRTY_CLASS}`;
-    } else {
-      this.title.className = this.title.className.replace(DIRTY_CLASS, '');
+  private _onSave(context: DocumentRegistry.IContext<DrawIODocumentModel>, state: DocumentRegistry.SaveState): void {
+    switch(state) {
+      case 'started':
+        this.content.save();
+        break;
+      case 'completed':
+        this.context.model.dirty = false;
+        break;
+      case 'failed':
+        console.error("Error saving the document.");
+        break;
     }
   }
 
