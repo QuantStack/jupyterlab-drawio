@@ -98,7 +98,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   toString(): string {
-    console.info('DrawIODocumentModel.toString():');
     const yAttr = this.sharedModel.getAttr('mxGraphModel') as Y.Map<string>;
 
     const root: GraphObject[] = [];
@@ -127,7 +126,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   fromString(value: string): void {
-    console.info('DrawIODocumentModel.fromString():', value);
     const doc = parse(
       value,
       {
@@ -161,13 +159,11 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   toJSON(): PartialJSONValue {
-    console.info('DrawIODocumentModel.toJSON():');
     throw new Error('not implemented');
     return JSON.parse(this.sharedModel.getSource());
   }
 
   fromJSON(value: ReadonlyPartialJSONValue): void {
-    console.info('DrawIODocumentModel.fromJSON():', value);
     throw new Error('not implemented');
     this.sharedModel.setSource(value.toString());
   }
@@ -180,50 +176,7 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     this.sharedModel.transact(cb);
   }
 
-  getRoot(): Node {
-    console.debug('Model.getRoot');
-    const yRoot = this.sharedModel.getRoot();
-    const root = document.createElement('root');
-
-    yRoot.forEach(yEl => {
-      // Clone element
-      //const yEl = this._parseJSONChild('mxCell', this._parseYChild(value));
-      root.appendChild(yEl.toDOM());
-    });
-
-    console.debug(root);
-    return root;
-  }
-
-  setRoot(root: string): void {
-    console.debug('Model.setRoot', root);
-
-    const doc = parse(
-      root,
-      {
-        attrNodeName: '#attrs',
-        textNodeName: '#text',
-        attributeNamePrefix: '',
-        arrayMode: false,
-        ignoreAttributes: false,
-        parseAttributeValue: false
-      },
-      true
-    );
-
-    console.debug(doc);
-
-    /* const yRoot = Array<Y.XmlText | Y.XmlElement>();
-    doc['mxCell'].forEach((value: any) => {
-      yRoot.push(this._parseJSONChild('mxCell', value));
-    });
-
-    console.debug(yRoot); */
-    //this.sharedModel.updateRoot(0, this.sharedModel.root.length, yRoot);
-  }
-
   getCell(id: number): Node {
-    console.debug('Model.getCell', id);
     const yRoot = this.sharedModel.root;
 
     for (let i = 0; i < yRoot.length; i++) {
@@ -238,8 +191,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   setCell(id: number, cell: string): void {
-    console.debug('Model.setCell', cell);
-
     const doc = parse(
       cell,
       {
@@ -280,7 +231,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   removeCell(id: number): void {
-    console.debug('Model.removeCell', id);
     const yRoot = this.sharedModel.root;
     let index = -1;
     for (let i = 0; i < yRoot.length; i++) {
@@ -292,13 +242,10 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
       }
     }
     // Remove
-    console.debug(index);
     if (index !== -1) {
-      console.debug(this.sharedModel.root.toDOM());
       this.mutex(() => {
         this.sharedModel.updateRoot(index, index + 1, []);
       });
-      console.debug(this.sharedModel.root.toDOM());
     }
   }
 
@@ -357,7 +304,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     if (yElement instanceof Y.XmlElement) {
       yElement.slice(0, yElement.length).forEach(yChild => {
         const tag = yChild.getAttribute('mxnodename');
-        //yChild.removeAttribute('mxnodename');
         const child = this._parseYChild(yChild);
 
         if (element[tag] === undefined) {
@@ -501,7 +447,6 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    * @param key: The key of the attribute.
    */
   public getAttr(key: string): any {
-    //console.debug("getAttrs:", key);
     return this._attr.get(key);
   }
 
@@ -513,7 +458,6 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    * @param value: New source.
    */
   public setAttr(key: string, value: any): void {
-    //console.debug("setAttr:", key, value);
     this._attr.set(key, value);
   }
 
@@ -525,7 +469,6 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    * @param value: New source.
    */
   public updateAttr(key: string, value: any): void {
-    //console.debug("updateAttr:", key, value);
     this._attr.set(key, value);
   }
 
@@ -535,7 +478,6 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    * @returns elements.
    */
   public getRoot(): (Y.XmlElement | Y.XmlText)[] {
-    //console.debug("setRoot:", this._root.slice());
     return this._root.slice();
   }
 
@@ -545,7 +487,6 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    * @param root: New elements.
    */
   public setRoot(root: (Y.XmlElement | Y.XmlText)[]): void {
-    //console.debug("setRoot:", root);
     this.transact(() => {
       this._root.delete(0, this._root.length);
       this._root.insert(0, root);
@@ -566,8 +507,6 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
     end: number,
     value: (Y.XmlElement | Y.XmlText)[]
   ): void {
-    //console.debug("updateRoot:", start, end);
-    //console.debug(value);
     this.transact(() => {
       this._root.delete(start, end - start);
       this._root.insert(start, value);
@@ -578,24 +517,14 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    * Handle a change to the _mxGraphModel.
    */
   private _modelObserver = (event: Y.YMapEvent<any>): void => {
-    console.debug('_modelObserver:', event);
-    //const changes: XMLChange = {};
-    //changes.graphChanged = events.find();.delta as any;
-    //this._changed.emit(changes);
+    // Empty
   };
 
   /**
    * Handle a change to the _mxGraphModel.
    */
   private _cellsObserver = (event: Y.YXmlEvent): void => {
-    console.debug('_cellsObserver:', event);
-    const changes: XMLChange = {};
-    /*const event = events.find( event => event.target === this._root);
-    if (event) {
-      console.debug(event);
-      changes.mxChildChange = event.changes.delta as any;
-    } */
-    this._changed.emit(changes);
+    this._changed.emit({});
   };
 
   private _attr: Y.Map<any>;

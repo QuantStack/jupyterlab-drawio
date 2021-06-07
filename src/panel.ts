@@ -367,7 +367,6 @@ export class DrawIOWidget extends Widget {
     sender: DrawIODocumentModel,
     changes: XMLChange
   ): void => {
-    console.debug('_onContentChanged', changes);
     if (this._editor === undefined) {
       return;
     }
@@ -385,19 +384,7 @@ export class DrawIOWidget extends Widget {
       this._context.model.mutex(() => {
         this._editor.editor.setGraphXml(newXml.documentElement);
         this._editor.editor.graph.startEditing();
-        console.debug('Set Graph Model:', oldXml, newXml);
       });
-      /* const model = this._editor.editor.graph.getModel();
-
-      const newRoot = this._context.model.getRoot();
-      const root = this._editor.editor.graph.model.getRoot();
-
-      const codec = new this._mx.mxCodec();
-      const newModel = codec.decodeCell(newRoot);
-
-      console.debug("ELements:");
-      console.debug(root, newRoot, model, newModel);
-      this._editor.editor.graph.model.setRoot(newModel); */
     }
 
     // mxRootChange
@@ -441,17 +428,11 @@ export class DrawIOWidget extends Widget {
     this._editor.refresh();
 
     //console.debug(this._mx);
-    //console.debug(this._editor);
-    //console.debug(this._editor.editor);
-    //console.debug(this._editor.editor.graph);
     //console.debug(this._editor.editor.graph.model);
 
     this._editor.editor.graph.model.addListener(
       this._mx.mxEvent.NOTIFY,
       (sender: any, evt: any) => {
-        const oldXml = this._editor.editor.getGraphXml();
-        console.debug('oldxml', oldXml);
-        console.debug('Graph changed:');
         const changes = evt.getProperty('edit').changes;
         const encoder = new this._mx.mxCodec();
 
@@ -459,7 +440,6 @@ export class DrawIOWidget extends Widget {
           const change = changes[i];
 
           if (change instanceof this._mx.mxChildChange) {
-            console.debug('mxChildChange:', change);
             const el = encoder.encode(change.child);
             const xml = this._mx.mxUtils.getXml(el);
             if (change.index === undefined) {
@@ -473,7 +453,6 @@ export class DrawIOWidget extends Widget {
             !(change instanceof this._mx.mxRootChange) &&
             !(change instanceof this._mx.mxChildChange)
           ) {
-            console.debug('Other change:', change);
             const el = encoder.encode(change.cell);
             const xml = this._mx.mxUtils.getXml(el);
             this._context.model.setCell(change.cell.id, xml);
