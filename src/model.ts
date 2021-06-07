@@ -18,7 +18,8 @@ import {
   ISharedDocument,
   YDocument,
   Delta,
-  MapChange
+  MapChange,
+  createMutex
 } from '@jupyterlab/shared-models';
 
 import { IChangedArgs } from '@jupyterlab/coreutils';
@@ -33,8 +34,6 @@ import * as Y from 'yjs';
 
 import { parse, j2xParser, J2xOptions } from 'fast-xml-parser';
 
-import { mxRoot, mxCell, mxGeometry } from './tokens';
-
 type GraphObject = {
   [key: string]: any;
 };
@@ -45,6 +44,8 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
    */
   constructor(languagePreference?: string, modelDB?: IModelDB) {
     this.modelDB = modelDB || new ModelDB();
+
+    this.sharedModel.changed.connect(this._onSharedModelChanged);
   }
 
   get dirty(): boolean {
@@ -73,6 +74,10 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     return this._stateChanged;
   }
 
+  get sharedModelChanged(): ISignal<this, XMLChange> {
+    return this._sharedModelChanged;
+  }
+
   readonly defaultKernelName: string;
 
   readonly defaultKernelLanguage: string;
@@ -80,6 +85,8 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   readonly modelDB: IModelDB;
 
   readonly sharedModel: XMLFile = XMLFile.create();
+
+  readonly mutex = createMutex();
 
   dispose(): void {
     if (this._isDisposed) {
@@ -94,23 +101,22 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     console.info('DrawIODocumentModel.toString():');
     const yAttr = this.sharedModel.getAttr('mxGraphModel') as Y.Map<string>;
 
-    const root: any[] = [];
+    const root: GraphObject[] = [];
     const yRoot = this.sharedModel.getRoot();
-    yRoot.forEach( value => {
-      value.removeAttribute('mxElementName');
+    yRoot.forEach(value => {
+      //value.removeAttribute('mxnodename');
       root.push(this._parseYChild(value));
     });
 
     const graph: GraphObject = {};
     graph['mxGraphModel'] = {
       '#attrs': yAttr.toJSON(),
-      'root': {
-        'mxCell': root
+      root: {
+        mxCell: root
       }
     };
 
-    const defaultOptions: Partial<J2xOptions> = 
-    {
+    const defaultOptions: Partial<J2xOptions> = {
       attrNodeName: '#attrs',
       textNodeName: '#text',
       attributeNamePrefix: '',
@@ -121,7 +127,7 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   fromString(value: string): void {
-    console.info("DrawIODocumentModel.fromString():", value);
+    console.info('DrawIODocumentModel.fromString():', value);
     const doc = parse(
       value,
       {
@@ -147,7 +153,7 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
       yRoot.push(this._parseJSONChild('mxCell', value));
     });
 
-    this.sharedModel.transact( () => {
+    this.mutex(() => {
       this.sharedModel.setSource(value);
       this.sharedModel.setAttr('mxGraphModel', yAttrs);
       this.sharedModel.setRoot(yRoot);
@@ -170,314 +176,138 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     //console.warn('initialize(): Not implemented');
   }
 
-  getRoot(): mxRoot {
-    console.debug("Model.getRoot");
-    const root = new Array<mxCell>();
-    const yroot = this.sharedModel.root;
+  transact(cb: () => void): void {
+    this.sharedModel.transact(cb);
+  }
 
-    for (let i = 0; i < yroot.length; i++) {
-      const yCell = yroot.get(i) as Y.XmlElement;
-      const yCellAttrs = yCell.getAttributes();
-      const yGeometry = yCellAttrs.firstChild;
-      
-      let geometry: mxGeometry | undefined = undefined;
+  getRoot(): Node {
+    console.debug('Model.getRoot');
+    const yRoot = this.sharedModel.getRoot();
+    const root = document.createElement('root');
 
-      if (yGeometry) {
-        const yGeometryAttrs = yGeometry.getAttributes();
-        geometry = {
-          x: yGeometryAttrs['x'],
-          y: yGeometryAttrs['y'],
-          width: yGeometryAttrs['width'],
-          height: yGeometryAttrs['height'],
-          as: yGeometryAttrs['as']
-        };
-      }
-      
-      const cell: mxCell = {
-        id: yCellAttrs['id'],
-        parent: yCellAttrs['parent'],
-        value: yCellAttrs['value'],
-        style: yCellAttrs['style'],
-        vertex: yCellAttrs['vertex'],
-        geometry: geometry
-      };
-      
-      console.debug("cell:", cell);
-      root.push(cell);
-    }
+    yRoot.forEach(yEl => {
+      // Clone element
+      //const yEl = this._parseJSONChild('mxCell', this._parseYChild(value));
+      root.appendChild(yEl.toDOM());
+    });
 
+    console.debug(root);
     return root;
   }
 
-  setRoot(root: mxRoot): void {
-    console.debug("Model.setRoot", root);
-    const yCells = Array<Y.XmlElement>();
+  setRoot(root: string): void {
+    console.debug('Model.setRoot', root);
 
-    root.forEach( (cell: mxCell) => {
-      const yCell = new Y.XmlElement('mxCell');
+    const doc = parse(
+      root,
+      {
+        attrNodeName: '#attrs',
+        textNodeName: '#text',
+        attributeNamePrefix: '',
+        arrayMode: false,
+        ignoreAttributes: false,
+        parseAttributeValue: false
+      },
+      true
+    );
 
-      yCell.setAttribute('id', cell.id.toString());
-      if (cell.parent) {
-        yCell.setAttribute('parent', cell.parent.toString());
-      }
-      if (cell.value) {
-        yCell.setAttribute('value', cell.value);
-      }
-      if (cell.style) {
-        yCell.setAttribute('style', cell.style);
-      }
-      if (cell.vertex) {
-        yCell.setAttribute('vertex', cell.vertex.toString());
-      }
+    console.debug(doc);
 
-      if (cell.geometry) {
-        const geometry = cell.geometry;
-        const yGeometry = new Y.XmlElement('mxGeometry');
-        yGeometry.setAttribute('x', geometry.x.toString());
-        yGeometry.setAttribute('y', geometry.y.toString());
-        yGeometry.setAttribute('width', geometry.width.toString());
-        yGeometry.setAttribute('height', geometry.height.toString());
-        yGeometry.setAttribute('as', geometry.as);
-        yCell.insert(0, [yGeometry]);
-      }
-
-      yCells.push(yCell);
+    /* const yRoot = Array<Y.XmlText | Y.XmlElement>();
+    doc['mxCell'].forEach((value: any) => {
+      yRoot.push(this._parseJSONChild('mxCell', value));
     });
 
-    this.sharedModel.updateRoot(0, this.sharedModel.root.length, yCells);
+    console.debug(yRoot); */
+    //this.sharedModel.updateRoot(0, this.sharedModel.root.length, yRoot);
   }
 
-  getCell(id: number): mxCell {
-    console.debug("Model.getCell", id);
+  getCell(id: number): Node {
+    console.debug('Model.getCell', id);
     const yRoot = this.sharedModel.root;
 
     for (let i = 0; i < yRoot.length; i++) {
       const yCell = yRoot.get(i) as Y.XmlElement;
       const yCellAttrs = yCell.getAttributes();
-      
-      if (yCellAttrs['id'] == id) {
-        const yGeometry = yCellAttrs.firstChild;
-        let geometry: mxGeometry | undefined = undefined;
-
-        if (yGeometry) {
-          const yGeometryAttrs = yGeometry.getAttributes();
-          geometry = {
-            x: yGeometryAttrs['x'],
-            y: yGeometryAttrs['y'],
-            width: yGeometryAttrs['width'],
-            height: yGeometryAttrs['height'],
-            as: yGeometryAttrs['as']
-          };
-        }
-        
-        return {
-          id: yCellAttrs['id'],
-          parent: yCellAttrs['parent'],
-          value: yCellAttrs['value'],
-          style: yCellAttrs['style'],
-          vertex: yCellAttrs['vertex'],
-          geometry: geometry
-        };
+      if (yCellAttrs['id'] === id) {
+        return yCell.toDOM();
       }
     }
 
     return null;
   }
 
-  setCell(cell: mxCell): void {
-    console.debug("Model.setCell", cell);
+  setCell(id: number, cell: string): void {
+    console.debug('Model.setCell', cell);
+
+    const doc = parse(
+      cell,
+      {
+        attrNodeName: '#attrs',
+        textNodeName: '#text',
+        attributeNamePrefix: '',
+        arrayMode: false,
+        ignoreAttributes: false,
+        parseAttributeValue: false
+      },
+      true
+    );
+
     const yRoot = this.sharedModel.root;
     let index = -1;
     for (let i = 0; i < yRoot.length; i++) {
       const yCell = yRoot.get(i) as Y.XmlElement;
       const yCellAttrs = yCell.getAttributes();
-      if (yCellAttrs['id'] == cell.id) {
+      if (yCellAttrs['id'] === id) {
         index = i;
         break;
       }
     }
 
-    const yCell = new Y.XmlElement('mxCell');
-    yCell.setAttribute('id', cell.id.toString());
-    if (cell.parent) {
-      yCell.setAttribute('parent', cell.parent.toString());
-    }
-    if (cell.value) {
-      yCell.setAttribute('value', cell.value);
-    }
-    if (cell.style) {
-      yCell.setAttribute('style', cell.style);
-    }
-    if (cell.vertex) {
-      yCell.setAttribute('vertex', cell.vertex.toString());
-    }
+    const yCell = this._parseJSONChild('mxCell', doc['mxCell']);
 
-    if (cell.geometry) {
-      const geometry = cell.geometry;
-      const yGeometry = new Y.XmlElement('mxGeometry');
-      yGeometry.setAttribute('x', geometry.x.toString());
-      yGeometry.setAttribute('y', geometry.y.toString());
-      yGeometry.setAttribute('width', geometry.width.toString());
-      yGeometry.setAttribute('height', geometry.height.toString());
-      yGeometry.setAttribute('as', geometry.as);
-      yCell.insert(0, [yGeometry]);
+    if (index === -1) {
+      // Insert new
+      this.mutex(() => {
+        this.sharedModel.updateRoot(yRoot.length, yRoot.length, [yCell]);
+      });
+    } else {
+      // Update
+      this.mutex(() => {
+        this.sharedModel.updateRoot(index, index + 1, [yCell]);
+      });
     }
-
-    console.debug(yCell);
-    this.sharedModel.updateRoot(index, 1, [yCell]);
   }
 
-  getGeometry(id: number): mxGeometry {
-    console.debug("Model.getGeometry", id);
-    const yRoot = this.sharedModel.root;
-
-    for (let i = 0; i < yRoot.length; i++) {
-      const yCell = yRoot.get(i) as Y.XmlElement;
-      const yCellAttrs = yCell.getAttributes();
-      
-      if (yCellAttrs['id'] == id) {
-        const yGeometry = yCellAttrs.firstChild;
-
-        if (yGeometry) {
-          const yGeometryAttrs = yGeometry.getAttributes();
-          return {
-            x: yGeometryAttrs['x'],
-            y: yGeometryAttrs['y'],
-            width: yGeometryAttrs['width'],
-            height: yGeometryAttrs['height'],
-            as: yGeometryAttrs['as']
-          };
-        }
-        
-        return null;
-      }
-    }
-
-    return null;
-  }
-
-  setGeometry(id: number, geometry: mxGeometry): void {
-    console.debug("Model.setGeometry", id, geometry);
+  removeCell(id: number): void {
+    console.debug('Model.removeCell', id);
     const yRoot = this.sharedModel.root;
     let index = -1;
     for (let i = 0; i < yRoot.length; i++) {
       const yCell = yRoot.get(i) as Y.XmlElement;
       const yCellAttrs = yCell.getAttributes();
-      if (yCellAttrs['id'] == id) {
+      if (yCellAttrs['id'] === id) {
         index = i;
         break;
       }
     }
-
-    if (index == -1) {
-      return;
+    // Remove
+    console.debug(index);
+    if (index !== -1) {
+      console.debug(this.sharedModel.root.toDOM());
+      this.mutex(() => {
+        this.sharedModel.updateRoot(index, index + 1, []);
+      });
+      console.debug(this.sharedModel.root.toDOM());
     }
-
-    const yGeometry = new Y.XmlElement('mxGeometry');
-    yGeometry.setAttribute('x', geometry.x.toString());
-    yGeometry.setAttribute('y', geometry.y.toString());
-    yGeometry.setAttribute('width', geometry.width.toString());
-    yGeometry.setAttribute('height', geometry.height.toString());
-    yGeometry.setAttribute('as', geometry.as);
-
-    this.sharedModel.transact(() => {
-      const yCell = yRoot.get(index) as Y.XmlElement;
-      yCell.delete(0, 1);
-      yCell.insert(0, [yGeometry]);
-    });
   }
 
-  getValue(id: number): string {
-    console.debug("Model.getValue", id);
-    const yRoot = this.sharedModel.root;
-
-    for (let i = 0; i < yRoot.length; i++) {
-      const yCell = yRoot.get(i) as Y.XmlElement;
-      const yCellAttrs = yCell.getAttributes();
-      
-      if (yCellAttrs['id'] == id) {
-
-        if (yCellAttrs['value']) {
-          return yCellAttrs['value']
-        }
-        
-        return null;
-      }
-    }
-
-    return null;
-  }
-
-  setValue(id: number, value: string): void {
-    console.debug("Model.setValue", id, value);
-    const yRoot = this.sharedModel.root;
-    let index = -1;
-    for (let i = 0; i < yRoot.length; i++) {
-      const yCell = yRoot.get(i) as Y.XmlElement;
-      const yCellAttrs = yCell.getAttributes();
-      if (yCellAttrs['id'] == id) {
-        index = i;
-        break;
-      }
-    }
-
-    if (index == -1) {
-      return;
-    }
-
-    this.sharedModel.transact(() => {
-      const yCell = yRoot.get(index) as Y.XmlElement;
-      yCell.setAttribute('value', value);
-    });
-  }
-
-  getStyle(id: number): string {
-    console.debug("Model.getValue", id);
-    const yRoot = this.sharedModel.root;
-
-    for (let i = 0; i < yRoot.length; i++) {
-      const yCell = yRoot.get(i) as Y.XmlElement;
-      const yCellAttrs = yCell.getAttributes();
-      
-      if (yCellAttrs['id'] == id) {
-
-        if (yCellAttrs['style']) {
-          return yCellAttrs['style']
-        }
-        
-        return null;
-      }
-    }
-
-    return null;
-  }
-
-  setStyle(id: number, style: string): void {
-    console.debug("Model.setStyle", id, style);
-    const yRoot = this.sharedModel.root;
-    let index = -1;
-    for (let i = 0; i < yRoot.length; i++) {
-      const yCell = yRoot.get(i) as Y.XmlElement;
-      const yCellAttrs = yCell.getAttributes();
-      if (yCellAttrs['id'] == id) {
-        index = i;
-        break;
-      }
-    }
-
-    if (index == -1) {
-      return;
-    }
-
-    this.sharedModel.transact(() => {
-      const yCell = yRoot.get(index) as Y.XmlElement;
-      yCell.setAttribute('style', style);
-    });
-  }
-
-  private _parseJSONChild = (tag: string, element: any): Y.XmlText | Y.XmlElement  => {
+  private _parseJSONChild = (
+    tag: string,
+    element: any
+  ): Y.XmlText | Y.XmlElement => {
     const yElement = new Y.XmlElement(tag);
-    yElement.setAttribute("mxElementName", tag);
+    yElement.setAttribute('mxnodename', tag);
 
     const attrs = element['#attrs'];
     if (attrs) {
@@ -490,26 +320,25 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     if (text) {
       yElement.push([new Y.XmlText(text)]);
     }
-    
+
     for (const [key, child] of Object.entries(element)) {
       if (key === '#attrs' || key === '#text') {
         continue;
       }
 
       if (child instanceof Array) {
-        child.forEach( value => {
+        child.forEach(value => {
           yElement.push([this._parseJSONChild(key, value)]);
         });
-
       } else {
         yElement.push([this._parseJSONChild(key, child)]);
       }
     }
-    
-    return yElement;
-  }
 
-  private _parseYChild = (yElement: Y.XmlText | Y.XmlElement): GraphObject  => {
+    return yElement;
+  };
+
+  private _parseYChild = (yElement: Y.XmlText | Y.XmlElement): GraphObject => {
     const element: GraphObject = {};
 
     const yAttrs = yElement.getAttributes();
@@ -526,48 +355,47 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     }
 
     if (yElement instanceof Y.XmlElement) {
-      yElement.slice(0, yElement.length).forEach( yChild => {
-        const tag = yChild.getAttribute('mxElementName');
-        yChild.removeAttribute('mxElementName');
+      yElement.slice(0, yElement.length).forEach(yChild => {
+        const tag = yChild.getAttribute('mxnodename');
+        //yChild.removeAttribute('mxnodename');
         const child = this._parseYChild(yChild);
 
         if (element[tag] === undefined) {
           element[tag] = child;
-
         } else if (element[tag] instanceof Array) {
           element[tag].push(child);
-
         } else {
           const aux = element[tag];
           element[tag] = [aux, child];
         }
       });
     }
-    
+
     return element;
-  }
+  };
+
+  private _onSharedModelChanged = (
+    sender: XMLFile,
+    changes: XMLChange
+  ): void => {
+    this._sharedModelChanged.emit(changes);
+  };
 
   private _dirty = false;
   private _readOnly = false;
   private _isDisposed = false;
   private _contentChanged = new Signal<this, void>(this);
   private _stateChanged = new Signal<this, IChangedArgs<any>>(this);
+  private _sharedModelChanged = new Signal<this, XMLChange>(this);
 }
 
 export type XMLChange = {
   contextChange?: MapChange;
-  mxRootChange?: Delta<Y.XmlElement>;
-  mxChildChange?: Delta<Y.XmlElement>;
-  mxGeometryChange?: Delta<Y.XmlElement>;
-  mxTerminalChange?: Delta<Y.XmlElement>;
-  mxValueChange?: {
+  mxChildChange?: Delta<{
     id: number;
-    value: string;
-  };
-  mxStyleChange?: {
-    id: number;
-    style: string;
-  };
+    oldValue: Y.XmlElement | undefined;
+    newValue: Y.XmlElement | undefined;
+  }>;
 };
 
 /**
@@ -610,8 +438,8 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
     this._attr = this.ydoc.getMap('attrs');
     this._root = this.ydoc.getXmlFragment('root');
 
-    this._attr.observeDeep(this._modelObserver);
-    this._root.observeDeep(this._cellsObserver);
+    this._attr.observe(this._modelObserver);
+    this._root.observe(this._cellsObserver);
   }
 
   get root(): Y.XmlFragment {
@@ -622,8 +450,8 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    * Dispose of the resources.
    */
   dispose(): void {
-    this._attr.unobserveDeep(this._modelObserver);
-    this._root.unobserveDeep(this._cellsObserver);
+    this._attr.unobserve(this._modelObserver);
+    this._root.unobserve(this._cellsObserver);
   }
 
   public static create(): XMLFile {
@@ -660,10 +488,10 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    *
    * @param value: New source (optional).
    */
-   public updateSource(start: number, end: number, value = ''): void {
+  public updateSource(start: number, end: number, value = ''): void {
     this.transact(() => {
       this.source.delete(start, end - start);
-      this.source.insert(0, value);
+      this.source.insert(start, value);
     });
   }
 
@@ -733,20 +561,24 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
    *
    * @param value: New source (optional).
    */
-  public updateRoot(start: number, end: number, value: (Y.XmlElement | Y.XmlText)[]): void {
+  public updateRoot(
+    start: number,
+    end: number,
+    value: (Y.XmlElement | Y.XmlText)[]
+  ): void {
     //console.debug("updateRoot:", start, end);
     //console.debug(value);
     this.transact(() => {
       this._root.delete(start, end - start);
-      this._root.insert(0, value);
+      this._root.insert(start, value);
     });
   }
 
   /**
    * Handle a change to the _mxGraphModel.
    */
-  private _modelObserver = (events: Y.YEvent[]): void => {
-    console.debug("_modelObserver:", events);
+  private _modelObserver = (event: Y.YMapEvent<any>): void => {
+    console.debug('_modelObserver:', event);
     //const changes: XMLChange = {};
     //changes.graphChanged = events.find();.delta as any;
     //this._changed.emit(changes);
@@ -755,14 +587,15 @@ export class XMLFile extends YDocument<XMLChange> implements ISharedXMLFile {
   /**
    * Handle a change to the _mxGraphModel.
    */
-  private _cellsObserver = (events: Y.YEvent[]): void => {
-    console.debug("_cellsObserver:", events);
-    /* const changes: XMLChange = {};
-    const event = events.find(event => event.target === this._root);
+  private _cellsObserver = (event: Y.YXmlEvent): void => {
+    console.debug('_cellsObserver:', event);
+    const changes: XMLChange = {};
+    /*const event = events.find( event => event.target === this._root);
     if (event) {
-      changes.mxRootChange = event.changes.delta as any;
-    }
-    this._changed.emit(changes); */
+      console.debug(event);
+      changes.mxChildChange = event.changes.delta as any;
+    } */
+    this._changed.emit(changes);
   };
 
   private _attr: Y.Map<any>;
