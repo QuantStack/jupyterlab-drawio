@@ -94,7 +94,7 @@ function activate(
       name: widget => widget.context.path
     });
   }
-  
+
   const widgetFactory = new DrawIOWidgetFactory({
     name: FACTORY,
     modelName: 'dio',
