@@ -66,7 +66,6 @@ export class DrawIOWidget extends Widget {
     }
     this._context.model.sharedModelChanged.disconnect(this._onContentChanged);
     this._editor.destroy();
-    //this._context = null;
     super.dispose();
   }
 
@@ -87,12 +86,6 @@ export class DrawIOWidget extends Widget {
 
   get graph(): any {
     return this._editor.editor.graph;
-  }
-
-  save(): void {
-    const xml = this._editor.editor.getGraphXml();
-    const source = this._mx.mxUtils.getXml(xml);
-    this._context.model.fromString(source); 
   }
 
   getAction(action: string): any {
@@ -374,13 +367,13 @@ export class DrawIOWidget extends Widget {
   }
 
   private _onReady(): void {
-    const data = this._context.model.getGraph();
-    const xml = this._mx.mxUtils.parseXml(data);
-    console.debug(xml.documentElement);
-    xml.documentElement.attributes.map( (key: string, value: any) => {
-      console.debug(key, value);
+    this._context.model.mutex(() => {
+      console.debug('_onReady');
+      const data = this._context.model.toString();
+      const xml = this._mx.mxUtils.parseXml(data);
+      this._editor.editor.setGraphXml(xml.documentElement);
     });
-    this._editor.editor.setGraphXml(xml.documentElement);
+
     this._ready.resolve(void 0);
   }
 
@@ -388,117 +381,48 @@ export class DrawIOWidget extends Widget {
     sender: DrawIODocumentModel,
     changes: IDrawIOChange
   ): void => {
-    console.debug("_onContentChanged", changes);
+    console.debug('_onContentChanged');
     if (this._editor === undefined) {
       return;
     }
-    
+
     if (changes.cellChange) {
       this._context.model.mutex(() => {
-        changes.cellChange.forEach( (change, key) => {
-          if (change.action === 'delete') {
-            const doc = this._mx.mxUtils.parseXml(change.oldValue);
-            const codec = new this._mx.mxCodec(doc);
-            const cell = codec.decode(doc.documentElement);
+        console.debug('Changing graph');
+        const root = new this._mx.mxCell();
+        root.insert(new this._mx.mxCell());
+        this._editor.editor.graph.model.setRoot(root);
 
-            this._editor.editor.graph.removeCells([cell]);
-          
-          } else if (change.action === 'add') {
-            const doc = this._mx.mxUtils.parseXml(change.oldValue);
-            const codec = new this._mx.mxCodec(doc);
-            const cell = codec.decode(doc.documentElement);
-
-            this._editor.editor.graph.addCell(cell);
-          
-          } else if (change.action === 'update') {
-            const doc1 = this._mx.mxUtils.parseXml(change.oldValue);
-            const codec1 = new this._mx.mxCodec(doc1);
-            const cell1 = codec1.decode(doc1.documentElement);
-            this._editor.editor.graph.removeCells([cell1]);
-
-            const doc2 = this._mx.mxUtils.parseXml(change.oldValue);
-            const codec2 = new this._mx.mxCodec(doc2);
-            const cell2 = codec2.decode(doc2.documentElement);
-            this._editor.editor.graph.addCell(cell2);
-          }
-        });
-
-        /* console.debug("Set cell mutex");
-        
-        var xml = this._context.model.getCells();
-        const doc = this._mx.mxUtils.parseXml(xml);
+        const graph = this._context.model.getGraph();
+        const doc = this._mx.mxUtils.parseXml(graph);
         const codec = new this._mx.mxCodec(doc);
-        let elt = doc.documentElement.firstChild;
-        
-        console.debug(doc);
-        
-        const cells = [];
-        while (elt != null) {
-          cells.push(codec.decode(elt));
-          elt = elt.nextSibling;
+
+        let cell = doc.documentElement.firstChild;
+        const cells: any = [];
+
+        while (cell !== null) {
+          const mxCell = codec.decode(cell);
+          cells.push(mxCell);
+          cell = cell.nextSibling;
         }
-  
-        this._editor.editor.graph.addCells(cells); */
+
+        this._editor.editor.graph.addCells(cells);
       });
     }
-    
-    // mxRootChange
-    // cell	Optional mxCell that specifies the child.
-    //this._editor.editor.graph.model.getRoot(cell);
-    // root	mxCell that specifies the new root.
-    // Example
-    // var root = new mxCell();
-    // root.insert(new mxCell());
-    // model.setRoot(root);
-    // root	mxCell that specifies the new root.
-    //this._editor.editor.graph.model.setRoot(root);
-
-    // mxChildChanged
-    // cell	mxCell that should be removed.
-    //this._editor.editor.graph.model.remove(cell);
-    // parent	mxCell that specifies the parent to contain the child.
-    // child	mxCell that specifies the child to be inserted.
-    // index	Optional integer that specifies the index of the child.
-    //this._editor.editor.graph.model.add(parent, child, index);
   };
 
   private _onDrawIOModelChanged = (sender: any, evt: any) => {
+    console.debug('_onDrawIOModelChanged');
     const changes = evt.getProperty('edit').changes;
     const encoder = new this._mx.mxCodec();
 
     this._context.model.mutex(() => {
       this._context.model.transact(() => {
+        console.debug('Updating model');
         for (let i = 0; i < changes.length; i++) {
           const change = changes[i];
 
-          if (change instanceof this._mx.mxRootChange) {
-            console.debug("CHANGE:", change);
-            
-            const root = change.root;
-            const rootEl = encoder.encode(root);
-            const rootCell = this._mx.mxUtils.getXml(rootEl);
-            this._context.model.setCell(root.id, rootCell);
-            console.debug(rootCell);
-
-            const main = root.children[0];
-            const mainEl = encoder.encode(main);
-            const mainCell = this._mx.mxUtils.getXml(mainEl);
-            this._context.model.setCell(main.id, mainCell);
-            console.debug(mainCell);
-
-            const cells = main.children;
-            if (cells) {
-              for (let j = 0; j < cells.length; j++) {
-                const el = encoder.encode(cells[j]);
-                const cell = this._mx.mxUtils.getXml(el);
-                this._context.model.setCell(cells[j].id, cell);
-                console.debug(cell);
-              }
-            }
-          }
-
           if (change instanceof this._mx.mxChildChange) {
-            //console.log("Children changed:", change.child.id, change.child);
             if (change.index === undefined) {
               this._context.model.removeCell(change.child.id);
             } else {
@@ -512,26 +436,14 @@ export class DrawIOWidget extends Widget {
             !(change instanceof this._mx.mxRootChange) &&
             !(change instanceof this._mx.mxChildChange)
           ) {
-            //console.log("Other change:", change.cell.id, change.cell);
             const el = encoder.encode(change.cell);
             const cell = this._mx.mxUtils.getXml(el);
             this._context.model.setCell(change.cell.id, cell);
           }
-
-          //mxGeometryChange
-          //mxTerminalChange
-          //mxValueChange
-          //mxStyleChange
-          //mxCellAttributeChange
-          //mxCollapseChange
-          //mxCurrentRootChange
-          //mxGenericChangeCodec
-          //mxSelectionChange
-          //mxVisibleChange
         }
       });
     });
-  }
+  };
 
   private _loadDrawIO(mx: Private.MX): void {
     this._mx = mx;
@@ -578,7 +490,7 @@ export class DrawIOWidget extends Widget {
         dlg.init();
       }
     );
-    
+
     this._onReady();
   }
 

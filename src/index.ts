@@ -78,7 +78,7 @@ function activate(
   browserFactory: IFileBrowserFactory,
   restorer: ILayoutRestorer | null,
   menu: IMainMenu,
-  palette: ICommandPalette,
+  palette: ICommandPalette | null,
   launcher: ILauncher | null
 ): IDrawioTracker {
   const { commands } = app;
@@ -158,9 +158,16 @@ function activate(
       tracker.currentWidget === app.shell.currentWidget,
     execute: () => {
       const wdg = app.shell.currentWidget as DrawIODocumentWidget;
-      const name = wdg.context.path.split('/').pop().split('.')[0] + ".svg";
-      let path = wdg.context.path.split('/').slice(0, -1).join();
-      
+      const name =
+        wdg.context.path
+          .split('/')
+          .pop()
+          .split('.')[0] + '.svg';
+      const path = wdg.context.path
+        .split('/')
+        .slice(0, -1)
+        .join();
+
       commands
         .execute('docmanager:new-untitled', {
           name,
@@ -168,9 +175,9 @@ function activate(
           type: 'file',
           ext: '.svg'
         })
-        .then( model => {
-          model.name = name
-          model.path = path ? path + "/" + name : name;
+        .then(model => {
+          model.name = name;
+          model.path = path ? path + '/' + name : name;
           model.content = wdg.getSVG();
           model.format = 'text';
           app.serviceManager.contents.save(model.path, model);
@@ -211,13 +218,13 @@ function addMenus(
   tracker: IDrawioTracker
 ): void {
   const diagram = new JupyterLabMenu({ commands });
-  diagram.menu.title.label = 'Diagram';
+  diagram.title.label = 'Diagram';
 
   // FILE MENU
   // Add new text file creation to the file menu.
   menu.fileMenu.newMenu.addGroup([{ command: 'drawio:create-new' }], 40);
   const fileMenu = new JupyterLabMenu({ commands });
-  fileMenu.menu.title.label = 'File';
+  fileMenu.title.label = 'File';
   fileMenu.addGroup([{ command: 'drawio:create-new' }], 0);
   fileMenu.addGroup(
     [
@@ -236,7 +243,7 @@ function addMenus(
   } as any);
 
   const editMenu = new JupyterLabMenu({ commands });
-  editMenu.menu.title.label = 'Edit';
+  editMenu.title.label = 'Edit';
   editMenu.addGroup(
     [{ command: 'drawio:command/undo' }, { command: 'drawio:command/redo' }],
     0
@@ -280,7 +287,7 @@ function addMenus(
 
   // View MENU
   const viewMenu = new JupyterLabMenu({ commands });
-  viewMenu.menu.title.label = 'View';
+  viewMenu.title.label = 'View';
   viewMenu.addGroup(
     [
       { command: 'drawio:command/formatPanel' },
@@ -325,7 +332,7 @@ function addMenus(
 
   // Arrange MENU
   const arrangeMenu = new JupyterLabMenu({ commands });
-  arrangeMenu.menu.title.label = 'Arrange';
+  arrangeMenu.title.label = 'Arrange';
   arrangeMenu.addGroup(
     [
       { command: 'drawio:command/toFront' },
@@ -335,7 +342,7 @@ function addMenus(
   );
 
   const direction = new JupyterLabMenu({ commands });
-  direction.menu.title.label = 'Direction';
+  direction.title.label = 'Direction';
   direction.addGroup(
     [{ command: 'drawio:command/flipH' }, { command: 'drawio:command/flipV' }],
     0
@@ -343,14 +350,14 @@ function addMenus(
   direction.addGroup([{ command: 'drawio:command/rotation' }], 1);
   arrangeMenu.addGroup(
     [
-      { type: 'submenu', submenu: direction.menu },
+      { type: 'submenu', submenu: direction },
       { command: 'drawio:command/turn' }
     ],
     1
   );
 
   const align = new JupyterLabMenu({ commands });
-  align.menu.title.label = 'Diagram Align';
+  align.title.label = 'Diagram Align';
   align.addGroup(
     [
       { command: 'drawio:command/alignCellsLeft' },
@@ -369,7 +376,7 @@ function addMenus(
   );
 
   const distribute = new JupyterLabMenu({ commands });
-  distribute.menu.title.label = 'Distribute';
+  distribute.title.label = 'Distribute';
   distribute.addGroup(
     [
       { command: 'drawio:command/horizontal' },
@@ -379,14 +386,14 @@ function addMenus(
   );
   arrangeMenu.addGroup(
     [
-      { type: 'submenu', submenu: align.menu },
-      { type: 'submenu', submenu: distribute.menu }
+      { type: 'submenu', submenu: align },
+      { type: 'submenu', submenu: distribute }
     ],
     2
   );
 
   const navigation = new JupyterLabMenu({ commands });
-  navigation.menu.title.label = 'Navigation';
+  navigation.title.label = 'Navigation';
   navigation.addGroup([{ command: 'drawio:command/home' }], 0);
   navigation.addGroup(
     [
@@ -405,7 +412,7 @@ function addMenus(
   navigation.addGroup([{ command: 'drawio:command/collapsible' }], 3);
 
   const insert = new JupyterLabMenu({ commands });
-  insert.menu.title.label = 'Insert';
+  insert.title.label = 'Insert';
   insert.addGroup(
     [
       { command: 'drawio:command/insertLink' },
@@ -415,7 +422,7 @@ function addMenus(
   );
 
   const layout = new JupyterLabMenu({ commands });
-  layout.menu.title.label = 'Layout';
+  layout.title.label = 'Layout';
   layout.addGroup(
     [
       { command: 'drawio:command/horizontalFlow' },
@@ -440,9 +447,9 @@ function addMenus(
   );
   arrangeMenu.addGroup(
     [
-      { type: 'submenu', submenu: navigation.menu },
-      { type: 'submenu', submenu: insert.menu },
-      { type: 'submenu', submenu: layout.menu }
+      { type: 'submenu', submenu: navigation },
+      { type: 'submenu', submenu: insert },
+      { type: 'submenu', submenu: layout }
     ],
     3
   );
@@ -466,7 +473,7 @@ function addMenus(
 
   // Extras MENU
   const extrasMenu = new JupyterLabMenu({ commands });
-  extrasMenu.menu.title.label = 'Extras';
+  extrasMenu.title.label = 'Extras';
   extrasMenu.addGroup(
     [
       { command: 'drawio:command/copyConnect' },
@@ -478,16 +485,16 @@ function addMenus(
 
   diagram.addGroup(
     [
-      { type: 'submenu', submenu: fileMenu.menu },
-      { type: 'submenu', submenu: editMenu.menu },
-      { type: 'submenu', submenu: viewMenu.menu },
-      { type: 'submenu', submenu: arrangeMenu.menu },
-      { type: 'submenu', submenu: extrasMenu.menu },
+      { type: 'submenu', submenu: fileMenu },
+      { type: 'submenu', submenu: editMenu },
+      { type: 'submenu', submenu: viewMenu },
+      { type: 'submenu', submenu: arrangeMenu },
+      { type: 'submenu', submenu: extrasMenu },
       { command: 'drawio:command/about' }
     ],
     0
   );
-  menu.addMenu(diagram.menu, { rank: 60 });
+  menu.addMenu(diagram, { rank: 60 });
 }
 
 function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {

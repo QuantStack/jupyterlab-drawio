@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
+import { DocumentWidget } from '@jupyterlab/docregistry';
 
 import { MainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
 
@@ -64,30 +64,28 @@ export class DrawIODocumentWidget extends DocumentWidget<
     //TODO:
     // Add toolbar actions to change the default style of arrows and conections.
     this._menuView = new JupyterLabMenu({ commands: this._commands });
-    this._menuView.menu.title.caption = 'View (Space+Drag to Scroll)';
-    this._menuView.menu.title.icon = formatPanelIcon;
-    this._menubar.addMenu(this._menuView.menu, { rank: 1 });
+    this._menuView.title.caption = 'View (Space+Drag to Scroll)';
+    this._menuView.title.icon = formatPanelIcon;
+    this._menubar.addMenu(this._menuView, { rank: 1 });
 
     this._menuZoom = new JupyterLabMenu({ commands: this._commands });
     //TODO: Change label to a view percentage
-    this._menuZoom.menu.title.label = 'Zoom';
-    this._menuZoom.menu.title.caption = 'Zoom (Alt+Mousewheel)';
-    this._menubar.addMenu(this._menuZoom.menu, { rank: 2 });
+    this._menuZoom.title.label = 'Zoom';
+    this._menuZoom.title.caption = 'Zoom (Alt+Mousewheel)';
+    this._menubar.addMenu(this._menuZoom, { rank: 2 });
 
     this._menuInsert = new JupyterLabMenu({ commands: this._commands });
-    this._menuInsert.menu.title.caption = 'Insert';
-    this._menuInsert.menu.title.icon = plusIcon;
-    this._menubar.addMenu(this._menuInsert.menu, { rank: 2 });
+    this._menuInsert.title.caption = 'Insert';
+    this._menuInsert.title.icon = plusIcon;
+    this._menubar.addMenu(this._menuInsert, { rank: 2 });
 
     this.context.ready.then(async value => {
       console.debug('Context ready');
       await this.content.ready.promise;
 
-      //this._onTitleChanged();
       this._addToolbarItems();
       this.context.model.dirty = false;
 
-      this.context.saveState.connect(this._onSave, this);
       this.context.pathChanged.connect(this._onTitleChanged, this);
     });
   }
@@ -97,7 +95,6 @@ export class DrawIODocumentWidget extends DocumentWidget<
    */
   dispose(): void {
     this.context.pathChanged.disconnect(this._onTitleChanged, this);
-    this.context.saveState.disconnect(this._onSave, this);
     this.content.dispose();
     super.dispose();
   }
@@ -162,20 +159,6 @@ export class DrawIODocumentWidget extends DocumentWidget<
    */
   private _onTitleChanged(): void {
     this.title.label = PathExt.basename(this.context.localPath);
-  }
-
-  private _onSave(context: DocumentRegistry.IContext<DrawIODocumentModel>, state: DocumentRegistry.SaveState): void {
-    switch(state) {
-      case 'started':
-        this.content.save();
-        break;
-      case 'completed':
-        this.context.model.dirty = false;
-        break;
-      case 'failed':
-        console.error("Error saving the document.");
-        break;
-    }
   }
 
   private _addToolbarItems(): void {
