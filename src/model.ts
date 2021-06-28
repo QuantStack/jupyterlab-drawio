@@ -14,11 +14,7 @@
 
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 
-import {
-  YDocument,
-  MapChange,
-  createMutex
-} from '@jupyterlab/shared-models';
+import { YDocument, MapChange, createMutex } from '@jupyterlab/shared-models';
 
 import { IChangedArgs } from '@jupyterlab/coreutils';
 
@@ -29,8 +25,6 @@ import { PartialJSONValue, ReadonlyPartialJSONValue } from '@lumino/coreutils';
 import { ISignal, Signal } from '@lumino/signaling';
 
 import * as Y from 'yjs';
-
-import { parse, j2xParser, J2xOptions } from 'fast-xml-parser';
 
 export class DrawIODocumentModel implements DocumentRegistry.IModel {
   /**
@@ -43,13 +37,11 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   get dirty(): boolean {
-    return this._dirty;
+    return this.sharedModel.getState('dirty');
   }
 
   set dirty(newValue: boolean) {
-    const oldValue = this._dirty;
-    this._dirty = newValue;
-    this._stateChanged.emit({ name: 'dirty', oldValue, newValue });
+    this.sharedModel.setState('dirty', newValue);
   }
 
   get readOnly(): boolean {
@@ -92,54 +84,80 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     }
     this._isDisposed = true;
     Signal.clearData(this);
-    //this.sharedModel.dispose();
   }
 
   toString(): string {
-    const source = this.sharedModel.getSource() || "";
+    console.debug('toString');
+    let source = '<mxGraphModel';
+    this.sharedModel.attrs.forEach((value, key) => {
+      source += ` ${key}="${value}"`;
+    });
+
+    source += '>\n\t<root>';
+
+    this.sharedModel.root.forEach(value => {
+      source += `\n\t\t${value}`;
+    });
+
+    source += '\n\t</root>\n</mxGraphModel>';
     return source;
   }
 
   fromString(source: string): void {
-    this.sharedModel.setSource(source);
+    console.debug('fromString');
+    const patternGraph = new RegExp(/<mxGraphModel(?:[^<]?)*>/g);
+    const graph = source.match(patternGraph);
+
+    const patternAttrs = new RegExp(/\w+="[^"]*"/g);
+    const attrs = graph[0].match(patternAttrs);
+
+    const patternCells = new RegExp(
+      /(?:<mxCell[^<]*\/>)|(?:<mxCell(?:[^<]?)*>((?:.|[\n\r])*?)<\/mxCell>)/g
+    );
+    const cells = source.match(patternCells);
+
+    this.transact(() => {
+      this.sharedModel.setSource(source);
+
+      attrs.forEach(attr => {
+        const patternAttr = new RegExp(/(?<key>\w+)="(?<value>[^"]*)"/g);
+        const res = patternAttr.exec(attr);
+        this.sharedModel.setAttr(res[1], res[2]);
+      });
+
+      cells.forEach(value => {
+        const patternCell = new RegExp(/id="(?<id>[^"]*)"/g);
+        const res = patternCell.exec(value);
+        this.sharedModel.setCell(res[1], value);
+      });
+    });
   }
 
   toJSON(): PartialJSONValue {
-    const source = this.sharedModel.getSource() || "";
-    const doc = parse(
-      source,
-      {
-        attrNodeName: '#attrs',
-        textNodeName: '#text',
-        attributeNamePrefix: '',
-        arrayMode: false,
-        ignoreAttributes: false,
-        parseAttributeValue: false
-      },
-      true
-    );
-    return doc;
+    throw new Error('Not implemented');
   }
 
   fromJSON(source: ReadonlyPartialJSONValue): void {
-    const defaultOptions: Partial<J2xOptions> = {
-      attrNodeName: '#attrs',
-      textNodeName: '#text',
-      attributeNamePrefix: '',
-      ignoreAttributes: false,
-      indentBy: "\t"
-    };
-    const parser = new j2xParser(defaultOptions);
-    const data = parser.parse(source);
-    this.sharedModel.setSource(data);
+    throw new Error('Not implemented');
   }
 
   initialize(): void {
-    //console.warn('initialize(): Not implemented');
+    this.sharedModel.setState('dirty', false);
   }
 
   transact(cb: () => void): void {
     this.sharedModel.transact(cb);
+  }
+
+  getGraph(): string {
+    let source = '<root>';
+    this.sharedModel.root.forEach((value, id) => {
+      if (id !== '0' && id !== '1') {
+        source += value;
+      }
+    });
+    source += '</root>';
+    return source;
   }
 
   getCell(id: string): any {
@@ -154,35 +172,24 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     this.sharedModel.removeCell(id);
   }
 
-  getGraph(): string {
-    if (!this.sharedModel.getCell('0')) {
-      return this.toString();
-    }
-
-    let graph = "<mxGraphModel";
-    this.sharedModel.attrs.forEach( (value, key) => {
-      const attr = ` ${key}="${value}"`;
-      console.debug(attr);
-      graph += attr;
-    });
-    graph += "><root>";
-    this.sharedModel.root.forEach( cell => {
-      graph += cell;
-    });
-    graph += "</root></mxGraphModel>";
-    console.debug(graph);
-    return graph;
-  }
-
   private _onSharedModelChanged = (
     sender: YDrawIO,
     changes: IDrawIOChange
   ): void => {
-    this.dirty = true;
-    this._sharedModelChanged.emit(changes);
+    console.debug('_onSharedModelChanged');
+    if (changes.stateChange && changes.stateChange.has('dirty')) {
+      const dirty = changes.stateChange.get('dirty');
+      this._stateChanged.emit({
+        name: 'dirty',
+        oldValue: dirty.oldValue,
+        newValue: dirty.newValue
+      });
+    } else {
+      this.dirty = true;
+      this._sharedModelChanged.emit(changes);
+    }
   };
 
-  private _dirty = false;
   private _readOnly = false;
   private _isDisposed = false;
   private _contentChanged = new Signal<this, void>(this);
@@ -192,17 +199,25 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
 
 export type IDrawIOChange = {
   contextChange?: MapChange;
+  stateChange?: Map<
+    string,
+    {
+      oldValue: any;
+      newValue: any;
+    }
+  >;
   attrChange?: MapChange;
-  cellChange?: MapChange;
+  cellChange?: boolean;
 };
 
 export class YDrawIO extends YDocument<IDrawIOChange> {
   constructor() {
     super();
+    this._state = this.ydoc.getMap('state');
     this._attrs = this.ydoc.getMap('attrs');
     this._root = this.ydoc.getMap('root');
 
-    this._attrs.observe(this._attrsObserver);
+    this._state.observe(this._stateObserver);
     this._root.observe(this._rootObserver);
   }
 
@@ -218,7 +233,6 @@ export class YDrawIO extends YDocument<IDrawIOChange> {
    * Dispose of the resources.
    */
   dispose(): void {
-    this._attrs.unobserve(this._attrsObserver);
     this._root.unobserve(this._rootObserver);
   }
 
@@ -261,6 +275,35 @@ export class YDrawIO extends YDocument<IDrawIOChange> {
       this.source.delete(start, end - start);
       this.source.insert(start, value);
     });
+  }
+
+  /**
+   * Returns a state attribute.
+   *
+   * @param key: The key of the attribute.
+   */
+  public getState(key: string): any {
+    return this._state.get(key);
+  }
+
+  /**
+   * Adds new state attribute.
+   *
+   * @param key: The key of the attribute.
+   *
+   * @param value: New source.
+   */
+  public setState(key: string, value: any): void {
+    this._state.set(key, value);
+  }
+
+  /**
+   * Remove a state attribute.
+   *
+   * @param key: The key of the attribute.
+   */
+  public removeState(key: string): void {
+    this._state.delete(key);
   }
 
   /**
@@ -324,56 +367,37 @@ export class YDrawIO extends YDocument<IDrawIOChange> {
   /**
    * Handle a change to the _mxGraphModel.
    */
-  private _attrsObserver = (event: Y.YMapEvent<any>): void => {
-    const changes: IDrawIOChange = {};
-    
-    if (event.keysChanged.size > 0) {
-      changes.attrChange = new Map<string, any>();
-      event.keysChanged.forEach( key => {
-        const attr = this._attrs.get(key);
-        const change = event.changes.keys.get(key);
-        
-        changes.attrChange.set(
-          key,
-          {
-            action: change.action,
-            oldValue: change.oldValue,
-            newValue: attr
-          }
-        );
+  private _stateObserver = (event: Y.YMapEvent<any>): void => {
+    const stateChange = new Map<
+      string,
+      {
+        oldValue: any;
+        newValue: any;
+      }
+    >();
+
+    if (event.keysChanged.has('dirty')) {
+      const change = event.changes.keys.get('dirty');
+      stateChange.set('dirty', {
+        oldValue: change?.oldValue === true ? true : false,
+        newValue: this._state.get('dirty')
       });
     }
 
-    //this._changed.emit(changes);
+    this._changed.emit({ stateChange });
   };
 
   /**
    * Handle a change to the _mxGraphModel.
    */
   private _rootObserver = (event: Y.YMapEvent<any>): void => {
-    const changes: IDrawIOChange = {};
-    
-    if (event.keysChanged.size > 0) {
-      changes.cellChange = new Map<string, any>();
-      event.keysChanged.forEach( key => {
-        const cell = this._root.get(key);
-        const change = event.changes.keys.get(key);
-        
-        changes.cellChange.set(
-          key,
-          {
-            action: change.action,
-            oldValue: change.oldValue,
-            newValue: cell
-          }
-        );
-        console.debug("Change:", changes.cellChange.get(key));
-      });
-    }
-    
+    const changes: IDrawIOChange = {
+      cellChange: true
+    };
     this._changed.emit(changes);
   };
 
+  private _state: Y.Map<any>;
   private _attrs: Y.Map<any>;
   private _root: Y.Map<any>;
 }
