@@ -2,12 +2,11 @@
 	<root>
 		<mxCell id="0"/>
 		<mxCell id="1" parent="0"/>
-		<mxCell id="3" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#3399FF;" parent="1" vertex="1"><mxGeometry x="530" y="480" width="120" height="80" as="geometry"/></mxCell>
-		<mxCell id="4" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#3399FF;" parent="1" vertex="1"><mxGeometry x="110" y="480" width="120" height="80" as="geometry"/></mxCell>
-		<mxCell id="5" value="" style="endArrow=none;html=1;exitX=1;exitY=0.5;exitPerimeter=0;entryX=0;entryY=0.504;entryPerimeter=0;" parent="1" source="4" target="3" edge="1"><mxGeometry width="50" height="50" relative="1" as="geometry"><mxPoint x="389" y="625" as="sourcePoint"/><mxPoint x="510" y="530" as="targetPoint"/></mxGeometry></mxCell>
-		<mxCell id="6" value=": )" style="shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;" parent="1" vertex="1"><mxGeometry x="240" y="689" width="100" height="160" as="geometry"/></mxCell>
-		<mxCell id="8" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://quantstack.net/img/logo.svg;" parent="1" vertex="1"><mxGeometry x="186" y="168" width="409" height="105" as="geometry"/></mxCell>
-		<mxCell id="9" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://camo.githubusercontent.com/3a5e37dc07744e58761dc92794e7c6414e1cf3966aab3fadf088194c9f6b1a36/68747470733a2f2f796a732e6465762f696d616765732f6c6f676f2f796a732d313230783132302e706e67;" parent="1" vertex="1"><mxGeometry x="330" y="360" width="120" height="120" as="geometry"/></mxCell>
-		<mxCell id="11" value="Hello world" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;" parent="1" vertex="1"><mxGeometry x="515" y="720" width="160" height="60" as="geometry"/></mxCell>
+		<mxCell id="3" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#97D077;" parent="1" vertex="1"><mxGeometry x="558" y="341" width="120" height="80" as="geometry"/></mxCell>
+		<mxCell id="4" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#FFD966;" parent="1" vertex="1"><mxGeometry x="149" y="341" width="120" height="80" as="geometry"/></mxCell>
+		<mxCell id="6" value=": )" style="shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;" parent="1" vertex="1"><mxGeometry x="170" y="490" width="100" height="160" as="geometry"/></mxCell>
+		<mxCell id="8" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://quantstack.net/img/logo.svg;" parent="1" vertex="1"><mxGeometry x="209" y="168" width="409" height="105" as="geometry"/></mxCell>
+		<mxCell id="9" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://camo.githubusercontent.com/3a5e37dc07744e58761dc92794e7c6414e1cf3966aab3fadf088194c9f6b1a36/68747470733a2f2f796a732e6465762f696d616765732f6c6f676f2f796a732d313230783132302e706e67;" parent="1" vertex="1"><mxGeometry x="354" y="360" width="120" height="120" as="geometry"/></mxCell>
+		<mxCell id="10" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#7EA6E0;" parent="1" vertex="1"><mxGeometry x="354" y="545" width="120" height="80" as="geometry"/></mxCell>
 	</root>
 </mxGraphModel>
