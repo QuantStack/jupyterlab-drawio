@@ -87,7 +87,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   toString(): string {
-    console.debug('toString');
     let source = '<mxGraphModel';
     this.sharedModel.attrs.forEach((value, key) => {
       source += ` ${key}="${value}"`;
@@ -104,7 +103,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
   }
 
   fromString(source: string): void {
-    console.debug('fromString');
     const patternGraph = new RegExp(/<mxGraphModel(?:[^<]?)*>/g);
     const graph = source.match(patternGraph);
 
@@ -176,7 +174,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     sender: YDrawIO,
     changes: IDrawIOChange
   ): void => {
-    console.debug('_onSharedModelChanged');
     if (changes.stateChange && changes.stateChange.has('dirty')) {
       const dirty = changes.stateChange.get('dirty');
       this._stateChanged.emit({

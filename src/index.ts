@@ -1253,7 +1253,6 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
         tracker.currentWidget === app.shell.currentWidget
       ) {
         const wdg = app.shell.currentWidget as DrawIODocumentWidget;
-        console.debug('fill Color:', wdg.getAction('fillColor').enabled);
         return wdg.getAction('fillColor').enabled;
       } else {
         return false;
