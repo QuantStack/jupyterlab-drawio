@@ -157,27 +157,15 @@ function activate(
       tracker.currentWidget !== null &&
       tracker.currentWidget === app.shell.currentWidget,
     execute: () => {
-      const wdg = app.shell.currentWidget as DrawIODocumentWidget;
-      const name =
-        wdg.context.path
-          .split('/')
-          .pop()
-          .split('.')[0] + '.svg';
-      const path = wdg.context.path
-        .split('/')
-        .slice(0, -1)
-        .join();
-
+      const cwd = browserFactory.defaultBrowser.model.path;
       commands
         .execute('docmanager:new-untitled', {
-          name,
-          path,
+          path: cwd,
           type: 'file',
           ext: '.svg'
         })
         .then(model => {
-          model.name = name;
-          model.path = path ? path + '/' + name : name;
+          const wdg = app.shell.currentWidget as any;
           model.content = wdg.getSVG();
           model.format = 'text';
           app.serviceManager.contents.save(model.path, model);
