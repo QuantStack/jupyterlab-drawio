@@ -48,7 +48,6 @@ export class DrawIOWidget extends Widget {
     super();
     this._context = context;
     this._context.ready.then(value => {
-      console.debug('DrawIOWidget context ready');
       Private.ensureMx().then(mx => {
         this._loadDrawIO(mx);
         this._context.model.sharedModelChanged.connect(this._onContentChanged);
@@ -368,7 +367,6 @@ export class DrawIOWidget extends Widget {
 
   private _onReady(): void {
     this._context.model.mutex(() => {
-      console.debug('_onReady');
       const data = this._context.model.toString();
       const xml = this._mx.mxUtils.parseXml(data);
       this._editor.editor.setGraphXml(xml.documentElement);
@@ -381,14 +379,12 @@ export class DrawIOWidget extends Widget {
     sender: DrawIODocumentModel,
     changes: IDrawIOChange
   ): void => {
-    console.debug('_onContentChanged');
     if (this._editor === undefined) {
       return;
     }
 
     if (changes.cellChange) {
       this._context.model.mutex(() => {
-        console.debug('Changing graph');
         const root = new this._mx.mxCell();
         root.insert(new this._mx.mxCell());
         this._editor.editor.graph.model.setRoot(root);
@@ -412,13 +408,11 @@ export class DrawIOWidget extends Widget {
   };
 
   private _onDrawIOModelChanged = (sender: any, evt: any) => {
-    console.debug('_onDrawIOModelChanged');
     const changes = evt.getProperty('edit').changes;
     const encoder = new this._mx.mxCodec();
 
     this._context.model.mutex(() => {
       this._context.model.transact(() => {
-        console.debug('Updating model');
         for (let i = 0; i < changes.length; i++) {
           const change = changes[i];
 

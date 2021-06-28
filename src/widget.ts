@@ -80,7 +80,6 @@ export class DrawIODocumentWidget extends DocumentWidget<
     this._menubar.addMenu(this._menuInsert, { rank: 2 });
 
     this.context.ready.then(async value => {
-      console.debug('Context ready');
       await this.content.ready.promise;
 
       this._addToolbarItems();
