@@ -115,7 +115,7 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     const cells = source.match(patternCells);
 
     this.transact(() => {
-      this.sharedModel.setSource(source);
+      //this.sharedModel.setSource(source);
 
       attrs.forEach(attr => {
         const patternAttr = new RegExp(/(?<key>\w+)="(?<value>[^"]*)"/g);
@@ -230,6 +230,7 @@ export class YDrawIO extends YDocument<IDrawIOChange> {
    * Dispose of the resources.
    */
   dispose(): void {
+    this._state.unobserve(this._stateObserver);
     this._root.unobserve(this._rootObserver);
   }
 
