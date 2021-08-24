@@ -1,0 +1,14 @@
+<mxGraphModel dx="530" dy="1221" grid="1" gridSize="10" guides="1" tooltips="1" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff">
+	<root>
+		<mxCell id="0"/>
+		<mxCell id="1" parent="0"/>
+		<mxCell id="3" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#97D077;" parent="1" vertex="1"><mxGeometry x="530" y="538" width="120" height="80" as="geometry"/></mxCell>
+		<mxCell id="4" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#FFD966;" parent="1" vertex="1"><mxGeometry x="122" y="538" width="120" height="80" as="geometry"/></mxCell>
+		<mxCell id="9" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://camo.githubusercontent.com/3a5e37dc07744e58761dc92794e7c6414e1cf3966aab3fadf088194c9f6b1a36/68747470733a2f2f796a732e6465762f696d616765732f6c6f676f2f796a732d313230783132302e706e67;" parent="1" vertex="1"><mxGeometry x="326" y="650" width="120" height="120" as="geometry"/></mxCell>
+		<mxCell id="10" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fillColor=#7EA6E0;" parent="1" vertex="1"><mxGeometry x="326" y="833" width="120" height="80" as="geometry"/></mxCell>
+		<mxCell id="11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;entryX=0.02;entryY=0.516;entryPerimeter=0;jettySize=auto;orthogonalLoop=1;" parent="1" source="4" target="3" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+		<mxCell id="12" value="" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=https://quantstack.net/img/logo.svg;" parent="1" vertex="1"><mxGeometry x="102" y="270" width="623" height="160" as="geometry"/></mxCell>
+		<mxCell id="13" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="320" y="90" width="120" height="60" as="geometry"/></mxCell>
+		<mxCell id="14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;jettySize=auto;orthogonalLoop=1;" edge="1" parent="1" source="13" target="12"><mxGeometry relative="1" as="geometry"/></mxCell>
+	</root>
+</mxGraphModel>
