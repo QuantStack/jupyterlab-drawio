@@ -174,10 +174,10 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     sender: YDrawIO,
     changes: IDrawIOChange
   ): void => {
-    console.debug("State changed:");
+    console.debug('State changed:');
     if (changes.stateChange) {
-      changes.stateChange.forEach( state => {
-        console.debug("State changed:", state);
+      changes.stateChange.forEach(state => {
+        console.debug('State changed:', state);
         if (state.name === 'dirty') {
           this._stateChanged.emit({
             name: 'dirty',
@@ -186,7 +186,6 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
           });
         }
       });
-
     } else {
       this.dirty = true;
       this._sharedModelChanged.emit(changes);
@@ -370,7 +369,7 @@ export class YDrawIO extends YDocument<IDrawIOChange> {
    * Handle a change to the _mxGraphModel.
    */
   private _stateObserver = (event: Y.YMapEvent<any>): void => {
-    const stateChange = new Array();
+    const stateChange = [];
 
     if (event.keysChanged.has('dirty')) {
       const change = event.changes.keys.get('dirty');
