@@ -174,13 +174,19 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
     sender: YDrawIO,
     changes: IDrawIOChange
   ): void => {
-    if (changes.stateChange && changes.stateChange.has('dirty')) {
-      const dirty = changes.stateChange.get('dirty');
-      this._stateChanged.emit({
-        name: 'dirty',
-        oldValue: dirty.oldValue,
-        newValue: dirty.newValue
+    console.debug("State changed:");
+    if (changes.stateChange) {
+      changes.stateChange.forEach( state => {
+        console.debug("State changed:", state);
+        if (state.name === 'dirty') {
+          this._stateChanged.emit({
+            name: 'dirty',
+            oldValue: state.oldValue,
+            newValue: state.newValue
+          });
+        }
       });
+
     } else {
       this.dirty = true;
       this._sharedModelChanged.emit(changes);
@@ -196,13 +202,11 @@ export class DrawIODocumentModel implements DocumentRegistry.IModel {
 
 export type IDrawIOChange = {
   contextChange?: MapChange;
-  stateChange?: Map<
-    string,
-    {
-      oldValue: any;
-      newValue: any;
-    }
-  >;
+  stateChange?: Array<{
+    name: string;
+    oldValue: any;
+    newValue: any;
+  }>;
   attrChange?: MapChange;
   cellChange?: boolean;
 };
@@ -366,17 +370,12 @@ export class YDrawIO extends YDocument<IDrawIOChange> {
    * Handle a change to the _mxGraphModel.
    */
   private _stateObserver = (event: Y.YMapEvent<any>): void => {
-    const stateChange = new Map<
-      string,
-      {
-        oldValue: any;
-        newValue: any;
-      }
-    >();
+    const stateChange = new Array();
 
     if (event.keysChanged.has('dirty')) {
       const change = event.changes.keys.get('dirty');
-      stateChange.set('dirty', {
+      stateChange.push({
+        name: 'dirty',
         oldValue: change?.oldValue === true ? true : false,
         newValue: this._state.get('dirty')
       });

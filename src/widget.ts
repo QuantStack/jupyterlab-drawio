@@ -85,7 +85,7 @@ export class DrawIODocumentWidget extends DocumentWidget<
       this._addToolbarItems();
       this.context.model.dirty = false;
 
-      this.context.pathChanged.connect(this._onTitleChanged, this);
+      this.context.pathChanged.connect(this._titleChanged, this);
     });
   }
 
@@ -93,7 +93,7 @@ export class DrawIODocumentWidget extends DocumentWidget<
    * Dispose of the resources held by the widget.
    */
   dispose(): void {
-    this.context.pathChanged.disconnect(this._onTitleChanged, this);
+    this.context.pathChanged.disconnect(this._titleChanged, this);
     this.content.dispose();
     super.dispose();
   }
@@ -156,7 +156,7 @@ export class DrawIODocumentWidget extends DocumentWidget<
   /**
    * Handle a change to the title.
    */
-  private _onTitleChanged(): void {
+  private _titleChanged(): void {
     this.title.label = PathExt.basename(this.context.localPath);
   }
 
