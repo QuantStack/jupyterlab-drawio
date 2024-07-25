@@ -14,7 +14,9 @@
 
 import { DocumentRegistry, DocumentWidget } from '@jupyterlab/docregistry';
 
-import { MainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
+import { MainMenu } from '@jupyterlab/mainmenu';
+
+import { RankedMenu } from '@jupyterlab/ui-components';
 
 import { IChangedArgs, PathExt } from '@jupyterlab/coreutils';
 
@@ -60,31 +62,31 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
     //TODO:
     // Add toolbar actions to change the default style of arrows and conections.
-    this._menuView = new JupyterLabMenu({ commands: this._commands });
-    this._menuView.menu.title.caption = 'View (Space+Drag to Scroll)';
-    this._menuView.menu.title.icon = formatPanelIcon;
-    this._menubar.addMenu(this._menuView.menu, { rank: 1 });
+    this._menuView = new RankedMenu({ commands: this._commands });
+    this._menuView.rootMenu.title.caption = 'View (Space+Drag to Scroll)';
+    this._menuView.rootMenu.title.icon = formatPanelIcon;
+    this._menubar.addMenu(this._menuView.rootMenu, true, { rank: 1 });
 
-    this._menuZoom = new JupyterLabMenu({ commands: this._commands });
+    this._menuZoom = new RankedMenu({ commands: this._commands });
     //TODO: Change label to a view percentage
-    this._menuZoom.menu.title.label = 'Zoom';
-    this._menuZoom.menu.title.caption = 'Zoom (Alt+Mousewheel)';
-    this._menubar.addMenu(this._menuZoom.menu, { rank: 2 });
+    this._menuZoom.rootMenu.title.label = 'Zoom';
+    this._menuZoom.rootMenu.title.caption = 'Zoom (Alt+Mousewheel)';
+    this._menubar.addMenu(this._menuZoom.rootMenu, true, { rank: 2 });
 
-    this._menuInsert = new JupyterLabMenu({ commands: this._commands });
-    this._menuInsert.menu.title.caption = 'Insert';
-    this._menuInsert.menu.title.icon = plusIcon;
-    this._menubar.addMenu(this._menuInsert.menu, { rank: 2 });
+    this._menuInsert = new RankedMenu({ commands: this._commands });
+    this._menuInsert.rootMenu.title.caption = 'Insert';
+    this._menuInsert.rootMenu.title.icon = plusIcon;
+    this._menubar.addMenu(this._menuInsert.rootMenu, true, { rank: 2 });
 
     this.context.ready.then(async value => {
       await this.content.ready.promise;
 
-      this._onTitleChanged();
+      this._onDrawIOTitleChanged();
       this._addToolbarItems();
       this.content.setContent(this.context.model.toString());
       this._handleDirtyStateNew();
 
-      this.context.pathChanged.connect(this._onTitleChanged, this);
+      this.context.pathChanged.connect(this._onDrawIOTitleChanged, this);
       //this.context.model.contentChanged.connect(this._onContentChanged, this);
       this.context.model.stateChanged.connect(
         this._onModelStateChangedNew,
@@ -159,8 +161,10 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
   /**
    * Handle a change to the title.
+   * changed since the base class method renamed as onTitlechanged
    */
-  private _onTitleChanged(): void {
+
+  private _onDrawIOTitleChanged(): void {
     this.title.label = PathExt.basename(this.context.localPath);
   }
 
@@ -272,9 +276,9 @@ export class DrawIODocumentWidget extends DocumentWidget<DrawIOWidget> {
 
   private _commands: CommandRegistry;
   private _menubar: MainMenu;
-  private _menuView: JupyterLabMenu;
-  private _menuZoom: JupyterLabMenu;
-  private _menuInsert: JupyterLabMenu;
+  private _menuView: RankedMenu;
+  private _menuZoom: RankedMenu;
+  private _menuInsert: RankedMenu;
 }
 
 export namespace DrawIODocumentWidget {

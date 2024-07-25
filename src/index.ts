@@ -24,9 +24,11 @@ import {
   IWidgetTracker
 } from '@jupyterlab/apputils';
 
-import { IMainMenu, JupyterLabMenu } from '@jupyterlab/mainmenu';
+import { IMainMenu } from '@jupyterlab/mainmenu';
 
-import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
+import { RankedMenu } from '@jupyterlab/ui-components';
+
+import { IDefaultFileBrowser } from '@jupyterlab/filebrowser';
 
 import { ILauncher } from '@jupyterlab/launcher';
 
@@ -65,7 +67,7 @@ export const IDrawioTracker = new Token<IDrawioTracker>('drawio/tracki');
 const extension: JupyterFrontEndPlugin<IDrawioTracker> = {
   id: '@jupyterlab/drawio-extension:plugin',
   autoStart: true,
-  requires: [IFileBrowserFactory, ILayoutRestorer, IMainMenu, ICommandPalette],
+  requires: [IDefaultFileBrowser, ILayoutRestorer, IMainMenu, ICommandPalette],
   optional: [ILauncher],
   provides: IDrawioTracker,
   activate
@@ -73,16 +75,21 @@ const extension: JupyterFrontEndPlugin<IDrawioTracker> = {
 
 export default extension;
 
+namespace CommandIDs {
+  export const redo = 'drawio:command/redo';
+  export const undo = 'drawio:command/undo';
+}
+
 function activate(
   app: JupyterFrontEnd,
-  browserFactory: IFileBrowserFactory,
+  defaultBrowser: IDefaultFileBrowser,
   restorer: ILayoutRestorer,
   menu: IMainMenu,
   palette: ICommandPalette,
   launcher: ILauncher | null
 ): IDrawioTracker {
   const { commands } = app;
-
+  console.log('initialise drawio');
   const namespace = 'drawio';
   const tracker = new WidgetTracker<DrawIODocumentWidget>({ namespace });
 
@@ -101,7 +108,7 @@ function activate(
   });
 
   factory.widgetCreated.connect((sender, widget) => {
-    widget.title.icon = 'jp-MaterialIcon jp-ImageIcon'; // TODO change
+    widget.title.iconClass = 'jp-MaterialIcon jp-ImageIcon'; // TODO change
 
     // Notify the instance tracker if restore data needs to update.
     widget.context.pathChanged.connect(() => {
@@ -128,7 +135,7 @@ function activate(
     iconClass: 'jp-MaterialIcon jp-ImageIcon',
     caption: 'Create a new diagram file',
     execute: () => {
-      const cwd = browserFactory.defaultBrowser.model.path;
+      const cwd = defaultBrowser.model.path;
       commands
         .execute('docmanager:new-untitled', {
           path: cwd,
@@ -151,7 +158,7 @@ function activate(
       tracker.currentWidget !== null &&
       tracker.currentWidget === app.shell.currentWidget,
     execute: () => {
-      const cwd = browserFactory.defaultBrowser.model.path;
+      const cwd = defaultBrowser.model.path;
       commands
         .execute('docmanager:new-untitled', {
           path: cwd,
@@ -177,7 +184,7 @@ function activate(
   }
 
   if (menu) {
-    addMenus(commands, menu, tracker);
+    addMenus(app, commands, menu, tracker);
   }
 
   addCommands(app, tracker);
@@ -195,18 +202,19 @@ function activate(
 }
 
 function addMenus(
+  app: JupyterFrontEnd,
   commands: CommandRegistry,
   menu: IMainMenu,
   tracker: IDrawioTracker
 ): void {
-  const diagram = new JupyterLabMenu({ commands });
-  diagram.menu.title.label = 'Diagram';
+  const diagram = new RankedMenu({ commands });
+  diagram.rootMenu.title.label = 'Diagram';
 
   // FILE MENU
   // Add new text file creation to the file menu.
   menu.fileMenu.newMenu.addGroup([{ command: 'drawio:create-new' }], 40);
-  const fileMenu = new JupyterLabMenu({ commands });
-  fileMenu.menu.title.label = 'File';
+  const fileMenu = new RankedMenu({ commands });
+  fileMenu.rootMenu.title.label = 'File';
   fileMenu.addGroup([{ command: 'drawio:create-new' }], 0);
   fileMenu.addGroup(
     [
@@ -216,18 +224,18 @@ function addMenus(
     ],
     1
   );
+  const isEnabled = () =>
+    tracker.currentWidget !== null &&
+    tracker.currentWidget === app.shell.currentWidget;
 
   // Edit MENU
-  menu.editMenu.undoers.add({
-    tracker,
-    undo: (widget: any) => widget.execute('undo'),
-    redo: (widget: any) => widget.execute('redo')
-  } as any);
+  menu.editMenu.undoers.undo.add({ id: CommandIDs.undo, isEnabled });
+  menu.editMenu.undoers.undo.add({ id: CommandIDs.redo, isEnabled });
 
-  const editMenu = new JupyterLabMenu({ commands });
-  editMenu.menu.title.label = 'Edit';
+  const editMenu = new RankedMenu({ commands });
+  editMenu.rootMenu.title.label = 'Edit';
   editMenu.addGroup(
-    [{ command: 'drawio:command/undo' }, { command: 'drawio:command/redo' }],
+    [{ command: CommandIDs.undo }, { command: CommandIDs.redo }],
     0
   );
   editMenu.addGroup(
@@ -268,8 +276,8 @@ function addMenus(
   editMenu.addGroup([{ command: 'drawio:command/lockUnlock' }], 7);
 
   // View MENU
-  const viewMenu = new JupyterLabMenu({ commands });
-  viewMenu.menu.title.label = 'View';
+  const viewMenu = new RankedMenu({ commands });
+  viewMenu.rootMenu.title.label = 'View';
   viewMenu.addGroup(
     [
       { command: 'drawio:command/formatPanel' },
@@ -313,8 +321,8 @@ function addMenus(
   );
 
   // Arrange MENU
-  const arrangeMenu = new JupyterLabMenu({ commands });
-  arrangeMenu.menu.title.label = 'Arrange';
+  const arrangeMenu = new RankedMenu({ commands });
+  arrangeMenu.rootMenu.title.label = 'Arrange';
   arrangeMenu.addGroup(
     [
       { command: 'drawio:command/toFront' },
@@ -323,8 +331,8 @@ function addMenus(
     0
   );
 
-  const direction = new JupyterLabMenu({ commands });
-  direction.menu.title.label = 'Direction';
+  const direction = new RankedMenu({ commands });
+  direction.rootMenu.title.label = 'Direction';
   direction.addGroup(
     [{ command: 'drawio:command/flipH' }, { command: 'drawio:command/flipV' }],
     0
@@ -332,14 +340,14 @@ function addMenus(
   direction.addGroup([{ command: 'drawio:command/rotation' }], 1);
   arrangeMenu.addGroup(
     [
-      { type: 'submenu', submenu: direction.menu },
+      { type: 'submenu', submenu: direction.rootMenu },
       { command: 'drawio:command/turn' }
     ],
     1
   );
 
-  const align = new JupyterLabMenu({ commands });
-  align.menu.title.label = 'Diagram Align';
+  const align = new RankedMenu({ commands });
+  align.rootMenu.title.label = 'Diagram Align';
   align.addGroup(
     [
       { command: 'drawio:command/alignCellsLeft' },
@@ -357,8 +365,8 @@ function addMenus(
     1
   );
 
-  const distribute = new JupyterLabMenu({ commands });
-  distribute.menu.title.label = 'Distribute';
+  const distribute = new RankedMenu({ commands });
+  distribute.rootMenu.title.label = 'Distribute';
   distribute.addGroup(
     [
       { command: 'drawio:command/horizontal' },
@@ -368,14 +376,14 @@ function addMenus(
   );
   arrangeMenu.addGroup(
     [
-      { type: 'submenu', submenu: align.menu },
-      { type: 'submenu', submenu: distribute.menu }
+      { type: 'submenu', submenu: align.rootMenu },
+      { type: 'submenu', submenu: distribute.rootMenu }
     ],
     2
   );
 
-  const navigation = new JupyterLabMenu({ commands });
-  navigation.menu.title.label = 'Navigation';
+  const navigation = new RankedMenu({ commands });
+  navigation.rootMenu.title.label = 'Navigation';
   navigation.addGroup([{ command: 'drawio:command/home' }], 0);
   navigation.addGroup(
     [
@@ -393,8 +401,8 @@ function addMenus(
   );
   navigation.addGroup([{ command: 'drawio:command/collapsible' }], 3);
 
-  const insert = new JupyterLabMenu({ commands });
-  insert.menu.title.label = 'Insert';
+  const insert = new RankedMenu({ commands });
+  insert.rootMenu.title.label = 'Insert';
   insert.addGroup(
     [
       { command: 'drawio:command/insertLink' },
@@ -403,8 +411,8 @@ function addMenus(
     0
   );
 
-  const layout = new JupyterLabMenu({ commands });
-  layout.menu.title.label = 'Layout';
+  const layout = new RankedMenu({ commands });
+  layout.rootMenu.title.label = 'Layout';
   layout.addGroup(
     [
       { command: 'drawio:command/horizontalFlow' },
@@ -429,9 +437,9 @@ function addMenus(
   );
   arrangeMenu.addGroup(
     [
-      { type: 'submenu', submenu: navigation.menu },
-      { type: 'submenu', submenu: insert.menu },
-      { type: 'submenu', submenu: layout.menu }
+      { type: 'submenu', submenu: navigation.rootMenu },
+      { type: 'submenu', submenu: insert.rootMenu },
+      { type: 'submenu', submenu: layout.rootMenu }
     ],
     3
   );
@@ -454,8 +462,8 @@ function addMenus(
   );
 
   // Extras MENU
-  const extrasMenu = new JupyterLabMenu({ commands });
-  extrasMenu.menu.title.label = 'Extras';
+  const extrasMenu = new RankedMenu({ commands });
+  extrasMenu.rootMenu.title.label = 'Extras';
   extrasMenu.addGroup(
     [
       { command: 'drawio:command/copyConnect' },
@@ -467,16 +475,16 @@ function addMenus(
 
   diagram.addGroup(
     [
-      { type: 'submenu', submenu: fileMenu.menu },
-      { type: 'submenu', submenu: editMenu.menu },
-      { type: 'submenu', submenu: viewMenu.menu },
-      { type: 'submenu', submenu: arrangeMenu.menu },
-      { type: 'submenu', submenu: extrasMenu.menu },
+      { type: 'submenu', submenu: fileMenu.rootMenu },
+      { type: 'submenu', submenu: editMenu.rootMenu },
+      { type: 'submenu', submenu: viewMenu.rootMenu },
+      { type: 'submenu', submenu: arrangeMenu.rootMenu },
+      { type: 'submenu', submenu: extrasMenu.rootMenu },
       { command: 'drawio:command/about' }
     ],
     0
   );
-  menu.addMenu(diagram.menu, { rank: 60 });
+  menu.addMenu(diagram.rootMenu, true, { rank: 60 });
 }
 
 function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
@@ -571,7 +579,7 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
       }
     });
   });
-  app.commands.addCommand('drawio:command/undo', {
+  app.commands.addCommand(CommandIDs.undo, {
     label: 'Undo',
     caption: 'Undo (Ctrl+Z)',
     icon: undoIcon,
@@ -596,7 +604,7 @@ function addCommands(app: JupyterFrontEnd, tracker: IDrawioTracker): void {
       }
     }
   });
-  app.commands.addCommand('drawio:command/redo', {
+  app.commands.addCommand(CommandIDs.redo, {
     label: 'Redo',
     caption: 'Redo (Ctrl+Shift+Z)',
     icon: redoIcon,

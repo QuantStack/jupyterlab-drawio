@@ -431,6 +431,7 @@ export class DrawIOWidget extends Widget {
   }
 
   private _editor: any;
+  //@ts-ignore
   private _mx: Private.MX;
   private _promptSpacing: any;
   private _ready = new PromiseDelegate<void>();

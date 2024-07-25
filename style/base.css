@@ -1,5 +1,5 @@
 .dio-toolbar-dropdown:not(:-internal-list-box) {
-	overflow: visible !important;
+  overflow: visible !important;
 }
 
 .dio-toolbar .jp-ToolbarButtonComponent-label {

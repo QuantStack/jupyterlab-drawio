@@ -6,7 +6,7 @@ A JupyterLab extension for embedding drawio / mxgraph.
 
 ## Requirements
 
-* JupyterLab >= 3.0
+- JupyterLab >= 3.0
 
 ## Install
 

@@ -1,0 +1,13 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.3.1
+_src_path: https://github.com/jupyterlab/extension-template
+author_email: ''
+author_name: Wolf Vollprecht
+has_binder: true
+has_settings: true
+kind: frontend
+labextension_name: jupyterlab-drawio
+project_short_description: A JupyterLab extension for embedding drawio / mxgraph.
+python_name: jupyterlab-drawio
+repository: https://github.com/wolfv/jupyterlab-drawio.git
+test: false

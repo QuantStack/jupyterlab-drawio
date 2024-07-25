@@ -1,0 +1,8 @@
+{
+  "jupyter.lab.shortcuts": [],
+  "title": "jupyterlab-drawio",
+  "description": "jupyterlab-drawio settings.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}
